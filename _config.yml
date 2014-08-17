@@ -15,6 +15,12 @@ author:
   name:           Mark Otto
   url:            https://twitter.com/mdo
   email:          markdotto@gmail.com
+  
+#pages to include in the header
+pages_list:       
+  About: '/about'
+  Archive: '/archive'
+  Feed: '/atom.xml'
 
 # Custom vars
 version:          1.0.0
