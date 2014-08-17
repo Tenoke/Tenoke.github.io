@@ -6,8 +6,8 @@ pygments:         true
 permalink:        pretty
 
 # Setup
-title:            Tenoke's blog
-tagline:          The Jekyll Butler
+title:            Not Bayesian Enough
+tagline:           
 url:              http://wwww.notbayesianenough.com
 paginate:         1
 baseurl:          /
