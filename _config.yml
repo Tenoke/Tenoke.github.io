@@ -6,7 +6,7 @@ pygments:         true
 permalink:        pretty
 
 # Setup
-title:            Poole
+title:            Tenoke's blog
 tagline:          The Jekyll Butler
 url:              http://getpoole.com
 paginate:         1
