@@ -1,10 +1,10 @@
 ---
 layout: post
 title: Hammers and Nails
-subtitle: 
+<small> (Random excerpt from notes.txt) </small>
 ---
 
-###### <small> (Random excerpt from notes.txt) </small>
+
 
 Overuse of tools is a very ubiquitous problem, and one observed in users of all sorts of tools - abstract or not. Some people really do try to use their hammers on things that are not nails, after seeing how it helped with fixing the shelf. Others, on the other hand, try to apply morals from parables to unsuitable situations.
 
