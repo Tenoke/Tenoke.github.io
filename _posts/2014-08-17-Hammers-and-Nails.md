@@ -1,7 +1,7 @@
 ---
 layout: post
-title: Hammers and Nails
-<small> (Random excerpt from notes.txt) </small>
+title: Hammers and Nails <small> (Random excerpt from notes.txt) </small>
+
 ---
 
 
