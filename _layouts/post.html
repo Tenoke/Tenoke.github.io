@@ -3,8 +3,9 @@ layout: default
 ---
 
 <div class="post">
-  <h1 class="post-title">{{ page.title }}</h1>
-  <small>{{ page.subtitle }}</small>
+  <p> <h1 class="post-title">{{ page.title }}</h1>
+  <small class="post-date">{{ page.subtitle }}</small> </p>
+  
   <span class="post-date">{{ page.date | date_to_string }}</span>
   {{ content }}
 </div>
