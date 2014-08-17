@@ -8,9 +8,9 @@ permalink:        pretty
 # Setup
 title:            Tenoke's blog
 tagline:          The Jekyll Butler
-url:              http://getpoole.com
+url:              http://wwww.notbayesianenough.com
 paginate:         1
-baseurl:          /
+shorturl:         notbayesianenough.com
 author:
   name:           Mark Otto
   url:            https://twitter.com/mdo
