@@ -3,7 +3,7 @@ layout: post
 title: Defending Dawkins on Down's
 ---
 
-Dawkins recently faced [a lot of](http://www.theguardian.com/science/2014/aug/21/richard-dawkins-immoral-not-to-abort-a-downs-syndrome-foetus) [backlash](http://www.independent.co.uk/news/people/richard-dawkins-on-babies-with-down-syndrome-abort-it-and-try-again-it-would-be-immoral-to-bring-it-into-the-world-9681549.html) over his recommendation, that from a moral standpoint mothers pregnat with Down Syndrome kids should abort.
+Dawkins recently faced [a lot of](http://www.theguardian.com/science/2014/aug/21/richard-dawkins-immoral-not-to-abort-a-downs-syndrome-foetus) [backlash](http://www.independent.co.uk/news/people/richard-dawkins-on-babies-with-down-syndrome-abort-it-and-try-again-it-would-be-immoral-to-bring-it-into-the-world-9681549.html) over his recommendation, that from a moral standpoint mothers pregnat with Down Syndrome fetuses should abort them.
 <blockquote class="twitter-tweet" lang="en"><p><a href="https://twitter.com/InYourFaceNYer">@InYourFaceNYer</a> Abort it and try again. It would be immoral to bring it into the world if you have the choice.</p>&mdash; Richard Dawkins (@RichardDawkins) <a href="https://twitter.com/RichardDawkins/statuses/502106262088466432">August 20, 2014</a></blockquote>
 <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 
