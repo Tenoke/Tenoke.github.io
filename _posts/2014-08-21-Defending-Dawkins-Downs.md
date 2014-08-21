@@ -19,4 +19,4 @@ Morality is complicated, and probably subjective so it is hard to make clear-cut
 Of course, that doesn't mean we should demonise mothers who haven't aborted, or that we should 'abort' grown people with Down's. However, we also shouldn't reject arguments, because they are supported by someone we dislike, or because they look offensive at first glance.  
 
 ---
-<a id='N1' style='text-decoration: none'>1. Of course, there are special cases, where the reasoning doesn't apply - this could be your last chance to have a kid, you might believe that Downs is going to be cured soon, etc. <a/>
+1. Of course,<a id='N1' style='text-decoration: none'>  <a/>there are special cases, where the reasoning doesn't apply - this could be your last chance to have a kid, you might believe that Downs is going to be cured soon, etc. <a/>
