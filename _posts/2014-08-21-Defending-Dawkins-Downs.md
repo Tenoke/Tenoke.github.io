@@ -9,7 +9,7 @@ Dawkins recently faced [a lot of](http://www.theguardian.com/science/2014/aug/21
 
 Now, I agree that Dawkins often acts like a dick, but that doesn't invalidate his reasoning.
 
-Would you prefer your kid to have Down's or not? If not, and if you don't think that abortion is murder, then it follows that you should abort in this situation (as many/most people do)<sup>1</sup>. From his POV aborting is an inconvenience, but not morally wrong. Under this assumption aborting a fetus with Down's, and then having a new kid is equivalent to choosing to have a non-Down's kid + being inconvenienced by some medical procedures.
+Would you prefer your kid to have Down's or not? If not, and if you don't think that abortion is murder, then it follows that you should abort in this situation (as many/most people do)<a href='#N1'><sup>1</sup></a>. From his POV aborting is an inconvenience, but not morally wrong. Under this assumption aborting a fetus with Down's, and then having a new kid is equivalent to choosing to have a non-Down's kid + being inconvenienced by some medical procedures.
 
 I can't say that I disagree with him, and the reasoning extends to anything we can screen for in the womb, which puts you at a disadvantage or reduces your Subjective well-being - missing limbs, genes associated with drops in IQ, anything.
 
@@ -19,4 +19,4 @@ Morality is complicated, and probably subjective so it is hard to make clear-cut
 Of course, that doesn't mean we should demonise mothers who haven't aborted, or that we should 'abort' grown people with Down's. However, we also shouldn't reject arguments, because they are supported by someone we dislike, or because they look offensive at first glance.  
 
 ---
-1. Of course, there are special cases, where the reasoning doesn't apply - this could be your last chance to have a kid, you might believe that Downs is going to be cured soon, etc. 
+<a id='N1'>1. Of course, there are special cases, where the reasoning doesn't apply - this could be your last chance to have a kid, you might believe that Downs is going to be cured soon, etc. <a/>
