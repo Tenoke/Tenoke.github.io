@@ -16,7 +16,7 @@ I can't say that I disagree with him, and the reasoning extends to anything we c
 
 Morality is complicated, and probably subjective so it is hard to make clear-cut statements like the one made by Dawkins, but in the hypothetical where we have a healthy child, and I have the option of giving them Downs or not, if I choose to give them Downs, that would be considered immoral by most. The situation here is basically equivalent (although that may not be obvious) - if you don't consider abortion immoral, and have the relevant information beforehand (which many mothers do not), you should probably choose not to give your child a disability.
 
-Of course, that doesn't mean we should demonise mothers who haven't aborted, or that we should 'abort' grown people with Down's. However, we also shouldn't reject arguments, because they are supported by someone we dislike, or because they look offensive at first glance.  
+Of course, that doesn't mean we should demonise mothers who haven't aborted, or that we should 'abort' grown people with Down Syndrome. However, we also shouldn't reject arguments, because they are supported by someone we dislike, or because they look offensive at first glance.  
 
 ---
 1. Of course,<a id='N1' style='text-decoration: none'>  </a>there are special cases, where the reasoning doesn't apply - this could be your last chance to have a kid, you might believe that Downs is going to be cured soon, etc.
