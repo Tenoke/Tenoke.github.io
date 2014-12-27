@@ -3,7 +3,7 @@ layout: post
 title: I don't know Timmy, being rational is a big responsibility
 ---
 
-Last week, I had the displeasure to travel home by night bus. It was a normal London night bus, typically full with rowdy drunk people going home at 5 am after a heavy Friday night.
+Last week, I had the displeasure to travel home by night bus. It was a standard London night bus, typically full with rowdy drunk people going home at 5 am after a heavy Friday.
 
 I was reading a short story on my tablet, trying to ignore the chatter, when the two girls in front of me started having a shouting contest with a guy sitting close to them. I didn't really get what it was about, and nobody else was stepping in, so I just watched. In the end the guy started getting close to the girls, who were getting more distressed and insulting him harder, so I said something along the lines of 'come on man, leave them'. A bit after that the girls started shouting about calling the police, spat on him, and got him to leave at the current bus stop. I caught the last few lines between them, and realized that the guy had felt up one of the girls, which is why this was happening.
 
