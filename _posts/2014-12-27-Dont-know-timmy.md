@@ -1,6 +1,6 @@
 ---
 layout: post
-title: I don't know Timmy, being rational is a big responsibility
+title: I don't know, Timmy, being rational is a big responsibility
 ---
 
 Last week, I had the displeasure to travel home by night bus. It was a standard London night bus, typically full with rowdy drunk people going home at 5 am after a heavy Friday.
