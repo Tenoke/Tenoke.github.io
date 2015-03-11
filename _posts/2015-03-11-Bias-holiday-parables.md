@@ -3,9 +3,9 @@ layout: post
 title: Overheard during the Cognitive Biases Holiday Season
 ---
 “Nobody showed up on [Hindsight bias](https://en.wikipedia.org/wiki/Hindsight_bias) day, just as I thought would happen.”
-
-“We need help for the [Bystander Effect](https://en.wikipedia.org/wiki/Bystander_effect) festival”  “Someone else will probably do it”
-
+---
+“Should we help with the [Bystander Effect](https://en.wikipedia.org/wiki/Bystander_effect) festival”  “Meh, someone else will probably do it”
+---
 “My decision to host a [Choice-Supportive Bias](https://en.wikipedia.org/wiki/Choice-supportive_bias)  party was great in retrospect.”
 
 “I wasn't going to go to the [Bandwagon Effect](https://en.wikipedia.org/wiki/Bandwagon_effect)  celebration, but all my friends went, so I ended up going, too.”
