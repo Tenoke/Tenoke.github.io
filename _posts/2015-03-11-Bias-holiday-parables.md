@@ -72,4 +72,4 @@ title: Overheard during the Cognitive Biases Holiday Season
 >“This [Begging the Question](https://en.wikipedia.org/wiki/Begging_the_question) party sucked, because it was a Begging the Question party.”
 
 <!-- -->
->“I saved all the bacon sandwiches for when my friends arrive to the [In-group Bias](https://en.wikipedia.org/wiki/In-group_favoritism) party”
+>“I saved all the bacon sandwiches for when my friends arrive to the [In-group Bias](https://en.wikipedia.org/wiki/In-group_favoritism) party.”
