@@ -3,8 +3,7 @@ layout: post
 title: Overheard during the Cognitive Biases Holiday Season
 ---
 >“Nobody showed up on [Hindsight bias](https://en.wikipedia.org/wiki/Hindsight_bias) day, just as I thought would happen.”
-
-
+<!-- -->
 >“Should we help with the [Bystander Effect](https://en.wikipedia.org/wiki/Bystander_effect) festival”  “Meh, someone else will probably do it”
 
 
