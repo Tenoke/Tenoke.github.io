@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.0 -->
+<title>Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger | Svilen Todorov</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations." />
+<meta property="og:description" content="One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations." />
+<link rel="canonical" href="https://svilentodorov.xyz//blog/gpt-finetune/" />
+<meta property="og:url" content="https://svilentodorov.xyz//blog/gpt-finetune/" />
+<meta property="og:site_name" content="Svilen Todorov" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-03-12T00:00:00+01:00" />
+<script type="application/ld+json">
+{"dateModified":"2019-03-12T00:00:00+01:00","datePublished":"2019-03-12T00:00:00+01:00","@type":"BlogPosting","headline":"Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/gpt-finetune/"},"url":"https://svilentodorov.xyz//blog/gpt-finetune/","description":"One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+            <a class="page-link" href="/rps">RPS Demo</a>
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/rps.html">RPS</a>-->
+        </div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+  <center><h2 class="post-title p-name" itemprop="name headline">Generating Fake Conversations by fine-tunning OpenAI&#39;s GPT-2 on data from Facebook Messenger</h1> 
+  <h2 class="post-subtitle p-name" itemprop="name headline">Using Google Collab</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-03-12T00:00:00+01:00" itemprop="datePublished">Mar 12, 2019
+      </time></p>
+    </center>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.</p>
+
+<p>In February 2019 OpenAI released <a href="https://blog.openai.com/better-language-models/">information on their new state of the art language model</a> which created a lot of buzz within the community. While few disagree the results they included are better than anything we’ve seen before (even if mainly because they made a bigger model combining recent advances), many were peeved that OpenAI only released a small pre-trained version of their model rather than the full one they generated examples with. Nonetheless, the small model is also very good, and due to nshepperd’s addition to their code, we can easily fine-tune it on our own data to easily generate (near-)state of the art results specific to whatever we want.</p>
+
+<p>Since then people have been experimenting with the model, including some like the aforementioned nsheppered adding simple scripts allowing us to fine-tune the model on our data. In this post, I am going to describe how to use easily available tools like those scripts, Google Collab and Facebook’s Data Export option in order to create borderline realistic conversation snippets.</p>
+
+<p>If you don’t have enough data on facebook, you should be able to easily export your conversation data from pretty much any other service and train on that. Better yet, you can combine data from different sources - as usual with machine learning, the more data you have the better.</p>
+
+<p>You can follow in the collab <a href="https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP">here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
+
+<h2 id="code">Code</h2>
+
+<p>We start with the imports</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import os
+import json
+import random
+import re
+</code></pre></div></div>
+
+<p>Then we clone <a href="https://github.com/Tenoke/gpt-2">my fork</a> of <a href="https://github.com/nshepperd/gpt-2">nsheppered’s GPT</a> finetuning repo - I’ve only made some small changes to it - mainly adding a couple of extra command line options for changing things like the learning rate and adding a stopping point. We also cd into it, and install the requirements and download the model.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!git clone https://github.com/Tenoke/gpt-2.git
+cd gpt-2
+!pip3 install -r requirements.txt
+!sh download_model.sh 117M
+</code></pre></div></div>
+
+<p>Next, we need to download our facebook messages. Facebook explains how to do it <a href="https://www.facebook.com/help/1701730696756992?helpref=hc_global_nav">here</a>. Only select ‘messages’ and for the format select ‘json’. After it is ready you can either download the file by clicking download or by using Dev Tools. To do so open them with F12, go to sources, and click download (and then just cancel it), then find the entry starting with file.php, right click it and ‘copy as curl’ as in this screenshot
+<img src="/static/screenshot-fb.png" alt="Facebook Screenshot" class="img-responsive" />
+then just add ! in front of the command (to run it in collab) and <code class="highlighter-rouge">--output fb-json.zip</code> at the end to name the file.</p>
+
+<p><code class="highlighter-rouge">
+!curl &lt;link&gt; --output fb-json.zip
+</code>
+After that, we unzip the file and get a list containing all files with message data (as opposed to the other stuff that facebook includes in the zip)</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!unzip fb-json.zip
+
+files = []
+for p, d, f in os.walk('messages/inbox'):
+    for file in f:
+        if file.endswith('message.json'):
+            files.append(f'{p}/{file}')
+
+len(files)
+</code></pre></div></div>
+
+<p>You should see a non-zero number at this point if everything is going as planned. In my case 560.</p>
+
+<p>I’ve also included a few functions - one to fix the encoding and escaping in facebook’s data, and two to detect cyrilic so I can exclude any chats I have not in English (this part would be irrelevant for most)</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def fix_encoding(s):
+  return re.sub('[\xc2-\xf4][\x80-\xbf]+',lambda m: m.group(0).encode('latin1').decode('utf8'),s)
+</code></pre></div></div>
+
+<p>Now it is time to actually create a corpus from all those files. If you have a lot of data, you might want to do this in steps. There’s also a <code class="highlighter-rouge">banned_names</code> tuple where you can add any names you don’t want to appear in the corpus.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+text_corpus = ''
+banned_names = ('vladislav')
+for file in files:
+  with open(file, 'r') as f:
+      try:
+        msgs = json.load(f)['messages']
+        msgs.reverse()
+      except:
+        pass
+      else:
+        if not any(bn in file for bn in banned_names):
+        for msg in msgs:
+          try:
+            content = fix_encoding(msg['content'])
+            to_add  = f"({msg['timestamp_ms']}) {msg['sender_name']}: {content}\n"
+            text_corpus += to_add
+          except KeyError:
+            pass
+        print(file)
+        
+          text_corpus += '\n\n'
+</code></pre></div></div>
+
+<p>We then save the data to a file, check how big the file is (14m in my case) and encode the data (unnecessary but it is faster if you do it before training).</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>with open('fb-cleaned.txt', 'w') as f:
+  f.write(text_corpus)
+</code></pre></div></div>
+
+<p>It is time to start trainning!</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.0001 --stop_after=251
+!PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.001 --stop_after=751
+!PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.0001 --beta=0.95 --stop_after=1251
+</code></pre></div></div>
+
+<p>At this point, we can see samples, although feel free to change the learning rate, beta or train for more cycles. The code so far takes under an hour to run for me but it depends on the size of your dataset among other things.</p>
+
+<p>We need to first copy the new trainned weights.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!cp -r /content/gpt-2/checkpoint/run1/* /content/gpt-2/models/117M/
+</code></pre></div></div>
+
+<p>After which we can either let it generate chats on its own with</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!python3 src/generate_unconditional_samples.py --top_k 40 --temperature 0.9
+</code></pre></div></div>
+
+<p>Or we can force it to give us chats with a specific person (or on a topic)
+by running</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!python3 src/interactive_conditional_samples.py --top_k 40 --temperature 0.9
+</code></pre></div></div>
+<p>And then giving it something like <code class="highlighter-rouge">(137378602389) Ioannis Agathocleous: hi</code> in the interactive prompt to get a chat with that person.</p>
+
+<p>Here are some samples. Some are better than others</p>
+
+<blockquote>
+
+  <p>(134972898517) Ioannis Agathocleous: lol sounds better to me</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349728992965) Svilen Todorov: lol if its fine you wont be able to be a middle aged man without pay</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349680771216) Ioannis Agathocleous: but thats kind of what you were meant to think</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349680826981) Ioannis Agathocleous: probs not</p>
+</blockquote>
+
+<blockquote>
+  <p>(13496808663733) Svilen Todorov: hah</p>
+</blockquote>
+
+<blockquote>
+  <p>(13496808683320) Ioannis Agathocleous: u know anyone else that can pay me in the end</p>
+</blockquote>
+
+<blockquote>
+  <p>(13496808843212) Ioannis Agathocleous: i heard someone pay them last year and i want to buy a house</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349680884843) Svilen Todorov: yeh, well, its good to me as i can get some money with them</p>
+</blockquote>
+
+<blockquote>
+  <p>(13496809066473) Svilen Todorov: i am</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349680951765) Svilen Todorov: and i wont have to bother with taxes and whatnot</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349680951723) Svilen Todorov: they shouldnt do things that are worth it</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349680997574) Ioannis Agathocleous: thats great</p>
+</blockquote>
+
+<blockquote>
+  <p>(134968099728) Ioannis Agathocleous: but its a long process</p>
+</blockquote>
+
+<blockquote>
+  <p>(134968099818) Ioannis Agathocleous: it doesnt matter how your kids loan is</p>
+</blockquote>
+
+<blockquote>
+  <p>(134968099824) Ioannis Agathocleous: just pay someone</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349680986601) Svilen Todorov: dunno if it wouldnt matter</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349680997829) Ioannis Agathocleous: if its going to be good Id expect them to do that</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349680999997) Svilen Todorov: but yeh, thats kind of what i said</p>
+</blockquote>
+
+<blockquote>
+  <p>(134968099961) Ioannis Agathocleous: well it doesnt matter, its the thing</p>
+</blockquote>
+
+<p>The conversations usually make sense for the person. We discuss things like sleeping problems, how we are and what we are doing often so you get stuff like:</p>
+
+<blockquote>
+
+  <p>(15191201253003) Svilen Todorov: haha</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519120163882) Svilen Todorov: what are you up to</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519120147982) Svilen Todorov: dunno</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519120174335) Svilen Todorov: whats going on</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519120175033) Anna Gaydukevich: I got a present on the desk!</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519120187017) Anna Gaydukevich: how’s it going?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519122123459) Svilen Todorov: alright</p>
+</blockquote>
+
+<blockquote>
+  <p>(15191212141350) Svilen Todorov: how are you feeling</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519122127646) Svilen Todorov: havent been out at all</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519121366360) Anna Gaydukevich: yeah sounds good</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519121387453) Svilen Todorov: hahah</p>
+</blockquote>
+
+<blockquote>
+  <p>(15191214178936) Svilen Todorov: im on my way back</p>
+</blockquote>
+
+<blockquote>
+  <p>(15191214278912) Anna Gaydukevich: how was your trip?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519121428989) Svilen Todorov: im still in the office</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519121581623) Svilen Todorov: 😀</p>
+</blockquote>
+
+<blockquote>
+  <p>(15191218780009) Anna Gaydukevich: alright sounds good</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519121887000) Svilen Todorov: i slept like 5 hours</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519121833743) Svilen Todorov: was too hard to sleep tonight</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519121898425) Svilen Todorov: 😀</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519290525900) Lisa Martins: what are your plans?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519290547803) Svilen Todorov: they have to do something in the office for an hour</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519290549909) Svilen Todorov: but i dont really sleep much</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519290556640) Svilen Todorov: so it’s a bit more fun</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519290563817) Svilen Todorov: so it wont be too bad</p>
+</blockquote>
+
+<blockquote>
+  <p>(1519296376813) Anna Gaydukevich: yeah i might try’</p>
+</blockquote>
+
+<blockquote>
+
+  <p>(152665502433) Svilen Todorov: cool, nice!</p>
+</blockquote>
+
+<blockquote>
+  <p>(152665505561) Svilen Todorov: did u check your messages</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655031868) Eliza Beth: I’ve seen him before. This isn’t the main one though. Maybe the one of you’ll find out.</p>
+</blockquote>
+
+<blockquote>
+  <p>(152665506496) Svilen Todorov: its more like what I saw at my friend’s place and he was kind of curious so it might’ve been like some sort of a catch up, with some of the others’ friends with a nice airheaded man</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655080653) Eliza Beth: Jeez!</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655087642) Eliza Beth: He says it’s the only thing you’ve read yet lol</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655089792) Svilen Todorov: well it’s like a few people in my area, so i reckon thats where you’re going</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655053361) Eliza Beth: I assume he might buy it</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655797371) Svilen Todorov: but you can still look for it now tho</p>
+</blockquote>
+
+<blockquote>
+  <p>(15266557573782) Svilen Todorov: I dont know though</p>
+</blockquote>
+
+<blockquote>
+  <p>(152665582321) Svilen Todorov: i reckon the first 2 days in a row wouldve gotten more in the first few days</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526658692365) Svilen Todorov: and you can buy it now if you only just know the local people</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655791832) Svilen Todorov: tho he seems to think the local girl is the most famous person here because she’s probably the best friend, so not sure whether she’ll buy money for that</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655871168) Eliza Beth: Omg dude how was work?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655781360) Eliza Beth: I think it’s the same as the first few months. It was fairly fun</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526655892792) Svilen Todorov: but you’ll be a bit more able to pick up for later</p>
+</blockquote>
+
+<blockquote>
+  <p>(1526656997775) Svilen Todorov: i was telling people what you can do to get a flat or whatever</p>
+</blockquote>
+
+<p>However, it sometimes makes understandable but funny mistakes. E.g. my girlfriend has ‘gay’ in her name so it came up with this</p>
+
+<blockquote>
+
+  <p>(1596993813136) Svilen Todorov: hey how was ur day</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596993881281) Svilen Todorov: just came in the morning, and the guy came, and we were still sitting on the couch</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596993881783) Svilen Todorov: so was pretty good</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596993913019) Svilen Todorov: and then i got to bed</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596993945750) Svilen Todorov: wasnt too bad even a bit after i went to bed</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596993957122) Anna Gaydukevich: oh god thats the good part of me and me being gay</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596993963304) Svilen Todorov: well not your fault</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596993968954) Anna Gaydukevich: just felt kinda shit</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994070202) Svilen Todorov: like i just fell asleep so you didnt know what I would’ve been doing with me</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994075337) Svilen Todorov: haha i guess there was a moment in it, when someone came to ask me if i wanted a drink</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994119171) Svilen Todorov: so i told her that i am gay</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994135885) Svilen Todorov: that was weird</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994155756) Anna Gaydukevich: lol</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994176836) Anna Gaydukevich: but i can’t believe it</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994177861) Anna Gaydukevich: 😀</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994177563) Anna Gaydukevich: are you gay?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994179040) Anna Gaydukevich: not my fault</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596998641459) Svilen Todorov: dunno that I have a different level in most ways</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596998646174) Anna Gaydukevich: oh yup</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596994186636) Anna Gaydukevich: why do you think i am more of a gay guy than a gay guy</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596998742412) Anna Gaydukevich: haha</p>
+</blockquote>
+
+<blockquote>
+  <p>(1596998770044) Svilen Todorov: seems like a lot of gay guys are gay’</p>
+</blockquote>
+
+<p>It can also get creepy, for example in this conversation it generated with a friend of mine who passed away a few months ago</p>
+
+<blockquote>
+
+  <p>(134914376916) Sam Rendall: yeah definitely the next 5 days when I go home I would be super bad, not so much</p>
+</blockquote>
+
+<blockquote>
+  <p>(134914382811) Sam Rendall: well yeah, I didnt go and still went home and I can take that out too :D</p>
+</blockquote>
+
+<blockquote>
+  <p>(134915443033) Sam Rendall: yes just keep in the office that  takes you up</p>
+</blockquote>
+
+<blockquote>
+  <p>(134915443939) Svilen Todorov: you will do</p>
+</blockquote>
+
+<blockquote>
+  <p>(134915445710) Svilen Todorov: its like 8-9 hours in a row</p>
+</blockquote>
+
+<blockquote>
+  <p>(134915447500) Sam Rendall: ok cool</p>
+</blockquote>
+
+<blockquote>
+  <p>(134915447700) Sam Rendall: yeah that’s sweet</p>
+</blockquote>
+
+<blockquote>
+  <p>(134915448937) Svilen Todorov: cool, i hope that you’re still alive</p>
+</blockquote>
+
+<blockquote>
+  <p>(134915457569) Svilen Todorov: but i have to go home to smoke in the morning after i went by and take your stuff</p>
+</blockquote>
+
+<blockquote>
+  <p>(134915459816) Sam Rendall: not bad for you</p>
+</blockquote>
+
+<blockquote>
+  <p>(134900491569) Svilen Todorov: and i’m gonna stay on the couch where you will be sleeping in the morning before coming</p>
+</blockquote>
+
+<blockquote>
+  <p>(13490049834) Sam Rendall: ohaha yeah :P</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349004961272) Svilen Todorov: ugh</p>
+</blockquote>
+
+<blockquote>
+  <p>(134900496518) Sam Rendall: so much more of your body still hurts than mine</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349008060178) Svilen Todorov: damn</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349008171520) Svilen Todorov: that sounds shit</p>
+</blockquote>
+
+<blockquote>
+  <p>(13490092616) Sam Rendall: its a fucked up thing, not as fast of an idea</p>
+</blockquote>
+
+<blockquote>
+  <p>(1349009693548) Sam Rendall: my stomach hasnt been hurting to this point</p>
+</blockquote>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The conversations look okay, though sometimes they are less coherent. It is clearly learning useful stuff - the timestamps generally go up, the conversations are relevant to the people in them, and so is the structure. Training it with more data would also definitely help.</p>
+
+<p>Another way to make it produce slightly better results is to finetune it in the end on the chat from a specific person before generating conversations with them (I’ve added the relevant code to the collab).</p>
+
+<p>We haven’t gotten anywhere near passing the Turing Test but I suspect that if you hook this up to facebook’s API to respond for you, it might take a while for some people to figure it out.</p>
+
+  </div><a class="u-url" href="/blog/gpt-finetune/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Svilen Todorov</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

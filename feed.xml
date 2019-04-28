@@ -1,0 +1,1079 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="https://svilentodorov.xyz//feed.xml" rel="self" type="application/atom+xml" /><link href="https://svilentodorov.xyz//" rel="alternate" type="text/html" /><updated>2019-04-28T18:40:04+02:00</updated><id>https://svilentodorov.xyz//feed.xml</id><title type="html">Svilen Todorov</title><subtitle>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</subtitle><entry><title type="html">Adding Layers to the middle of a pre-trained network whithout invalidating the weights</title><link href="https://svilentodorov.xyz//blog/add-layers/" rel="alternate" type="text/html" title="Adding Layers to the middle of a pre-trained network whithout invalidating the weights" /><published>2019-03-22T00:00:00+01:00</published><updated>2019-03-22T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/add-layers</id><content type="html" xml:base="https://svilentodorov.xyz//blog/add-layers/">&lt;p&gt;Fine-tunning pre-trained neural networks on new data has shown a lot of promise in &lt;a href=&quot;https://cv-tricks.com/keras/fine-tuning-tensorflow/&quot;&gt;many&lt;/a&gt; &lt;a href=&quot;http://nlp.fast.ai/&quot;&gt;domains&lt;/a&gt;. One simple example is my &lt;a href=&quot;/blog/gpt-finetune&quot;&gt;last post&lt;/a&gt; where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.&lt;/p&gt;
+
+&lt;p&gt;Using pre-trained models and further training them is especially useful for organizations with small datasets or resources, and in most cases, it is cost and otherwise effective to do it. However, despite it being widely used, people rarely talk about taking a pre-trained model and making it bigger by adding more layers in the middle of the network rather than just the end.&lt;/p&gt;
+
+&lt;p&gt;Naively, this doesn’t work without some tweaks - if you add a layer in the middle of a network then all the trained weights of later layers become useless since they are getting different inputs. There are, however, ways to get around that and I believe that this is an important area to explore as more and more useful models get released.&lt;/p&gt;
+
+&lt;p&gt;These posts (along with the last) are my first two in a series where I will attempt to increase the size of OpenAI’s GPT-2 model while taking advantage of the training the model has already gotten. Their model is a great candidate for this experiment, as OpenAI have already demonstrated great results with what is basically a bigger version of it. If anyone else is working on something similar or has links to related research I might have missed - feel free to email me, or hell - even cite me.&lt;/p&gt;
+
+&lt;p&gt;Note: The basic network example is mostly taken from the &lt;a href=&quot;https://www.tensorflow.org/alpha/tutorials/quickstart/advanced&quot;&gt;Tensorflow 2.0 Getting started article&lt;/a&gt;. I used this as an opportunity to play a little with the new API.&lt;/p&gt;
+
+&lt;p&gt;You can follow in the collab &lt;a href=&quot;https://colab.research.google.com/drive/1KocZA0Zgo68eMKWXg-W3W6Ev0F6n88cX&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;First, we install tensorflow 2.0 to Collab (this step can be skipped after 2.0 is out and the default in Collab)&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;pip install tensorflow-gpu==2.0.0-alpha0
+&lt;/code&gt;
+Then imports&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import tensorflow_datasets as tfds
+import tensorflow as tf
+import numpy as np
+
+from tensorflow.keras.layers import Dense, Flatten, Conv2D
+from tensorflow.keras import Model```
+
+Then we download minst to have something to play with, shuffle and batch it
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We download, shuffle, and batch our training and test data&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;dataset, info = tfds.load('mnist', with_info=True, as_supervised=True)
+mnist_train, mnist_test = dataset['train'], dataset['test']
+
+def convert_types(image, label):
+  image = tf.cast(image, tf.float32)
+  image /= 255
+  return image, label
+
+mnist_train = mnist_train.map(convert_types).shuffle(10000).batch(32)
+mnist_test = mnist_test.map(convert_types).batch(32)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Create our basic model&lt;/p&gt;
+
+&lt;p&gt;```class MyModel(Model):
+  def &lt;strong&gt;init&lt;/strong&gt;(self):
+    super(MyModel, self).&lt;strong&gt;init&lt;/strong&gt;()
+    self.conv1 = Conv2D(32, 3, activation=’relu’)
+    self.flatten = Flatten()
+    self.d1 = Dense(20, activation=’relu’)
+    self.d2 = Dense(10, activation=’softmax’)&lt;/p&gt;
+
+&lt;p&gt;def call(self, x):
+    x = self.conv1(x)
+    x = self.flatten(x)
+    x = self.d1(x)
+    return self.d2(x)&lt;/p&gt;
+
+&lt;p&gt;model = MyModel()&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+Add our loss, optimizer, and metrics
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;loss_object = tf.keras.losses.SparseCategoricalCrossentropy()&lt;/p&gt;
+
+&lt;p&gt;optimizer = tf.keras.optimizers.Adam()&lt;/p&gt;
+
+&lt;p&gt;train_loss = tf.keras.metrics.Mean(name=’train_loss’)
+train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name=’train_accuracy’)&lt;/p&gt;
+
+&lt;p&gt;test_loss = tf.keras.metrics.Mean(name=’test_loss’)
+test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name=’test_accuracy’)&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+We define our training_step and test_step functions.
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;@tf.function
+def train_step(image, label, model=model):
+  with tf.GradientTape() as tape:
+    predictions = model(image)
+    loss = loss_object(label, predictions)
+  gradients = tape.gradient(loss, model.trainable_variables)
+  optimizer.apply_gradients(zip(gradients, model.trainable_variables))&lt;/p&gt;
+
+&lt;p&gt;train_loss(loss)
+  train_accuracy(label, predictions)&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;@tf.function
+def test_step(image, label, model=model):
+  predictions = model(image)
+  t_loss = loss_object(label, predictions)&lt;/p&gt;
+
+&lt;p&gt;test_loss(t_loss)
+  test_accuracy(label, predictions)&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+We can then train our default model a bit.
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;EPOCHS = 2&lt;/p&gt;
+
+&lt;p&gt;for epoch in range(EPOCHS):
+  test_loss.reset_states()
+  test_accuracy.reset_states()
+  for image, label in mnist_train:
+    train_step(image, label)&lt;/p&gt;
+
+&lt;p&gt;for test_image, test_label in mnist_test:
+    test_step(test_image, test_label)&lt;/p&gt;
+
+&lt;p&gt;template = ‘Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}’
+  print (template.format(epoch+1,
+                         train_loss.result(), 
+                         train_accuracy.result()&lt;em&gt;100,
+                         test_loss.result(), 
+                         test_accuracy.result()&lt;/em&gt;100))&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&amp;gt;Epoch 1, Loss: 0.20242027938365936, Accuracy: 94.05333709716797, Test Loss: 0.08358743041753769, Test Accuracy: 97.37999725341797
+&amp;gt;Epoch 2, Loss: 0.13752736151218414, Accuracy: 95.9375, Test Loss: 0.07251566648483276, Test Accuracy: 97.65999603271484
+
+
+At this point, we can try creating a new bigger model that uses all the weights trained here (including those in the very last layer!).
+
+What we are going to do is make a model almost exactly like the last one but we are going to add one more Dense layer before the final one. The important bit here is to initialize the layer so the weights are in the form of the identity function - this way when the output from the previous layer gets multiplied by the output of this layer we will get exactly the same result, and the weights of the final layer will still make sense. Then during fine-tuning, the layer will slowly move away from the identity function in whichever directions make the most sense. Note: we also want the bias to be initialized to zeros (so we don't add anything extra to the weights at first) but this is already the default in tensorflow.
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;class MyModel2(Model):
+  def &lt;strong&gt;init&lt;/strong&gt;(self):
+    super(MyModel2, self).&lt;strong&gt;init&lt;/strong&gt;()
+    self.conv1 = Conv2D(32, 3, activation=’relu’)
+    self.flatten = Flatten()
+    self.d1 = Dense(20, activation=’relu’)
+    &lt;strong&gt;self.d_extra = Dense(20, activation=’relu’, kernel_initializer=tf.keras.initializers.Identity)&lt;/strong&gt;
+    self.d2 = Dense(10, activation=’softmax’)&lt;/p&gt;
+
+&lt;p&gt;def call(self, x):
+    x = self.conv1(x)
+    x = self.flatten(x)
+    x = self.d1(x)
+    &lt;strong&gt;x = self.d_extra(x)&lt;/strong&gt;
+    return self.d2(x)&lt;/p&gt;
+
+&lt;p&gt;model2 = MyModel2()&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+We then need to re-run our test_step and train_step functions (just re-run the cells containing them) due to how tf.function works. After that, we can confirm our new model isn't magically performing better than chance.
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;test_loss.reset_states()
+test_accuracy.reset_states()
+for test_image, test_label in mnist_test:
+    test_step(test_image, test_label, model2)&lt;/p&gt;
+
+&lt;p&gt;template = ‘Test Loss: {}, Test Accuracy: {}’&lt;/p&gt;
+
+&lt;p&gt;print (template.format(test_loss.result(), 
+                     test_accuracy.result()*100))&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+&amp;gt;Test Loss: 2.3064279556274414, Test Accuracy: 10.329999923706055
+
+As expected - it only gets a number right about 1/10th of the time.
+
+Now, the only other thing we need to do is add the weights from our previous model to our new model, except for our new (3rd) layer which will at first just leave things the same.
+
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;model2.layers[0].set_weights(model.layers[0].get_weights())
+model2.layers[1].set_weights(model.layers[1].get_weights())
+model2.layers[2].set_weights(model.layers[2].get_weights())
+model2.layers[4].set_weights(model.layers[3].get_weights())&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+We can then re-run the code checking the accuracy of our new model and voila
+
+&amp;gt;Test Loss: 0.07251566648483276, Test Accuracy: 97.65999603271484
+
+At this point we can just start training our bigger model. 
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;EPOCHS = 2&lt;/p&gt;
+
+&lt;p&gt;for epoch in range(EPOCHS):
+  test_loss.reset_states()
+  test_accuracy.reset_states()
+  for image, label in mnist_train:
+    train_step(image, label, model2)&lt;/p&gt;
+
+&lt;p&gt;for test_image, test_label in mnist_test:
+    test_step(test_image, test_label, model2)&lt;/p&gt;
+
+&lt;p&gt;template = ‘Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}’
+  print (template.format(epoch+1,
+                         train_loss.result(), 
+                         train_accuracy.result()&lt;em&gt;100,
+                         test_loss.result(), 
+                         test_accuracy.result()&lt;/em&gt;100))&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+Which gets me to
+
+&amp;gt;Epoch 1, Loss: 0.11430724710226059, Accuracy: 96.58721923828125, Test Loss: 0.05486641451716423, Test Accuracy: 98.18999481201172
+&amp;gt;Epoch 2, Loss: 0.09389258921146393, Accuracy: 97.19083404541016, Test Loss: 0.05310175567865372, Test Accuracy: 98.31999969482422
+
+Not much better, but the results will usually be more impressive when dealing with more complex problems.
+
+
+Also, instead of doing that, we can also freeze everything but our new layer to more accurately only train it. This will train faster, and depending on the problem, it might make more sense - or it might make more sense for a few epochs before again training all layers. Play around with it!
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;@tf.function
+def train_step(image, label, model=model):
+  with tf.GradientTape() as tape:
+    predictions = model(image)
+    loss = loss_object(label, predictions)
+  &lt;strong&gt;&lt;em&gt;gradients = tape.gradient(loss, model.trainable_variables[-4:-2])
+  optimizer.apply_gradients(zip(gradients, model.trainable_variables[-4:-2]))&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;train_loss(loss)
+  train_accuracy(label, predictions)&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+The way we do that is by using the gradients of only our new layer.
+model.trainable_variables works by returning a list of all weights and biases of our model layer by layer - so the first item is the weights of layer 1,  2nd item is the bias of layer 1 etc. Thus we only need the 2 layers before the last 2.
+
+
+##Fully convolutional
+
+What if we are working with e.g. a fully convolutional network - an identity matrix won't work (and tensorflow doesn't even allow us to use the identity initializer for that reason) - how do you add a new layer while keeping the network usable?
+
+There are different ways you can extend the network while keeping all the weights useful - one I like is to use a residual-like approach. I simply initialize the new conv layer using all 1s and multiply the output from it to the output of the previous layer. This changes nothing at first but once we start training again, we can slowly move those weights in the direction we want them to be.
+
+
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;class MyModel(Model):
+  def &lt;strong&gt;init&lt;/strong&gt;(self):
+    super(MyModel, self).&lt;strong&gt;init&lt;/strong&gt;()
+    self.conv1 = Conv2D(32, 3, activation=’relu’, padding=’SAME’)
+    self.flatten = Flatten()
+    self.d1 = Dense(10, activation=’softmax’)&lt;/p&gt;
+
+&lt;p&gt;def call(self, x):
+    x = self.conv1(x)
+    x = self.flatten(x)
+    return self.d1(x)&lt;/p&gt;
+
+&lt;p&gt;class MyModel2(Model):
+  def &lt;strong&gt;init&lt;/strong&gt;(self):
+    super(MyModel2, self).&lt;strong&gt;init&lt;/strong&gt;()
+    self.conv1 = Conv2D(32, 3, activation=’relu’, padding=’SAME’)
+    self.c_extra = Conv2D(32, 3, activation=’relu’, padding=’SAME’, kernel_initializer=tf.keras.initializers.Ones)
+    self.flatten = Flatten()
+    self.d1 = Dense(10, activation=’softmax’)&lt;/p&gt;
+
+&lt;p&gt;def call(self, x):
+    x = self.conv1(x)
+    x = x * self.c_extra(x)
+    x = self.flatten(x)
+    return self.d1(x)
+```&lt;/p&gt;
+
+&lt;p&gt;The rest is exactly the same as before.&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;Increasing the size of a network is something usually done before training from scratch but that doesn’t always need to be the case. You can add one or better yet more layers across the network or even at the very start. Whether this will help depends - mainly on whether you needed a bigger net from the start - but it can definitely save you time.&lt;/p&gt;</content><author><name></name></author><summary type="html">Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.</summary></entry><entry><title type="html">Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger</title><link href="https://svilentodorov.xyz//blog/gpt-finetune/" rel="alternate" type="text/html" title="Generating Fake Conversations by fine-tunning OpenAI's GPT-2 on data from Facebook Messenger" /><published>2019-03-12T00:00:00+01:00</published><updated>2019-03-12T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/gpt-finetune</id><content type="html" xml:base="https://svilentodorov.xyz//blog/gpt-finetune/">&lt;p&gt;One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.&lt;/p&gt;
+
+&lt;p&gt;In February 2019 OpenAI released &lt;a href=&quot;https://blog.openai.com/better-language-models/&quot;&gt;information on their new state of the art language model&lt;/a&gt; which created a lot of buzz within the community. While few disagree the results they included are better than anything we’ve seen before (even if mainly because they made a bigger model combining recent advances), many were peeved that OpenAI only released a small pre-trained version of their model rather than the full one they generated examples with. Nonetheless, the small model is also very good, and due to nshepperd’s addition to their code, we can easily fine-tune it on our own data to easily generate (near-)state of the art results specific to whatever we want.&lt;/p&gt;
+
+&lt;p&gt;Since then people have been experimenting with the model, including some like the aforementioned nsheppered adding simple scripts allowing us to fine-tune the model on our data. In this post, I am going to describe how to use easily available tools like those scripts, Google Collab and Facebook’s Data Export option in order to create borderline realistic conversation snippets.&lt;/p&gt;
+
+&lt;p&gt;If you don’t have enough data on facebook, you should be able to easily export your conversation data from pretty much any other service and train on that. Better yet, you can combine data from different sources - as usual with machine learning, the more data you have the better.&lt;/p&gt;
+
+&lt;p&gt;You can follow in the collab &lt;a href=&quot;https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP&quot;&gt;here&lt;/a&gt;. Make sure to click Runtime&amp;gt; Change Runtime type&amp;gt; GPU (or TPU)&lt;/p&gt;
+
+&lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
+
+&lt;p&gt;We start with the imports&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import os
+import json
+import random
+import re
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Then we clone &lt;a href=&quot;https://github.com/Tenoke/gpt-2&quot;&gt;my fork&lt;/a&gt; of &lt;a href=&quot;https://github.com/nshepperd/gpt-2&quot;&gt;nsheppered’s GPT&lt;/a&gt; finetuning repo - I’ve only made some small changes to it - mainly adding a couple of extra command line options for changing things like the learning rate and adding a stopping point. We also cd into it, and install the requirements and download the model.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;!git clone https://github.com/Tenoke/gpt-2.git
+cd gpt-2
+!pip3 install -r requirements.txt
+!sh download_model.sh 117M
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Next, we need to download our facebook messages. Facebook explains how to do it &lt;a href=&quot;https://www.facebook.com/help/1701730696756992?helpref=hc_global_nav&quot;&gt;here&lt;/a&gt;. Only select ‘messages’ and for the format select ‘json’. After it is ready you can either download the file by clicking download or by using Dev Tools. To do so open them with F12, go to sources, and click download (and then just cancel it), then find the entry starting with file.php, right click it and ‘copy as curl’ as in this screenshot
+&lt;img src=&quot;/static/screenshot-fb.png&quot; alt=&quot;Facebook Screenshot&quot; class=&quot;img-responsive&quot; /&gt;
+then just add ! in front of the command (to run it in collab) and &lt;code class=&quot;highlighter-rouge&quot;&gt;--output fb-json.zip&lt;/code&gt; at the end to name the file.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;
+!curl &amp;lt;link&amp;gt; --output fb-json.zip
+&lt;/code&gt;
+After that, we unzip the file and get a list containing all files with message data (as opposed to the other stuff that facebook includes in the zip)&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;!unzip fb-json.zip
+
+files = []
+for p, d, f in os.walk('messages/inbox'):
+    for file in f:
+        if file.endswith('message.json'):
+            files.append(f'{p}/{file}')
+
+len(files)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;You should see a non-zero number at this point if everything is going as planned. In my case 560.&lt;/p&gt;
+
+&lt;p&gt;I’ve also included a few functions - one to fix the encoding and escaping in facebook’s data, and two to detect cyrilic so I can exclude any chats I have not in English (this part would be irrelevant for most)&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def fix_encoding(s):
+  return re.sub('[\xc2-\xf4][\x80-\xbf]+',lambda m: m.group(0).encode('latin1').decode('utf8'),s)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now it is time to actually create a corpus from all those files. If you have a lot of data, you might want to do this in steps. There’s also a &lt;code class=&quot;highlighter-rouge&quot;&gt;banned_names&lt;/code&gt; tuple where you can add any names you don’t want to appear in the corpus.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+text_corpus = ''
+banned_names = ('vladislav')
+for file in files:
+  with open(file, 'r') as f:
+      try:
+        msgs = json.load(f)['messages']
+        msgs.reverse()
+      except:
+        pass
+      else:
+        if not any(bn in file for bn in banned_names):
+        for msg in msgs:
+          try:
+            content = fix_encoding(msg['content'])
+            to_add  = f&quot;({msg['timestamp_ms']}) {msg['sender_name']}: {content}\n&quot;
+            text_corpus += to_add
+          except KeyError:
+            pass
+        print(file)
+        
+          text_corpus += '\n\n'
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We then save the data to a file, check how big the file is (14m in my case) and encode the data (unnecessary but it is faster if you do it before training).&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;with open('fb-cleaned.txt', 'w') as f:
+  f.write(text_corpus)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;It is time to start trainning!&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;!PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.0001 --stop_after=251
+!PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.001 --stop_after=751
+!PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.0001 --beta=0.95 --stop_after=1251
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;At this point, we can see samples, although feel free to change the learning rate, beta or train for more cycles. The code so far takes under an hour to run for me but it depends on the size of your dataset among other things.&lt;/p&gt;
+
+&lt;p&gt;We need to first copy the new trainned weights.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;!cp -r /content/gpt-2/checkpoint/run1/* /content/gpt-2/models/117M/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;After which we can either let it generate chats on its own with&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;!python3 src/generate_unconditional_samples.py --top_k 40 --temperature 0.9
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Or we can force it to give us chats with a specific person (or on a topic)
+by running&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;!python3 src/interactive_conditional_samples.py --top_k 40 --temperature 0.9
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;And then giving it something like &lt;code class=&quot;highlighter-rouge&quot;&gt;(137378602389) Ioannis Agathocleous: hi&lt;/code&gt; in the interactive prompt to get a chat with that person.&lt;/p&gt;
+
+&lt;p&gt;Here are some samples. Some are better than others&lt;/p&gt;
+
+&lt;blockquote&gt;
+
+  &lt;p&gt;(134972898517) Ioannis Agathocleous: lol sounds better to me&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349728992965) Svilen Todorov: lol if its fine you wont be able to be a middle aged man without pay&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349680771216) Ioannis Agathocleous: but thats kind of what you were meant to think&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349680826981) Ioannis Agathocleous: probs not&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(13496808663733) Svilen Todorov: hah&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(13496808683320) Ioannis Agathocleous: u know anyone else that can pay me in the end&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(13496808843212) Ioannis Agathocleous: i heard someone pay them last year and i want to buy a house&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349680884843) Svilen Todorov: yeh, well, its good to me as i can get some money with them&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(13496809066473) Svilen Todorov: i am&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349680951765) Svilen Todorov: and i wont have to bother with taxes and whatnot&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349680951723) Svilen Todorov: they shouldnt do things that are worth it&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349680997574) Ioannis Agathocleous: thats great&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134968099728) Ioannis Agathocleous: but its a long process&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134968099818) Ioannis Agathocleous: it doesnt matter how your kids loan is&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134968099824) Ioannis Agathocleous: just pay someone&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349680986601) Svilen Todorov: dunno if it wouldnt matter&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349680997829) Ioannis Agathocleous: if its going to be good Id expect them to do that&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349680999997) Svilen Todorov: but yeh, thats kind of what i said&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134968099961) Ioannis Agathocleous: well it doesnt matter, its the thing&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The conversations usually make sense for the person. We discuss things like sleeping problems, how we are and what we are doing often so you get stuff like:&lt;/p&gt;
+
+&lt;blockquote&gt;
+
+  &lt;p&gt;(15191201253003) Svilen Todorov: haha&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519120163882) Svilen Todorov: what are you up to&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519120147982) Svilen Todorov: dunno&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519120174335) Svilen Todorov: whats going on&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519120175033) Anna Gaydukevich: I got a present on the desk!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519120187017) Anna Gaydukevich: how’s it going?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519122123459) Svilen Todorov: alright&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(15191212141350) Svilen Todorov: how are you feeling&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519122127646) Svilen Todorov: havent been out at all&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519121366360) Anna Gaydukevich: yeah sounds good&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519121387453) Svilen Todorov: hahah&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(15191214178936) Svilen Todorov: im on my way back&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(15191214278912) Anna Gaydukevich: how was your trip?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519121428989) Svilen Todorov: im still in the office&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519121581623) Svilen Todorov: 😀&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(15191218780009) Anna Gaydukevich: alright sounds good&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519121887000) Svilen Todorov: i slept like 5 hours&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519121833743) Svilen Todorov: was too hard to sleep tonight&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519121898425) Svilen Todorov: 😀&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519290525900) Lisa Martins: what are your plans?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519290547803) Svilen Todorov: they have to do something in the office for an hour&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519290549909) Svilen Todorov: but i dont really sleep much&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519290556640) Svilen Todorov: so it’s a bit more fun&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519290563817) Svilen Todorov: so it wont be too bad&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1519296376813) Anna Gaydukevich: yeah i might try’&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+
+  &lt;p&gt;(152665502433) Svilen Todorov: cool, nice!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(152665505561) Svilen Todorov: did u check your messages&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655031868) Eliza Beth: I’ve seen him before. This isn’t the main one though. Maybe the one of you’ll find out.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(152665506496) Svilen Todorov: its more like what I saw at my friend’s place and he was kind of curious so it might’ve been like some sort of a catch up, with some of the others’ friends with a nice airheaded man&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655080653) Eliza Beth: Jeez!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655087642) Eliza Beth: He says it’s the only thing you’ve read yet lol&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655089792) Svilen Todorov: well it’s like a few people in my area, so i reckon thats where you’re going&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655053361) Eliza Beth: I assume he might buy it&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655797371) Svilen Todorov: but you can still look for it now tho&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(15266557573782) Svilen Todorov: I dont know though&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(152665582321) Svilen Todorov: i reckon the first 2 days in a row wouldve gotten more in the first few days&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526658692365) Svilen Todorov: and you can buy it now if you only just know the local people&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655791832) Svilen Todorov: tho he seems to think the local girl is the most famous person here because she’s probably the best friend, so not sure whether she’ll buy money for that&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655871168) Eliza Beth: Omg dude how was work?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655781360) Eliza Beth: I think it’s the same as the first few months. It was fairly fun&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526655892792) Svilen Todorov: but you’ll be a bit more able to pick up for later&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1526656997775) Svilen Todorov: i was telling people what you can do to get a flat or whatever&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;However, it sometimes makes understandable but funny mistakes. E.g. my girlfriend has ‘gay’ in her name so it came up with this&lt;/p&gt;
+
+&lt;blockquote&gt;
+
+  &lt;p&gt;(1596993813136) Svilen Todorov: hey how was ur day&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596993881281) Svilen Todorov: just came in the morning, and the guy came, and we were still sitting on the couch&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596993881783) Svilen Todorov: so was pretty good&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596993913019) Svilen Todorov: and then i got to bed&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596993945750) Svilen Todorov: wasnt too bad even a bit after i went to bed&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596993957122) Anna Gaydukevich: oh god thats the good part of me and me being gay&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596993963304) Svilen Todorov: well not your fault&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596993968954) Anna Gaydukevich: just felt kinda shit&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994070202) Svilen Todorov: like i just fell asleep so you didnt know what I would’ve been doing with me&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994075337) Svilen Todorov: haha i guess there was a moment in it, when someone came to ask me if i wanted a drink&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994119171) Svilen Todorov: so i told her that i am gay&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994135885) Svilen Todorov: that was weird&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994155756) Anna Gaydukevich: lol&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994176836) Anna Gaydukevich: but i can’t believe it&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994177861) Anna Gaydukevich: 😀&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994177563) Anna Gaydukevich: are you gay?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994179040) Anna Gaydukevich: not my fault&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596998641459) Svilen Todorov: dunno that I have a different level in most ways&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596998646174) Anna Gaydukevich: oh yup&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596994186636) Anna Gaydukevich: why do you think i am more of a gay guy than a gay guy&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596998742412) Anna Gaydukevich: haha&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1596998770044) Svilen Todorov: seems like a lot of gay guys are gay’&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;It can also get creepy, for example in this conversation it generated with a friend of mine who passed away a few months ago&lt;/p&gt;
+
+&lt;blockquote&gt;
+
+  &lt;p&gt;(134914376916) Sam Rendall: yeah definitely the next 5 days when I go home I would be super bad, not so much&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134914382811) Sam Rendall: well yeah, I didnt go and still went home and I can take that out too :D&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134915443033) Sam Rendall: yes just keep in the office that  takes you up&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134915443939) Svilen Todorov: you will do&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134915445710) Svilen Todorov: its like 8-9 hours in a row&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134915447500) Sam Rendall: ok cool&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134915447700) Sam Rendall: yeah that’s sweet&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134915448937) Svilen Todorov: cool, i hope that you’re still alive&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134915457569) Svilen Todorov: but i have to go home to smoke in the morning after i went by and take your stuff&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134915459816) Sam Rendall: not bad for you&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134900491569) Svilen Todorov: and i’m gonna stay on the couch where you will be sleeping in the morning before coming&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(13490049834) Sam Rendall: ohaha yeah :P&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349004961272) Svilen Todorov: ugh&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(134900496518) Sam Rendall: so much more of your body still hurts than mine&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349008060178) Svilen Todorov: damn&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349008171520) Svilen Todorov: that sounds shit&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(13490092616) Sam Rendall: its a fucked up thing, not as fast of an idea&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1349009693548) Sam Rendall: my stomach hasnt been hurting to this point&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;The conversations look okay, though sometimes they are less coherent. It is clearly learning useful stuff - the timestamps generally go up, the conversations are relevant to the people in them, and so is the structure. Training it with more data would also definitely help.&lt;/p&gt;
+
+&lt;p&gt;Another way to make it produce slightly better results is to finetune it in the end on the chat from a specific person before generating conversations with them (I’ve added the relevant code to the collab).&lt;/p&gt;
+
+&lt;p&gt;We haven’t gotten anywhere near passing the Turing Test but I suspect that if you hook this up to facebook’s API to respond for you, it might take a while for some people to figure it out.&lt;/p&gt;</content><author><name></name></author><summary type="html">One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.</summary></entry><entry><title type="html">Building an in-browser Rock Paper Scissors Neural Network capable of beating humans</title><link href="https://svilentodorov.xyz//blog/rps/" rel="alternate" type="text/html" title="Building an in-browser Rock Paper Scissors Neural Network capable of beating humans" /><published>2018-07-31T00:00:00+02:00</published><updated>2018-07-31T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/RPS</id><content type="html" xml:base="https://svilentodorov.xyz//blog/rps/">&lt;p&gt;As the &lt;a href=&quot;https://archive.nytimes.com/www.nytimes.com/interactive/science/rock-paper-scissors.html&quot;&gt;New York Times&lt;/a&gt; have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.&lt;/p&gt;
+
+&lt;p&gt;The goals here are simple - we want to run the Neural Net in the user’s browser, and we want it to have some edge and win against most humans.&lt;/p&gt;
+
+&lt;h2 id=&quot;framing-the-problem&quot;&gt;Framing the problem&lt;/h2&gt;
+
+&lt;p&gt;A common instinct when thinking of games is to have an agent-based approach using reinforcement learning - e.g. Q learning. However, reinforcement learning has a reputation for being somewhat finicky, unstable, and often relatively computationally expensive.&lt;/p&gt;
+
+&lt;p&gt;In this specific case, we can, however, frame the problem as a classification problem - predicting whether the next move by the human is going to be a Rock/Paper/Scissors and simply doing the opposite ourselves - which allows us to use somewhat more robust, standard and hopefully smaller models.&lt;/p&gt;
+
+&lt;h2 id=&quot;preparing-to-build-the-model&quot;&gt;Preparing to build the model&lt;/h2&gt;
+
+&lt;p&gt;We are going to be running the finished model fully in the browser and despite it being possible to define everything in JavaScript, some things are easier to do in python. For one, the tensorflow.js API is not quite as complete and nice as the python one, and even more importantly - I find preprocessing of data much easier in python and working in a Jupyter notebook in general.&lt;/p&gt;
+
+&lt;p&gt;Thus, we are going to take advantage of being able to import a tensorflow/keras model into tensorflow.js, which as far as I can tell is almost always the better option.&lt;/p&gt;
+
+&lt;p&gt;Note: The &lt;a href=&quot;https://github.com/Tenoke/tensorflowjs-rps&quot;&gt;associated repo&lt;/a&gt; has the code, data, and all pip-installable prerequisites.&lt;/p&gt;
+
+&lt;h3 id=&quot;overview-of-approach&quot;&gt;Overview of approach&lt;/h3&gt;
+
+&lt;p&gt;We are going to use an LSTM, so data from the previous moves made by the player can influence a prediction of their next move, while also being able to work with a non-fixed number of moves. After we predict their next move, we are simply going to do the move which wins against them (e.g. if we predict they are going to throw rock, we throw paper).&lt;/p&gt;
+
+&lt;p&gt;We are also going to use a little trick to counter how weak the signal in the data is. Even though humans don’t quite play randomly (if they did, we wouldn’t ever be able to perform better against anyone, except by chance) they hardly follow an exceptionally easy to spot pattern either. In fact, we should expect it to be fairly hard, and data-intensive for our model to spot a pattern and to even start learning anything at all about the data thrown at it.&lt;/p&gt;
+
+&lt;p&gt;What we are going to do, in order to force the model to at least initially learn &lt;em&gt;something&lt;/em&gt; about RPS is to give it a secondary objective - to guess who won the current round (for which it has all the data), and to keep track of how many wins it has against the player overall. A fairly easy objective, compared to our main objective of guessing the player’s next move.&lt;/p&gt;
+
+&lt;p&gt;This has two benefits - it makes the model learn something about RPS (mainly which hand wins against which other hand), and it is also extremely helpful while building the model - if we see that it is not even learning the secondary objective, then there is little hope for it to learn the main one. Indeed, this helped me identify multiple bugs during development.&lt;/p&gt;
+
+&lt;h3 id=&quot;imports&quot;&gt;Imports&lt;/h3&gt;
+
+&lt;p&gt;Let’s start by importing the main things we need - numpy and keras.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;from tensorflow import keras
+import numpy as np
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;data&quot;&gt;Data&lt;/h3&gt;
+
+&lt;p&gt;I looked for any RPS data to build the initial model on, and the first thing which popped out and seemed usable was &lt;a href=&quot;https://github.com/PizzaRollExpert/Rock-paper-scissors-data/&quot;&gt;This repo&lt;/a&gt;&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;%%bash
+wget https://github.com/PizzaRollExpert/Rock-paper-scissors-data/raw/master/data.txt
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;After downloading it we need to create a dict for converting the symbols in the dataset to numbers.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;move_to_n = {
+    's':1,
+    'p':2,
+    'x':3
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We then create a function that iterates over all the moves in the files, converts them to numbers using the move_to_n dict, and splits all the moves that are part of the same game into arrays. The code can be simplified and sped up, but as it is for a one-time preprocessing of a very specifically formatted dataset, there’d be little point.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def convert_data(data):
+    result = []
+    game = []
+    for row in data:
+        moves = []
+        if row == '-':
+            if len(game) &amp;gt; 2:
+                result.append(np.array(game))
+                game = []
+            continue
+        for move in row:
+            moves.append(move_to_n[move])
+        if len(moves) &amp;gt; 1:
+            game.append(np.array(moves))
+        moves = []
+    return np.array(result)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We then open the data we downloaded, split it by rows, convert it using our function, and then flip it - so we have the data both from the perspective of the first player (e.g. rock vs paper) and the second one (e.g. paper vs rock).&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;data = convert_data(data)
+data2 = np.array([np.flip(games, 1) for games in data]) #reverse for player2
+data = np.concatenate((data2, data))
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we have our X - the prepared data for passing to the model to base its guesses, but we need to create our y (ground truth), too.&lt;/p&gt;
+
+&lt;p&gt;First, we are going to make a small helper function for determining who won a given round. I googled around for an easier way to check who won instead of &lt;code class=&quot;highlighter-rouge&quot;&gt;if player1 == 'rock' and player2 ==..&lt;/code&gt;, and I created the function below, based on what I saw &lt;a href=&quot;https://stackoverflow.com/questions/11377117/rock-paper-scissors-determine-win-loss-tie-using-math&quot;&gt;Here&lt;/a&gt;. I admit, I had to triple-check if it works properly.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def calculate_winner(x):
+    result = x[0] - x[1]
+    if result == 0: return 0 #tie
+    if result in (1,-2): return 1 #win
+    return -1 #lose
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;And then another function to create our matching X, and y. We go over each game (which has multiple moves by the same players), add a running score using &lt;code class=&quot;highlighter-rouge&quot;&gt;calculate_winner&lt;/code&gt; for our secondary objective, and use next round’s move from player 1 as the portion of y in our primary objective.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def create_xy_winner(data):
+    result_y = []
+    result_x = []
+    for game in data:
+        game_y = []
+        score = 0
+        for i, moves in enumerate(game):
+            if i+1 == len(game):
+                result_y.append(np.array(game_y))
+                result_x.append(game[:-1]) #remove last moves from x
+                #skip last game as we dont know what player1 will choose next move
+                continue
+            score += calculate_winner(game[i])
+            game_y.append([game[i+1][0], score]) #append next player1 move
+    return np.array(result_x), np.array(result_y)
+
+X, y = create_xy_winner(data)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;model&quot;&gt;Model&lt;/h3&gt;
+
+&lt;p&gt;We have our data nicely formatted now, so it is time to create our model.&lt;/p&gt;
+
+&lt;p&gt;We start with an Input layer, which has dimensions (None, 8) - None for the timesteps (as many as we pass) which correspond to the rounds in a given game, and 8 because after playing with it, I realized that one-hot encoding our (e.g. Rock - Paper) input data works better after testing. 
+We then add a Dense layer (Note: instead of one-hot encoding and Dense layer, we could’ve also just used an Embedding).
+After that is our LSTM layer, which is the key to remembering and using information from previous rounds.
+We then add two Dense layers in a row, with the second one outputting a probability representing whether we expect player 1 to throw, rock paper, or scissors.
+We then do the same for our secondary objective - how many wins has player 1 had so far, which is a single number.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;main_input&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dtype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'float32'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;dense&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'relu'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;lstm&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LSTM&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;96&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;return_sequences&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;main_output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'relu'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lstm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;main_output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'softmax'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;second_output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'tanh'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lstm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;second_output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;second_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;second_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We also create an optimizer - Adam with the normal defaults, and compile the model, so the primary objective is treated as much more important (1.0) than our secondary objective (0.2), and we choose their respective loss functions - categorical crossentropy for the primary (as we are choosing categories - rock, paper or scissors), and mean squared error for the number of wins.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;opt = keras.optimizers.Adam(lr=0.001)
+model.compile(loss=['categorical_crossentropy', 'mse'], optimizer=opt, metrics=['accuracy'], loss_weights=[1., 0.2])
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;That’s it for the model. I also attempted some variations - adding Dropout, Batchnorm, and more/less layers, but the current implementation worked best out of those I tried.&lt;/p&gt;
+
+&lt;h3 id=&quot;training&quot;&gt;Training&lt;/h3&gt;
+
+&lt;p&gt;Now, is the time to train our model, however, I get an error when I try to model.fit the data - The model expects our data to be one-hot encoded (or more specifically to have a shape of *,8 rather than *,2), but I didn’t do that initially. Now, because we are working with so little data, and a tiny model (all of it trains in a few seconds on my CPU), we can just do it as we pass the data.&lt;/p&gt;
+
+&lt;p&gt;We iterate over all the games we have, one-hot encode our X and primary y, using the built-in keras function &lt;code class=&quot;highlighter-rouge&quot;&gt;to_categorical&lt;/code&gt;, re-shape the data until we get it how the model expects it (I rarely get this quite right on the first try) and train the model using a batch size of 1.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    for i in range(len(X)):
+        X_, y_ = X[i], y[i]
+        X_ = keras.utils.to_categorical(X_, 4)
+        X_ = X_.reshape(1, X_.shape[0], 8)
+        y_1 = keras.utils.to_categorical(y_[:,0].reshape(1, y_.shape[0], 1), 4)
+        y_2 = y_[:,1].reshape(1, y_.shape[0], 1)
+        verbose = 2 if (i % 15 == 0) else 0 # print only 1/25th of the time
+        model.fit(X_, [y_1, y_2], epochs=1, shuffle=False, batch_size=1, verbose=verbose)
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now, we have a trained model and it seems to reach an accuracy of 1 for guessing the number of wins (after fixing a couple of bugs), so we know the model is doing something right. After testing it out though, it will sometimes be very exploitable (e.g. getting stuck into throwing scissors 10 times in a row).&lt;/p&gt;
+
+&lt;p&gt;So, my next step was to increase the data we have - mainly by playing a bunch of games against it and then re-training by adding the new data in. After doing that, I sent it to 12 people, with only one of them managing to win (after at least 50 rounds), so I added their data to main data and re-trained it again.&lt;/p&gt;
+
+&lt;p&gt;Realistically, the model is somewhat overfitted against playing against me, as that is where the bulk of the data comes from - and it really does wipe the floor with me. If we truly want to optimize the model, we’d keep collecting more data from different people and keep training it, but it already seems to be able to win against most people (given a sufficient number of rounds) which is good enough for our purposes.&lt;/p&gt;
+
+&lt;h3 id=&quot;exporting-the-model&quot;&gt;Exporting the model&lt;/h3&gt;
+
+&lt;p&gt;Now that we have built and trained our model we just need to load it with tensorflow.js and make it work in the browser. We first export it.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import tensorflowjs as tfjs
+tfjs.converters.save_keras_model(model, 'Full-Model')
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;%%bash
+rm -rf static/Full-Model
+mv Full-Model static/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h3 id=&quot;importing-the-model-to-javascript&quot;&gt;Importing the model to JavaScript&lt;/h3&gt;
+
+&lt;p&gt;All we need in order to load our model is to import tensorflow.js, which we will do in our html via a CDN.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;script src=&quot;https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.2&quot;&amp;gt; &amp;lt;/script&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;After that, we can simply load it in our JavaScript like so&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;const fullModel  = tf.loadModel('/static/Full-Model/model.json')
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;em&gt;Note: A lot of things are still broken in tensorflow.js - for one, if you name your layers yourself, you can’t import the model. For another, it doesn’t support the default naming of the newest version of tensorflow either. If you have any problems, try using an older version of tensorflow, or tensorflow.js. When I had that issue, it was most easily fixed using &lt;code class=&quot;highlighter-rouge&quot;&gt;import keras&lt;/code&gt; instead of &lt;code class=&quot;highlighter-rouge&quot;&gt;from tensorflow import keras&lt;/code&gt;, with newest versions from pip/conda for both.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;After we have loaded the model we create the dicts for converting from number to move, and back.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;n_to_move = {
+  1:'rock',
+  2:'paper',
+  3:'scissors'
+}
+
+move_to_n = {
+  'rock': 1,
+  'paper': 2,
+  'scissors': 3
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We also choose a random first move (as we have no data yet) and create a list to hold the moves so far and some counters for the wins.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function getRandomInt(max, starting=1) {
+  return (starting + Math.floor(Math.random() * max))
+}
+//Choose a random first move
+let nextComputerMove = getRandomInt(3)
+currentMoves = []
+let humanWinCounter = 0
+let computerWinCounter = 0
+let tieCounter = 0
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We then create a copy of the &lt;code class=&quot;highlighter-rouge&quot;&gt;to_categorical&lt;/code&gt; function we used for one-hot encoding the data, as it doesn’t exist in tensorflow.js, and a function to determine who has won (and update the win counters)&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function to_categorical(n, length=4) {
+  let result = Array.from({length}, ()=&amp;gt; 0.)
+  result[n] = 1.
+  return result
+}
+
+function updateCounters(humanMove, computerMove) {
+  switch (humanMove - computerMove) {
+    case 0:
+      tieCounter++
+      return 0
+    case  1: 
+    case -2:
+      humanWinCounter++
+      return 1
+    default:
+      computerWinCounter++
+      return 2
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We will also need a function to determine our move based on our prediction of the player’s next move (e.g. if we predict rock, throw paper)&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+function moveBasedOn(move) {
+  switch(move) {
+    case 1:
+      return 2
+    case 2:
+      return 3
+    case 3:
+      return 1
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we can create a function, which uses the moves done by the player and computer so far, and uses the model to choose our next move. We only use the last 28 moves - I tried a few numbers between the last 20 and last 35 moves, and somewhere between 25 and 30 seemed to perform best in my limited testing, likely due to the nature of our training data in combination with LSTMs sometimes getting more brittle after a larger number of timesteps.&lt;/p&gt;
+
+&lt;p&gt;Tensorflow.js functions are mostly asynchronous (with some of them having a synchronous version like .dataSync), so any function which works with the model needs to be asynchronous, too.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;calculateNextComputerMove&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fullModel&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;lastMoves&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;currentMoves&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;slice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Math&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;currentMoves&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;28&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;currentMoves&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;tf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;tensor3d&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;lastMoves&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;lastMoves&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;predict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;as1D&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// we are getting predictions for all moves (because of how we trained the network)&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// but only care for the prediction for the next move - the last 4 numbers&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;slice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// next we turn that into a single number from a one-hot encoding&lt;/span&gt;
+  &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;argMax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;dataSync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+  &lt;span class=&quot;c1&quot;&gt;// and turn that into our next move based on what will beat the human&lt;/span&gt;
+  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;moveBasedOn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;When we have that, all that is needed is a function that takes the player’s move, shows them the model’s move (which has been calculated before they even made theirs), updates the counters and uses the current data to calculate the model’s next move.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function chooseMove(move) {
+  console.log('human: ', n_to_move[move])
+  var winner = updateCounters(move, nextComputerMove)
+  console.log(winner) # 0 = tie, 1 = human, 2 = computer
+  currentMoves.push(to_categorical(move).concat(to_categorical(nextComputerMove)))
+  calculateNextComputerMove().then(nextMove=&amp;gt;nextComputerMove=nextMove)
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;That’s it. You can now play against the model by opening the console in your browser, and calling chooseMove(..) with ‘rock’, ‘paper’ or ‘scissors’, or building a frontend around the model like the one in the &lt;a href=&quot;https://github.com/Tenoke/tensorflowjs-rps&quot;&gt;github repo&lt;/a&gt; accompanying this post.&lt;/p&gt;</content><author><name></name></author><summary type="html">As the New York Times have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.</summary></entry></feed>

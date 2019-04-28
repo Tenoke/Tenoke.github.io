@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.0 -->
+<title>Adding Layers to the middle of a pre-trained network whithout invalidating the weights | Svilen Todorov</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Adding Layers to the middle of a pre-trained network whithout invalidating the weights" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation." />
+<meta property="og:description" content="Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation." />
+<link rel="canonical" href="https://svilentodorov.xyz//blog/add-layers/" />
+<meta property="og:url" content="https://svilentodorov.xyz//blog/add-layers/" />
+<meta property="og:site_name" content="Svilen Todorov" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-03-22T00:00:00+01:00" />
+<script type="application/ld+json">
+{"dateModified":"2019-03-22T00:00:00+01:00","datePublished":"2019-03-22T00:00:00+01:00","@type":"BlogPosting","headline":"Adding Layers to the middle of a pre-trained network whithout invalidating the weights","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/add-layers/"},"url":"https://svilentodorov.xyz//blog/add-layers/","description":"Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+            <a class="page-link" href="/rps">RPS Demo</a>
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/rps.html">RPS</a>-->
+        </div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+  <center><h2 class="post-title p-name" itemprop="name headline">Adding Layers to the middle of a pre-trained network whithout invalidating the weights</h1> 
+  <h2 class="post-subtitle p-name" itemprop="name headline">Using Tensorflow 2.0 and Google Collab</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-03-22T00:00:00+01:00" itemprop="datePublished">Mar 22, 2019
+      </time></p>
+    </center>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Fine-tunning pre-trained neural networks on new data has shown a lot of promise in <a href="https://cv-tricks.com/keras/fine-tuning-tensorflow/">many</a> <a href="http://nlp.fast.ai/">domains</a>. One simple example is my <a href="/blog/gpt-finetune">last post</a> where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.</p>
+
+<p>Using pre-trained models and further training them is especially useful for organizations with small datasets or resources, and in most cases, it is cost and otherwise effective to do it. However, despite it being widely used, people rarely talk about taking a pre-trained model and making it bigger by adding more layers in the middle of the network rather than just the end.</p>
+
+<p>Naively, this doesn’t work without some tweaks - if you add a layer in the middle of a network then all the trained weights of later layers become useless since they are getting different inputs. There are, however, ways to get around that and I believe that this is an important area to explore as more and more useful models get released.</p>
+
+<p>These posts (along with the last) are my first two in a series where I will attempt to increase the size of OpenAI’s GPT-2 model while taking advantage of the training the model has already gotten. Their model is a great candidate for this experiment, as OpenAI have already demonstrated great results with what is basically a bigger version of it. If anyone else is working on something similar or has links to related research I might have missed - feel free to email me, or hell - even cite me.</p>
+
+<p>Note: The basic network example is mostly taken from the <a href="https://www.tensorflow.org/alpha/tutorials/quickstart/advanced">Tensorflow 2.0 Getting started article</a>. I used this as an opportunity to play a little with the new API.</p>
+
+<p>You can follow in the collab <a href="https://colab.research.google.com/drive/1KocZA0Zgo68eMKWXg-W3W6Ev0F6n88cX">here</a>.</p>
+
+<h2 id="code">Code</h2>
+
+<p>First, we install tensorflow 2.0 to Collab (this step can be skipped after 2.0 is out and the default in Collab)</p>
+
+<p><code class="highlighter-rouge">pip install tensorflow-gpu==2.0.0-alpha0
+</code>
+Then imports</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import tensorflow_datasets as tfds
+import tensorflow as tf
+import numpy as np
+
+from tensorflow.keras.layers import Dense, Flatten, Conv2D
+from tensorflow.keras import Model```
+
+Then we download minst to have something to play with, shuffle and batch it
+
+</code></pre></div></div>
+
+<p>We download, shuffle, and batch our training and test data</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dataset, info = tfds.load('mnist', with_info=True, as_supervised=True)
+mnist_train, mnist_test = dataset['train'], dataset['test']
+
+def convert_types(image, label):
+  image = tf.cast(image, tf.float32)
+  image /= 255
+  return image, label
+
+mnist_train = mnist_train.map(convert_types).shuffle(10000).batch(32)
+mnist_test = mnist_test.map(convert_types).batch(32)
+</code></pre></div></div>
+
+<p>Create our basic model</p>
+
+<p>```class MyModel(Model):
+  def <strong>init</strong>(self):
+    super(MyModel, self).<strong>init</strong>()
+    self.conv1 = Conv2D(32, 3, activation=’relu’)
+    self.flatten = Flatten()
+    self.d1 = Dense(20, activation=’relu’)
+    self.d2 = Dense(10, activation=’softmax’)</p>
+
+<p>def call(self, x):
+    x = self.conv1(x)
+    x = self.flatten(x)
+    x = self.d1(x)
+    return self.d2(x)</p>
+
+<p>model = MyModel()</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+Add our loss, optimizer, and metrics
+
+</code></pre></div></div>
+<p>loss_object = tf.keras.losses.SparseCategoricalCrossentropy()</p>
+
+<p>optimizer = tf.keras.optimizers.Adam()</p>
+
+<p>train_loss = tf.keras.metrics.Mean(name=’train_loss’)
+train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name=’train_accuracy’)</p>
+
+<p>test_loss = tf.keras.metrics.Mean(name=’test_loss’)
+test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name=’test_accuracy’)</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+We define our training_step and test_step functions.
+
+</code></pre></div></div>
+<p>@tf.function
+def train_step(image, label, model=model):
+  with tf.GradientTape() as tape:
+    predictions = model(image)
+    loss = loss_object(label, predictions)
+  gradients = tape.gradient(loss, model.trainable_variables)
+  optimizer.apply_gradients(zip(gradients, model.trainable_variables))</p>
+
+<p>train_loss(loss)
+  train_accuracy(label, predictions)</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+</code></pre></div></div>
+<p>@tf.function
+def test_step(image, label, model=model):
+  predictions = model(image)
+  t_loss = loss_object(label, predictions)</p>
+
+<p>test_loss(t_loss)
+  test_accuracy(label, predictions)</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+We can then train our default model a bit.
+
+</code></pre></div></div>
+<p>EPOCHS = 2</p>
+
+<p>for epoch in range(EPOCHS):
+  test_loss.reset_states()
+  test_accuracy.reset_states()
+  for image, label in mnist_train:
+    train_step(image, label)</p>
+
+<p>for test_image, test_label in mnist_test:
+    test_step(test_image, test_label)</p>
+
+<p>template = ‘Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}’
+  print (template.format(epoch+1,
+                         train_loss.result(), 
+                         train_accuracy.result()<em>100,
+                         test_loss.result(), 
+                         test_accuracy.result()</em>100))</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+&gt;Epoch 1, Loss: 0.20242027938365936, Accuracy: 94.05333709716797, Test Loss: 0.08358743041753769, Test Accuracy: 97.37999725341797
+&gt;Epoch 2, Loss: 0.13752736151218414, Accuracy: 95.9375, Test Loss: 0.07251566648483276, Test Accuracy: 97.65999603271484
+
+
+At this point, we can try creating a new bigger model that uses all the weights trained here (including those in the very last layer!).
+
+What we are going to do is make a model almost exactly like the last one but we are going to add one more Dense layer before the final one. The important bit here is to initialize the layer so the weights are in the form of the identity function - this way when the output from the previous layer gets multiplied by the output of this layer we will get exactly the same result, and the weights of the final layer will still make sense. Then during fine-tuning, the layer will slowly move away from the identity function in whichever directions make the most sense. Note: we also want the bias to be initialized to zeros (so we don't add anything extra to the weights at first) but this is already the default in tensorflow.
+
+</code></pre></div></div>
+<p>class MyModel2(Model):
+  def <strong>init</strong>(self):
+    super(MyModel2, self).<strong>init</strong>()
+    self.conv1 = Conv2D(32, 3, activation=’relu’)
+    self.flatten = Flatten()
+    self.d1 = Dense(20, activation=’relu’)
+    <strong>self.d_extra = Dense(20, activation=’relu’, kernel_initializer=tf.keras.initializers.Identity)</strong>
+    self.d2 = Dense(10, activation=’softmax’)</p>
+
+<p>def call(self, x):
+    x = self.conv1(x)
+    x = self.flatten(x)
+    x = self.d1(x)
+    <strong>x = self.d_extra(x)</strong>
+    return self.d2(x)</p>
+
+<p>model2 = MyModel2()</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+We then need to re-run our test_step and train_step functions (just re-run the cells containing them) due to how tf.function works. After that, we can confirm our new model isn't magically performing better than chance.
+
+</code></pre></div></div>
+<p>test_loss.reset_states()
+test_accuracy.reset_states()
+for test_image, test_label in mnist_test:
+    test_step(test_image, test_label, model2)</p>
+
+<p>template = ‘Test Loss: {}, Test Accuracy: {}’</p>
+
+<p>print (template.format(test_loss.result(), 
+                     test_accuracy.result()*100))</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+&gt;Test Loss: 2.3064279556274414, Test Accuracy: 10.329999923706055
+
+As expected - it only gets a number right about 1/10th of the time.
+
+Now, the only other thing we need to do is add the weights from our previous model to our new model, except for our new (3rd) layer which will at first just leave things the same.
+
+
+</code></pre></div></div>
+<p>model2.layers[0].set_weights(model.layers[0].get_weights())
+model2.layers[1].set_weights(model.layers[1].get_weights())
+model2.layers[2].set_weights(model.layers[2].get_weights())
+model2.layers[4].set_weights(model.layers[3].get_weights())</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+We can then re-run the code checking the accuracy of our new model and voila
+
+&gt;Test Loss: 0.07251566648483276, Test Accuracy: 97.65999603271484
+
+At this point we can just start training our bigger model. 
+
+</code></pre></div></div>
+<p>EPOCHS = 2</p>
+
+<p>for epoch in range(EPOCHS):
+  test_loss.reset_states()
+  test_accuracy.reset_states()
+  for image, label in mnist_train:
+    train_step(image, label, model2)</p>
+
+<p>for test_image, test_label in mnist_test:
+    test_step(test_image, test_label, model2)</p>
+
+<p>template = ‘Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}’
+  print (template.format(epoch+1,
+                         train_loss.result(), 
+                         train_accuracy.result()<em>100,
+                         test_loss.result(), 
+                         test_accuracy.result()</em>100))</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+Which gets me to
+
+&gt;Epoch 1, Loss: 0.11430724710226059, Accuracy: 96.58721923828125, Test Loss: 0.05486641451716423, Test Accuracy: 98.18999481201172
+&gt;Epoch 2, Loss: 0.09389258921146393, Accuracy: 97.19083404541016, Test Loss: 0.05310175567865372, Test Accuracy: 98.31999969482422
+
+Not much better, but the results will usually be more impressive when dealing with more complex problems.
+
+
+Also, instead of doing that, we can also freeze everything but our new layer to more accurately only train it. This will train faster, and depending on the problem, it might make more sense - or it might make more sense for a few epochs before again training all layers. Play around with it!
+
+</code></pre></div></div>
+<p>@tf.function
+def train_step(image, label, model=model):
+  with tf.GradientTape() as tape:
+    predictions = model(image)
+    loss = loss_object(label, predictions)
+  <strong><em>gradients = tape.gradient(loss, model.trainable_variables[-4:-2])
+  optimizer.apply_gradients(zip(gradients, model.trainable_variables[-4:-2]))</em></strong></p>
+
+<p>train_loss(loss)
+  train_accuracy(label, predictions)</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+The way we do that is by using the gradients of only our new layer.
+model.trainable_variables works by returning a list of all weights and biases of our model layer by layer - so the first item is the weights of layer 1,  2nd item is the bias of layer 1 etc. Thus we only need the 2 layers before the last 2.
+
+
+##Fully convolutional
+
+What if we are working with e.g. a fully convolutional network - an identity matrix won't work (and tensorflow doesn't even allow us to use the identity initializer for that reason) - how do you add a new layer while keeping the network usable?
+
+There are different ways you can extend the network while keeping all the weights useful - one I like is to use a residual-like approach. I simply initialize the new conv layer using all 1s and multiply the output from it to the output of the previous layer. This changes nothing at first but once we start training again, we can slowly move those weights in the direction we want them to be.
+
+
+</code></pre></div></div>
+<p>class MyModel(Model):
+  def <strong>init</strong>(self):
+    super(MyModel, self).<strong>init</strong>()
+    self.conv1 = Conv2D(32, 3, activation=’relu’, padding=’SAME’)
+    self.flatten = Flatten()
+    self.d1 = Dense(10, activation=’softmax’)</p>
+
+<p>def call(self, x):
+    x = self.conv1(x)
+    x = self.flatten(x)
+    return self.d1(x)</p>
+
+<p>class MyModel2(Model):
+  def <strong>init</strong>(self):
+    super(MyModel2, self).<strong>init</strong>()
+    self.conv1 = Conv2D(32, 3, activation=’relu’, padding=’SAME’)
+    self.c_extra = Conv2D(32, 3, activation=’relu’, padding=’SAME’, kernel_initializer=tf.keras.initializers.Ones)
+    self.flatten = Flatten()
+    self.d1 = Dense(10, activation=’softmax’)</p>
+
+<p>def call(self, x):
+    x = self.conv1(x)
+    x = x * self.c_extra(x)
+    x = self.flatten(x)
+    return self.d1(x)
+```</p>
+
+<p>The rest is exactly the same as before.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Increasing the size of a network is something usually done before training from scratch but that doesn’t always need to be the case. You can add one or better yet more layers across the network or even at the very start. Whether this will help depends - mainly on whether you needed a bigger net from the start - but it can definitely save you time.</p>
+
+  </div><a class="u-url" href="/blog/add-layers/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Svilen Todorov</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

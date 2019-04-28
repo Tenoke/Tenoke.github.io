@@ -1,47 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset
-      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-<!-- created with Free Online Sitemap Generator www.xml-sitemaps.com -->
-
-
+<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
-  <loc>https://svilentodorov.xyz/</loc>
-  <lastmod>2019-03-22T15:28:01+00:00</lastmod>
-  <priority>1.00</priority>
+<loc>https://svilentodorov.xyz//blog/rps/</loc>
+<lastmod>2018-07-31T00:00:00+02:00</lastmod>
 </url>
 <url>
-  <loc>https://svilentodorov.xyz/about</loc>
-  <lastmod>2019-03-22T15:28:01+00:00</lastmod>
-  <priority>0.80</priority>
+<loc>https://svilentodorov.xyz//blog/gpt-finetune/</loc>
+<lastmod>2019-03-12T00:00:00+01:00</lastmod>
 </url>
 <url>
-  <loc>https://svilentodorov.xyz/blog</loc>
-  <lastmod>2019-03-22T15:28:01+00:00</lastmod>
-  <priority>0.80</priority>
+<loc>https://svilentodorov.xyz//blog/add-layers/</loc>
+<lastmod>2019-03-22T00:00:00+01:00</lastmod>
 </url>
 <url>
-  <loc>https://svilentodorov.xyz/rps</loc>
-  <lastmod>2019-03-22T15:28:01+00:00</lastmod>
-  <priority>0.80</priority>
+<loc>https://svilentodorov.xyz//about/</loc>
 </url>
 <url>
-  <loc>https://svilentodorov.xyz/blog/add-layers</loc>
-  <lastmod>2019-03-22T15:28:01+00:00</lastmod>
-  <priority>0.80</priority>
+<loc>https://svilentodorov.xyz//blog.html</loc>
 </url>
 <url>
-  <loc>https://svilentodorov.xyz/blog/gpt-finetune</loc>
-  <lastmod>2019-03-22T15:28:01+00:00</lastmod>
-  <priority>0.80</priority>
+<loc>https://svilentodorov.xyz//</loc>
 </url>
 <url>
-  <loc>https://svilentodorov.xyz/blog/rps</loc>
-  <lastmod>2019-03-22T15:28:01+00:00</lastmod>
-  <priority>0.64</priority>
+<loc>https://svilentodorov.xyz//rps.html</loc>
 </url>
-
-
+<url>
+<loc>https://svilentodorov.xyz//google55575595a3168d60.html</loc>
+<lastmod>2019-04-28T15:04:21+02:00</lastmod>
+</url>
+<url>
+<loc>https://svilentodorov.xyz//static/SvilenTodorov.pdf</loc>
+<lastmod>2019-04-28T14:31:34+02:00</lastmod>
+</url>
 </urlset>
