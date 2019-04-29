@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="https://svilentodorov.xyz//feed.xml" rel="self" type="application/atom+xml" /><link href="https://svilentodorov.xyz//" rel="alternate" type="text/html" /><updated>2019-04-28T18:40:04+02:00</updated><id>https://svilentodorov.xyz//feed.xml</id><title type="html">Svilen Todorov</title><subtitle>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</subtitle><entry><title type="html">Adding Layers to the middle of a pre-trained network whithout invalidating the weights</title><link href="https://svilentodorov.xyz//blog/add-layers/" rel="alternate" type="text/html" title="Adding Layers to the middle of a pre-trained network whithout invalidating the weights" /><published>2019-03-22T00:00:00+01:00</published><updated>2019-03-22T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/add-layers</id><content type="html" xml:base="https://svilentodorov.xyz//blog/add-layers/">&lt;p&gt;Fine-tunning pre-trained neural networks on new data has shown a lot of promise in &lt;a href=&quot;https://cv-tricks.com/keras/fine-tuning-tensorflow/&quot;&gt;many&lt;/a&gt; &lt;a href=&quot;http://nlp.fast.ai/&quot;&gt;domains&lt;/a&gt;. One simple example is my &lt;a href=&quot;/blog/gpt-finetune&quot;&gt;last post&lt;/a&gt; where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="https://svilentodorov.xyz//feed.xml" rel="self" type="application/atom+xml" /><link href="https://svilentodorov.xyz//" rel="alternate" type="text/html" /><updated>2019-04-29T11:03:56+02:00</updated><id>https://svilentodorov.xyz//feed.xml</id><title type="html">Svilen Todorov</title><subtitle>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</subtitle><entry><title type="html">Adding Layers to the middle of a pre-trained network whithout invalidating the weights</title><link href="https://svilentodorov.xyz//blog/add-layers/" rel="alternate" type="text/html" title="Adding Layers to the middle of a pre-trained network whithout invalidating the weights" /><published>2019-03-22T00:00:00+01:00</published><updated>2019-03-22T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/add-layers</id><content type="html" xml:base="https://svilentodorov.xyz//blog/add-layers/">&lt;p&gt;Fine-tunning pre-trained neural networks on new data has shown a lot of promise in &lt;a href=&quot;https://cv-tricks.com/keras/fine-tuning-tensorflow/&quot;&gt;many&lt;/a&gt; &lt;a href=&quot;http://nlp.fast.ai/&quot;&gt;domains&lt;/a&gt;. One simple example is my &lt;a href=&quot;/blog/gpt-finetune&quot;&gt;last post&lt;/a&gt; where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.&lt;/p&gt;
 
 &lt;p&gt;Using pre-trained models and further training them is especially useful for organizations with small datasets or resources, and in most cases, it is cost and otherwise effective to do it. However, despite it being widely used, people rarely talk about taking a pre-trained model and making it bigger by adding more layers in the middle of the network rather than just the end.&lt;/p&gt;
 
@@ -45,217 +45,228 @@ mnist_test = mnist_test.map(convert_types).batch(32)
 
 &lt;p&gt;Create our basic model&lt;/p&gt;
 
-&lt;p&gt;```class MyModel(Model):
-  def &lt;strong&gt;init&lt;/strong&gt;(self):
-    super(MyModel, self).&lt;strong&gt;init&lt;/strong&gt;()
-    self.conv1 = Conv2D(32, 3, activation=’relu’)
-    self.flatten = Flatten()
-    self.d1 = Dense(20, activation=’relu’)
-    self.d2 = Dense(10, activation=’softmax’)&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MyModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+  &lt;span class=&quot;n&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;super&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MyModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;).&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conv1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Conv2D&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;m&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'relu'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatten&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Flatten&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d1&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'relu'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d2&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'softmax'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
 
-&lt;p&gt;def call(self, x):
-    x = self.conv1(x)
-    x = self.flatten(x)
-    x = self.d1(x)
-    return self.d2(x)&lt;/p&gt;
-
-&lt;p&gt;model = MyModel()&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-Add our loss, optimizer, and metrics
-
+  &lt;span class=&quot;n&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;call&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;):&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;conv1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;flatten&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;x&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;self&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;d2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+  
+&lt;span class=&quot;k&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MyModel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;loss_object = tf.keras.losses.SparseCategoricalCrossentropy()&lt;/p&gt;
 
-&lt;p&gt;optimizer = tf.keras.optimizers.Adam()&lt;/p&gt;
+&lt;p&gt;Add our loss, optimizer, and metrics&lt;/p&gt;
 
-&lt;p&gt;train_loss = tf.keras.metrics.Mean(name=’train_loss’)
-train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name=’train_accuracy’)&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;loss_object = tf.keras.losses.SparseCategoricalCrossentropy()
 
-&lt;p&gt;test_loss = tf.keras.metrics.Mean(name=’test_loss’)
-test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name=’test_accuracy’)&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-We define our training_step and test_step functions.
+optimizer = tf.keras.optimizers.Adam()
 
+train_loss = tf.keras.metrics.Mean(name='train_loss')
+train_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='train_accuracy')
+
+test_loss = tf.keras.metrics.Mean(name='test_loss')
+test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='test_accuracy')
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;@tf.function
+
+&lt;p&gt;We define our training_step and test_step functions.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@tf.function
 def train_step(image, label, model=model):
   with tf.GradientTape() as tape:
     predictions = model(image)
     loss = loss_object(label, predictions)
   gradients = tape.gradient(loss, model.trainable_variables)
-  optimizer.apply_gradients(zip(gradients, model.trainable_variables))&lt;/p&gt;
-
-&lt;p&gt;train_loss(loss)
-  train_accuracy(label, predictions)&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
+  optimizer.apply_gradients(zip(gradients, model.trainable_variables))
+  
+  train_loss(loss)
+  train_accuracy(label, predictions)
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;@tf.function
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@tf.function
 def test_step(image, label, model=model):
   predictions = model(image)
-  t_loss = loss_object(label, predictions)&lt;/p&gt;
-
-&lt;p&gt;test_loss(t_loss)
-  test_accuracy(label, predictions)&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-We can then train our default model a bit.
-
+  t_loss = loss_object(label, predictions)
+  
+  test_loss(t_loss)
+  test_accuracy(label, predictions)
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;EPOCHS = 2&lt;/p&gt;
 
-&lt;p&gt;for epoch in range(EPOCHS):
+&lt;p&gt;We can then train our default model a bit.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;EPOCHS = 2
+
+for epoch in range(EPOCHS):
   test_loss.reset_states()
   test_accuracy.reset_states()
   for image, label in mnist_train:
-    train_step(image, label)&lt;/p&gt;
-
-&lt;p&gt;for test_image, test_label in mnist_test:
-    test_step(test_image, test_label)&lt;/p&gt;
-
-&lt;p&gt;template = ‘Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}’
+    train_step(image, label)
+  
+  for test_image, test_label in mnist_test:
+    test_step(test_image, test_label)
+  
+  template = 'Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}'
   print (template.format(epoch+1,
                          train_loss.result(), 
-                         train_accuracy.result()&lt;em&gt;100,
+                         train_accuracy.result()*100,
                          test_loss.result(), 
-                         test_accuracy.result()&lt;/em&gt;100))&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-&amp;gt;Epoch 1, Loss: 0.20242027938365936, Accuracy: 94.05333709716797, Test Loss: 0.08358743041753769, Test Accuracy: 97.37999725341797
-&amp;gt;Epoch 2, Loss: 0.13752736151218414, Accuracy: 95.9375, Test Loss: 0.07251566648483276, Test Accuracy: 97.65999603271484
-
-
-At this point, we can try creating a new bigger model that uses all the weights trained here (including those in the very last layer!).
-
-What we are going to do is make a model almost exactly like the last one but we are going to add one more Dense layer before the final one. The important bit here is to initialize the layer so the weights are in the form of the identity function - this way when the output from the previous layer gets multiplied by the output of this layer we will get exactly the same result, and the weights of the final layer will still make sense. Then during fine-tuning, the layer will slowly move away from the identity function in whichever directions make the most sense. Note: we also want the bias to be initialized to zeros (so we don't add anything extra to the weights at first) but this is already the default in tensorflow.
-
+                         test_accuracy.result()*100))
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;class MyModel2(Model):
-  def &lt;strong&gt;init&lt;/strong&gt;(self):
-    super(MyModel2, self).&lt;strong&gt;init&lt;/strong&gt;()
-    self.conv1 = Conv2D(32, 3, activation=’relu’)
-    self.flatten = Flatten()
-    self.d1 = Dense(20, activation=’relu’)
-    &lt;strong&gt;self.d_extra = Dense(20, activation=’relu’, kernel_initializer=tf.keras.initializers.Identity)&lt;/strong&gt;
-    self.d2 = Dense(10, activation=’softmax’)&lt;/p&gt;
 
-&lt;p&gt;def call(self, x):
+&lt;blockquote&gt;
+  &lt;p&gt;Epoch 1, Loss: 0.20242027938365936, Accuracy: 94.05333709716797, Test Loss: 0.08358743041753769, Test Accuracy: 97.37999725341797&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Epoch 2, Loss: 0.13752736151218414, Accuracy: 95.9375, Test Loss: 0.07251566648483276, Test Accuracy: 97.65999603271484&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;At this point, we can try creating a new bigger model that uses all the weights trained here (including those in the very last layer!).&lt;/p&gt;
+
+&lt;p&gt;What we are going to do is make a model almost exactly like the last one but we are going to add one more Dense layer before the final one. The important bit here is to initialize the layer so the weights are in the form of the identity function - this way when the output from the previous layer gets multiplied by the output of this layer we will get exactly the same result, and the weights of the final layer will still make sense. Then during fine-tuning, the layer will slowly move away from the identity function in whichever directions make the most sense. Note: we also want the bias to be initialized to zeros (so we don’t add anything extra to the weights at first) but this is already the default in tensorflow.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class MyModel2(Model):
+  def __init__(self):
+    super(MyModel2, self).__init__()
+    self.conv1 = Conv2D(32, 3, activation='relu')
+    self.flatten = Flatten()
+    self.d1 = Dense(20, activation='relu')
+    **self.d_extra = Dense(20, activation='relu', kernel_initializer=tf.keras.initializers.Identity)**
+    self.d2 = Dense(10, activation='softmax')
+
+  def call(self, x):
     x = self.conv1(x)
     x = self.flatten(x)
     x = self.d1(x)
-    &lt;strong&gt;x = self.d_extra(x)&lt;/strong&gt;
-    return self.d2(x)&lt;/p&gt;
-
-&lt;p&gt;model2 = MyModel2()&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-We then need to re-run our test_step and train_step functions (just re-run the cells containing them) due to how tf.function works. After that, we can confirm our new model isn't magically performing better than chance.
-
+    **x = self.d_extra(x)**
+    return self.d2(x)
+  
+model2 = MyModel2()
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;test_loss.reset_states()
+
+&lt;p&gt;We then need to re-run our test_step and train_step functions (just re-run the cells containing them) due to how tf.function works. After that, we can confirm our new model isn’t magically performing better than chance.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;test_loss.reset_states()
 test_accuracy.reset_states()
 for test_image, test_label in mnist_test:
-    test_step(test_image, test_label, model2)&lt;/p&gt;
-
-&lt;p&gt;template = ‘Test Loss: {}, Test Accuracy: {}’&lt;/p&gt;
-
-&lt;p&gt;print (template.format(test_loss.result(), 
-                     test_accuracy.result()*100))&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-&amp;gt;Test Loss: 2.3064279556274414, Test Accuracy: 10.329999923706055
-
-As expected - it only gets a number right about 1/10th of the time.
-
-Now, the only other thing we need to do is add the weights from our previous model to our new model, except for our new (3rd) layer which will at first just leave things the same.
+    test_step(test_image, test_label, model2)
 
 
+template = 'Test Loss: {}, Test Accuracy: {}'
+
+print (template.format(test_loss.result(), 
+                     test_accuracy.result()*100))
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;model2.layers[0].set_weights(model.layers[0].get_weights())
+
+&lt;blockquote&gt;
+  &lt;p&gt;Test Loss: 2.3064279556274414, Test Accuracy: 10.329999923706055&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;As expected - it only gets a number right about 1/10th of the time.&lt;/p&gt;
+
+&lt;p&gt;Now, the only other thing we need to do is add the weights from our previous model to our new model, except for our new (3rd) layer which will at first just leave things the same.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;model2.layers[0].set_weights(model.layers[0].get_weights())
 model2.layers[1].set_weights(model.layers[1].get_weights())
 model2.layers[2].set_weights(model.layers[2].get_weights())
-model2.layers[4].set_weights(model.layers[3].get_weights())&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-We can then re-run the code checking the accuracy of our new model and voila
-
-&amp;gt;Test Loss: 0.07251566648483276, Test Accuracy: 97.65999603271484
-
-At this point we can just start training our bigger model. 
-
+model2.layers[4].set_weights(model.layers[3].get_weights())
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;EPOCHS = 2&lt;/p&gt;
 
-&lt;p&gt;for epoch in range(EPOCHS):
+&lt;p&gt;We can then re-run the code checking the accuracy of our new model and voila&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Test Loss: 0.07251566648483276, Test Accuracy: 97.65999603271484&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;At this point we can just start training our bigger model.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;EPOCHS = 2
+
+for epoch in range(EPOCHS):
   test_loss.reset_states()
   test_accuracy.reset_states()
   for image, label in mnist_train:
-    train_step(image, label, model2)&lt;/p&gt;
-
-&lt;p&gt;for test_image, test_label in mnist_test:
-    test_step(test_image, test_label, model2)&lt;/p&gt;
-
-&lt;p&gt;template = ‘Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}’
+    train_step(image, label, model2)
+  
+  for test_image, test_label in mnist_test:
+    test_step(test_image, test_label, model2)
+  
+  template = 'Epoch {}, Loss: {}, Accuracy: {}, Test Loss: {}, Test Accuracy: {}'
   print (template.format(epoch+1,
                          train_loss.result(), 
-                         train_accuracy.result()&lt;em&gt;100,
+                         train_accuracy.result()*100,
                          test_loss.result(), 
-                         test_accuracy.result()&lt;/em&gt;100))&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-Which gets me to
-
-&amp;gt;Epoch 1, Loss: 0.11430724710226059, Accuracy: 96.58721923828125, Test Loss: 0.05486641451716423, Test Accuracy: 98.18999481201172
-&amp;gt;Epoch 2, Loss: 0.09389258921146393, Accuracy: 97.19083404541016, Test Loss: 0.05310175567865372, Test Accuracy: 98.31999969482422
-
-Not much better, but the results will usually be more impressive when dealing with more complex problems.
-
-
-Also, instead of doing that, we can also freeze everything but our new layer to more accurately only train it. This will train faster, and depending on the problem, it might make more sense - or it might make more sense for a few epochs before again training all layers. Play around with it!
-
+                         test_accuracy.result()*100))
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;@tf.function
+
+&lt;p&gt;Which gets me to&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Epoch 1, Loss: 0.11430724710226059, Accuracy: 96.58721923828125, Test Loss: 0.05486641451716423, Test Accuracy: 98.18999481201172&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Epoch 2, Loss: 0.09389258921146393, Accuracy: 97.19083404541016, Test Loss: 0.05310175567865372, Test Accuracy: 98.31999969482422&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Not much better, but the results will usually be more impressive when dealing with more complex problems.&lt;/p&gt;
+
+&lt;p&gt;Also, instead of doing that, we can also freeze everything but our new layer to more accurately only train it. This will train faster, and depending on the problem, it might make more sense - or it might make more sense for a few epochs before again training all layers. Play around with it!&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;@tf.function
 def train_step(image, label, model=model):
   with tf.GradientTape() as tape:
     predictions = model(image)
     loss = loss_object(label, predictions)
-  &lt;strong&gt;&lt;em&gt;gradients = tape.gradient(loss, model.trainable_variables[-4:-2])
-  optimizer.apply_gradients(zip(gradients, model.trainable_variables[-4:-2]))&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
-
-&lt;p&gt;train_loss(loss)
-  train_accuracy(label, predictions)&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-The way we do that is by using the gradients of only our new layer.
-model.trainable_variables works by returning a list of all weights and biases of our model layer by layer - so the first item is the weights of layer 1,  2nd item is the bias of layer 1 etc. Thus we only need the 2 layers before the last 2.
-
-
-##Fully convolutional
-
-What if we are working with e.g. a fully convolutional network - an identity matrix won't work (and tensorflow doesn't even allow us to use the identity initializer for that reason) - how do you add a new layer while keeping the network usable?
-
-There are different ways you can extend the network while keeping all the weights useful - one I like is to use a residual-like approach. I simply initialize the new conv layer using all 1s and multiply the output from it to the output of the previous layer. This changes nothing at first but once we start training again, we can slowly move those weights in the direction we want them to be.
-
-
+  ***gradients = tape.gradient(loss, model.trainable_variables[-4:-2])
+  optimizer.apply_gradients(zip(gradients, model.trainable_variables[-4:-2]))***
+  
+  train_loss(loss)
+  train_accuracy(label, predictions)
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;class MyModel(Model):
-  def &lt;strong&gt;init&lt;/strong&gt;(self):
-    super(MyModel, self).&lt;strong&gt;init&lt;/strong&gt;()
-    self.conv1 = Conv2D(32, 3, activation=’relu’, padding=’SAME’)
-    self.flatten = Flatten()
-    self.d1 = Dense(10, activation=’softmax’)&lt;/p&gt;
 
-&lt;p&gt;def call(self, x):
+&lt;p&gt;The way we do that is by using the gradients of only our new layer.
+model.trainable_variables works by returning a list of all weights and biases of our model layer by layer - so the first item is the weights of layer 1,  2nd item is the bias of layer 1 etc. Thus we only need the 2 layers before the last 2.&lt;/p&gt;
+
+&lt;h2 id=&quot;fully-convolutional&quot;&gt;Fully convolutional&lt;/h2&gt;
+
+&lt;p&gt;What if we are working with e.g. a fully convolutional network - an identity matrix won’t work (and tensorflow doesn’t even allow us to use the identity initializer for that reason) - how do you add a new layer while keeping the network usable?&lt;/p&gt;
+
+&lt;p&gt;There are different ways you can extend the network while keeping all the weights useful - one I like is to use a residual-like approach. I simply initialize the new conv layer using all 1s and multiply the output from it to the output of the previous layer. This changes nothing at first but once we start training again, we can slowly move those weights in the direction we want them to be.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;class MyModel(Model):
+  def __init__(self):
+    super(MyModel, self).__init__()
+    self.conv1 = Conv2D(32, 3, activation='relu', padding='SAME')
+    self.flatten = Flatten()
+    self.d1 = Dense(10, activation='softmax')
+
+  def call(self, x):
     x = self.conv1(x)
     x = self.flatten(x)
-    return self.d1(x)&lt;/p&gt;
+    return self.d1(x)
+    
 
-&lt;p&gt;class MyModel2(Model):
-  def &lt;strong&gt;init&lt;/strong&gt;(self):
-    super(MyModel2, self).&lt;strong&gt;init&lt;/strong&gt;()
-    self.conv1 = Conv2D(32, 3, activation=’relu’, padding=’SAME’)
-    self.c_extra = Conv2D(32, 3, activation=’relu’, padding=’SAME’, kernel_initializer=tf.keras.initializers.Ones)
+class MyModel2(Model):
+  def __init__(self):
+    super(MyModel2, self).__init__()
+    self.conv1 = Conv2D(32, 3, activation='relu', padding='SAME')
+    self.c_extra = Conv2D(32, 3, activation='relu', padding='SAME', kernel_initializer=tf.keras.initializers.Ones)
     self.flatten = Flatten()
-    self.d1 = Dense(10, activation=’softmax’)&lt;/p&gt;
+    self.d1 = Dense(10, activation='softmax')
 
-&lt;p&gt;def call(self, x):
+  def call(self, x):
     x = self.conv1(x)
     x = x * self.c_extra(x)
     x = self.flatten(x)
     return self.d1(x)
-```&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
 &lt;p&gt;The rest is exactly the same as before.&lt;/p&gt;
 
