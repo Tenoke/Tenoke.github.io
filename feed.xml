@@ -1,4 +1,646 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="https://svilentodorov.xyz//feed.xml" rel="self" type="application/atom+xml" /><link href="https://svilentodorov.xyz//" rel="alternate" type="text/html" /><updated>2019-05-02T10:28:05+02:00</updated><id>https://svilentodorov.xyz//feed.xml</id><title type="html">Svilen Todorov</title><subtitle>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</subtitle><entry><title type="html">A Proposed Task for Training a Human-Imitating System as a Benchmark and Potential Part of The Road to AGI</title><link href="https://svilentodorov.xyz//blog/human-imitating-task/" rel="alternate" type="text/html" title="A Proposed Task for Training a Human-Imitating System as a Benchmark and Potential Part of The Road to AGI" /><published>2019-04-29T00:00:00+02:00</published><updated>2019-04-29T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/human-imitating-task</id><content type="html" xml:base="https://svilentodorov.xyz//blog/human-imitating-task/">&lt;h2 id=&quot;basic-idea&quot;&gt;Basic idea&lt;/h2&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.5">Jekyll</generator><link href="https://svilentodorov.xyz//feed.xml" rel="self" type="application/atom+xml" /><link href="https://svilentodorov.xyz//" rel="alternate" type="text/html" /><updated>2019-05-08T13:51:14+02:00</updated><id>https://svilentodorov.xyz//feed.xml</id><title type="html">Svilen Todorov</title><subtitle>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</subtitle><entry><title type="html">Fine-tunning OpenAI’s GPT-2-345M on Conversation data (Update)</title><link href="https://svilentodorov.xyz//blog/gpt-345M-finetune/" rel="alternate" type="text/html" title="Fine-tunning OpenAI's GPT-2-345M on Conversation data (Update)" /><published>2019-05-08T00:00:00+02:00</published><updated>2019-05-08T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/gpt-345m-finetune</id><content type="html" xml:base="https://svilentodorov.xyz//blog/gpt-345M-finetune/">&lt;p&gt;NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of &lt;a href=&quot;https://openai.com/blog/better-language-models/#update&quot;&gt;GPT-2, their current state of the art language model&lt;/a&gt; I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a &lt;a href=&quot;https://www.kaggle.com/rtatman/ubuntu-dialogue-corpus&quot;&gt;Two person Ubuntu-related dialogue corpus&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The newly released pre-trained version has 345 million parameters, compared to the 117M parameter version so one would expect significantly better results. Note, this is still significantly smaller than the 1.5B version they’ve shown off. OpenAI are, however, releasing the aforementioned 1.5B version along with a 762M version to partner organizations along with plans to release those to the public in the future, too.&lt;/p&gt;
+
+&lt;p&gt;Although it will be interesting to play around with those much bigger GPT-2 versions, they might not even be relevant by the time they are released - training on the same data with the same amount of compute one can already most likely build an even better model using recent advances e.g. even just with better transformers like OpenAI’s &lt;a href=&quot;https://openai.com/blog/sparse-transformer/&quot;&gt;Sparse Transformer&lt;/a&gt; or Google AI’s &lt;a href=&quot;https://ai.googleblog.com/2019/01/transformer-xl-unleashing-potential-of.html&quot;&gt;Transofmer-XL&lt;/a&gt; both of which improve on GPT-2’s current architecture.&lt;/p&gt;
+
+&lt;p&gt;I won’t go into detail describing the Colab with Facebook data, as it is almost the same as the one used with the 117M version which I describe &lt;a href=&quot;/blog/gpt-finetune/&quot;&gt;here&lt;/a&gt;. We are again using &lt;a href=&quot;https://github.com/nshepperd/gpt-2&quot;&gt;nsheppered’s GPT training code&lt;/a&gt;, this time with gradient checkpointing to be able to fit the larger model in memory.&lt;/p&gt;
+
+&lt;p&gt;You can follow in the new GPT-2-345M collab FB data &lt;a href=&quot;https://colab.research.google.com/drive/1EhZG2_AQLeDvW2s841d502FydMn1vgmK&quot;&gt;here&lt;/a&gt;. Make sure to click Runtime&amp;gt; Change Runtime type&amp;gt; GPU (or TPU)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;#facebook-examples&quot;&gt;Generated Facebook Messenger Dialogue Samples&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;There is also the GPT-2-345M ubuntu data (including preprossesing)  &lt;a href=&quot;https://colab.research.google.com/drive/161JjdAyqckSBLD45N9WZzFI21rUYk2ns&quot;&gt;here&lt;/a&gt;. Make sure to click Runtime&amp;gt; Change Runtime type&amp;gt; GPU (or TPU)&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;#ubuntu-examples&quot;&gt;Generated Ubuntu Dialogue Samples&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;results&quot;&gt;Results&lt;/h2&gt;
+
+&lt;p&gt;First of, The results are visibly better. Even without fine-tuning 345M produces visibly (but not overwhelmingly so) better results than 117M, and preliminary outputs from &lt;a href=&quot;https://www.gwern.net/GPT-2&quot;&gt;fine-tuning it on poetry&lt;/a&gt; are reportedly even more promising. It is hard to judge how much better but for example, I couldn’t get the loss on my small 14M facebook messages dataset to go consistently bellow &lt;em&gt;2.10&lt;/em&gt; with 117M, while with 345M (and admittedly a bit more training) I got it down to &lt;em&gt;1.85&lt;/em&gt;.&lt;/p&gt;
+
+&lt;h3 id=&quot;facebook&quot;&gt;Facebook&lt;/h3&gt;
+
+&lt;p&gt;The results are a bit better and more coherent but 14M is clearly too small a dataset. I had to do some small tricks (mainly decreasing the learning rate periodically and occasionally attempting to use the ubuntu data, too). Adding the &lt;em&gt;endoftext&lt;/em&gt; token instead of two blank lines between conversations also helped as expected.&lt;/p&gt;
+
+&lt;h4 id=&quot;facebook-examples&quot;&gt;&lt;em&gt;Facebook Examples:&lt;/em&gt;&lt;/h4&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1353629564276) Tom Middlebrook: alright, i was given a bag as a present. so i had to return it to my parents. was fine getting it again though but only with a small amount&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1353595877463) Svilen Todorov: nice&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1353655925201) Tom Middlebrook: https://www.youtube.com/watch?v=tYJhLgK1KqU&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1353655946673) Svilen Todorov: i should’ve probably taken a photo when i did that haha&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1353655984955) Svilen Todorov: i saw someone else on youtube trying to buy like 20 quid extra lol&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1353656240766) Svilen Todorov: i think ill have to do a job at some point after i graduate but yh&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1353654726000) Svilen Todorov: http://www.reddit.com/tb/y2r0r&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1353654728111) Svilen Todorov: i dont get why not to give him the money :D&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354159959666) Tom Middlebrook: lol&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354165011230) Tom Middlebrook: that’s awesome&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354155045207) Svilen Todorov: hahaha, yh&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354255181784) Tom Middlebrook: http://i.imgur.com/Ypk.png&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354255222767) Tom Middlebrook: I’m pretty sure the other two guys that I had work with from the day before had worked with jsa lol&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354255453761) Svilen Todorov: hahah&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354357524074) Svilen Todorov: oh ya&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354357528963) Tom Middlebrook: http://i.imgur.com/m4h5.jpg&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354357535641) Tom Middlebrook: looks really cool&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354357540333) Svilen Todorov: hahahaha&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354357562322) Svilen Todorov: nice&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1354357563001) Tom Middlebrook: looks like a cool outfit&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878572976) Ioannis Agathocleous: Ill have to see a place in the east of london&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878585860) Svilen Todorov: maybe&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878623078) Svilen Todorov: not too far&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878673631) Svilen Todorov: well not that far&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878673234) Svilen Todorov: might be too much as I am not going to get much for a place that already has one&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878680863) Svilen Todorov: but dunno&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878688387) Svilen Todorov: i’ll go to a place in london instead since I don’t have a job&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878698013) Ioannis Agathocleous: I could find one somewhere on the east but the distance is pretty small&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878706547) Ioannis Agathocleous: But I dont mind&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878783822) Svilen Todorov: it’s not too far&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878792946) Svilen Todorov: well, Im pretty sure it’d be easier to just find a place in london instead if I get too many people to live with&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496878807895) Svilen Todorov: if there isnt one in the UK I might be able to get a place here or something&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496888089082) Svilen Todorov: yeah, i can find somewhere&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496888051110) Ioannis Agathocleous: Ye probs best to be a foreigner&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496888061658) Ioannis Agathocleous: Just find a new place and work&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496888093631) Svilen Todorov: yh true&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496888096719) Svilen Todorov: yh, I’ve found a place&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496888096620) Ioannis Agathocleous: You gotta find something&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496887102292) Ioannis Agathocleous: Or stay at a mate’s house for a few months&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496887143560) Svilen Todorov: will do&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496887162939) Svilen Todorov: I think you’ll find something in Bulgaria&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496887172227) Svilen Todorov: in london might be easier to find something&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496887193938) Svilen Todorov: so yh find what you want&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496888245750) Ioannis Agathocleous: Ye will do&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496895273936) Svilen Todorov: just saw a flat for 200 which is 2 hours from my place&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496895284880) Svilen Todorov: I can also get a place cheaper if I move there too&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496895358255) Ioannis Agathocleous: Seems like a decent deal&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496895641622) Ioannis Agathocleous: Ill see if I can find something from the guys&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496893649976) Svilen Todorov: looks like it’s in the center of meelerdham&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496893664983) Ioannis Agathocleous: Kl ill check it out&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496893669386) Svilen Todorov: if I move tomorrow Ill be living in London until March for a year&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1496893688213) Ioannis Agathocleous: Ye but I dont mind moving anyway&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(13136700170) Svilen Todorov: i’m going to sleep&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313670106021) Michal Rostecki: ah sorry, I forgot&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313670197807) Michal Rostecki: yeah, I will prob go there around 19:30&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313670199539) Svilen Todorov: ok, about to try to make it to the bar at least&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313670199507) Svilen Todorov: if its like that&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313670199579) Svilen Todorov: its way down&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313670199997) Michal Rostecki: yeah, now I’m on my way&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313670199994) Svilen Todorov: oh and I keep forgetting my passport when I get there&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313670199923) Svilen Todorov: well i have it already :D&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313680514053) Svilen Todorov: http://www.buzzfeed.com/buzzfeed/comments/2lh/how-do-you-use-the-device-menu-system-in-ubuntu-10-04-lucid-with-ubuntu-10-04-lucid-lucid-with-ubuntu-10-04-lucid-lucid-with-ubuntu-10-04-lucid-lucid-with-ubuntu-10-04-lucid-lucid-with-ubuntu-10-04-lucid-like-after-reinstalling-the-grub-loader-for-ubuntu-10-04/&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313671553576) Michal Rostecki: what’s your plan for today? did you find it?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313671607100) Svilen Todorov: nah got some stuff to do&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313671627252) Svilen Todorov: im heading to work now&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313671638781) Michal Rostecki: cool! I’ll probably be there around 4ish&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313671666644) Svilen Todorov: didnt get that&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313671669988) Svilen Todorov: nah it’s fine&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1313671670159) Michal Rostecki: ok&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544396720429) Carmen Quasi: are you going to a bar?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544396782520) Svilen Todorov: yeah sure&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544396988765) Svilen Todorov: but Ill probably stay at mine longer&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544397997134) Carmen Quasi: hihi i can come to yours at some point&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544397996679) Carmen Quasi: I’m in a park with my friend Jonas. you could just head there and drink a beer&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544402012633) Svilen Todorov: Ja&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544402269095) Svilen Todorov: If I will come by the same time Ill pass by to get my backpack&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544402529078) Carmen Quasi: it’s not so big a park&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544402839650) Carmen Quasi: i dont get where you are&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544407472321) Svilen Todorov: Ja same&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544407506681) Svilen Todorov: It’s in the center&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544407505377) Svilen Todorov: A lot bigger than London for sure&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544503854605) Carmen Quasi: yeah it’s in the center with a garden&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544505993833) Carmen Quasi: there is a pool pool in the center, not the backyard&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544507562468) Svilen Todorov: Ye fair&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544507569097) Svilen Todorov: Might come for a bit to try it&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1544507617387) Carmen Quasi: nice&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3 id=&quot;ubuntu&quot;&gt;Ubuntu&lt;/h3&gt;
+
+&lt;p&gt;I mainly tried this out of curiosity but also in order to attempt to use a somewhat similar (dialogue) dataset for somehow improving the accuracy on my all-to-small facebook dataset. I tried multiple things but the only thing that actually helped was to train for a bit (&amp;lt;1500 steps) on the ubuntu dataset a few times when the loss on my own dataset won’t go down and then go back. This sped things up slightly and allowed me to reach a little bit higher accuracy in the end but the difference isn’t too big.&lt;/p&gt;
+
+&lt;p&gt;I only tried this for a couple of hours and used slightly less than half the data (there are 3 folders in the datasets and I only used the 951M one) but the results were quite close to what’s in the dataset. Here are some random (non-cherry picked) samples. Honestly, if you give me some actual conversations from this dataset and some generated conversations, I’m not sure if I’d do much better than 60% at recognizing which is which.&lt;/p&gt;
+
+&lt;h4 id=&quot;ubuntu-examples&quot;&gt;&lt;em&gt;Ubuntu Examples:&lt;/em&gt;&lt;/h4&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191738600) chrism_: hi all&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191738760) chrism_: can somebody help me set up a nvidia x driver? my system doesn’t display an X server. I think it’s not a graphical problem.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191738820) jocke: I would use xorg1-driver&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191738900) jocke: then do that&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191738960) jocke: I usually install both but at least you can do that&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191738960) jocke: I would just follow this guide to help you&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191739020) jocke: https://wiki.ubuntu.com/X11/UsingX11/Manual&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191739080) jocke: if your setup doesn’t load the driver it might be a bad idea to disable it. But when you run xmodmap &lt;keycode&gt; and it says no such buffer I assume that you are good to set it back to working state you should be fine&lt;/keycode&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191739080) jocke: the first step (the xorg1-driver) is to run xmodmap from that directory. Once that is done it will be available as a device for ‘device’ on your desktop. If your only problems are with xorg1.h or X11.h, just add it to /etc/X11/xorg.conf&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1191739400) jocke: if you need the xorg.conf just edit my example file to change it to the one you want to have.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144700) luigi__: hey i have this problem, how do i stop and remove all the packages ubuntu has, it keeps re-installing everything when i change the source and i change the repository to another one&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144760) luigi__: thanks&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144760) cnj_: right-click the source folder and look for a dropdown area&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144760) cnj_: yes&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144760) cnj_: then right-click&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144760) cnj_: then type   dpkg -L      and hit enter&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144760) cnj_: then click add&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144820) cnj_: it will start downloading everything, just in case&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144820) cnj_: it will tell you to restart the system to do that&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144820) luigi__: what do you mean?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144880) cnj_: in here?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144880) luigi__: i don’t have that on my laptop&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144880) cnj_: I’ll give you a link.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144880) cnj_: http://paste.ubuntu-nl.org/134440/&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144880) cnj_: this is my machine&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144880) cnj_:  my&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144880) cnj_: my problem&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144880) luigi__: the thing is its working perfectly fine on my laptop&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144880) cnj_: the laptop has no problems with downloading any package that is offered through my terminal&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144940) cnj_: I have no connection to you.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144940) cnj_: in ubuntu/lubuntu/solaris&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144940) luigi__: so if i just installed those ubuntu packages, they still need reinstallation?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1299144940) cnj_: yes&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189447620) m0nix_: hmm&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189447680) m0nix_: I had a good time with Wine2X, but i changed my mind, I will not use Wine2 for this application.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189447740) m0nix_: Is there a way to make the application run on Ubuntu?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189447740) MrFool: sudo dpkg –purge wine2x ?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189447740) MrFool: I got wine&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189447740) MrFool: yes.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189447800) MrFool: I guess you don’t really need the whole x server, but that you can just install.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189447860) MrFool: Wine2 is just an extension from Wine3&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189447920) MrFool: Yes you want to run X?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1189442140) MrFool: You have a server&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1199918140) kalzior: anyone know where i can get fiesty to work with this new version?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1199918140) nishant: you can use gtk-fiesty&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1199918140) kalzior: thanks&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1199918140) nishant: I have never really used freestyle, but the gui interface does a good job&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321455720) wuqh2u2n: do you know how to do ubuntu and windows together??&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321455780) theadmin: you need to use the ubuntu iso to install.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321455840) wuqh2u2n: but its just 2 partitions&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321455900) theadmin: ok so when installing ubun&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321446060) theadmin: which one is the right?&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321456600) theadmin: which ISO&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321456600) wuqh2u2n: i’ve tried downloading the iso but they’re all wrong, but theres a way to use it&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321462060) theadmin: try and use the iso you downloaded, it will be an iso you can burn to&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321462300) theadmin: thats it, you will be able to burn it to cd&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321462300) theadmin: its the right iso&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321462300) theadmin: how do i burn them? i need some help&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321462300) theadmin: i need to burn the iso from the internet&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;(1321462540) theadmin: you need to have a cd&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;The conversations look better but not ideal. The model is learning even more relevant stuff - e.g. they are about mutual interests, acquaintances etc. It truly seems to have some idea of who each person is and can mostly catch the tone and relevant facts about most people I’ve talked enough to.&lt;/p&gt;
+
+&lt;p&gt;It was also easy and fun to play with and makes me wonder how much better we can do with the biggest model or better techniques or ideally more of everything. At this rate, we might soon have chatbots good enough for people to not even compare them to Eliza!&lt;/p&gt;</content><author><name></name></author><summary type="html">NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus.</summary></entry><entry><title type="html">A Proposed Task for Training a Human-Imitating System as a Benchmark and Potential Part of The Road to AGI</title><link href="https://svilentodorov.xyz//blog/human-imitating-task/" rel="alternate" type="text/html" title="A Proposed Task for Training a Human-Imitating System as a Benchmark and Potential Part of The Road to AGI" /><published>2019-04-29T00:00:00+02:00</published><updated>2019-04-29T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/human-imitating-task</id><content type="html" xml:base="https://svilentodorov.xyz//blog/human-imitating-task/">&lt;h2 id=&quot;basic-idea&quot;&gt;Basic idea&lt;/h2&gt;
 
 &lt;p&gt;One of the most important pieces for training a more general ‘human-like’ System (Neural Network) is having a good open-ended task which is either unsupervised or where generating very large amounts of data is doable.&lt;/p&gt;
 
@@ -57,11 +699,11 @@ I would be very interested to hear about arguments why this would or wouldn’t 
 
 &lt;p&gt;Note: The basic network example is mostly taken from the &lt;a href=&quot;https://www.tensorflow.org/alpha/tutorials/quickstart/advanced&quot;&gt;Tensorflow 2.0 Getting started article&lt;/a&gt;. I used this as an opportunity to play a little with the new API.&lt;/p&gt;
 
-&lt;p&gt;You can follow in the collab &lt;a href=&quot;https://colab.research.google.com/drive/1KocZA0Zgo68eMKWXg-W3W6Ev0F6n88cX&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;You can follow in the colab &lt;a href=&quot;https://colab.research.google.com/drive/1KocZA0Zgo68eMKWXg-W3W6Ev0F6n88cX&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
 
-&lt;p&gt;First, we install tensorflow 2.0 to Collab (this step can be skipped after 2.0 is out and the default in Collab)&lt;/p&gt;
+&lt;p&gt;First, we install tensorflow 2.0 to Colab (this step can be skipped after 2.0 is out and the default in Colab)&lt;/p&gt;
 
 &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;pip install tensorflow-gpu==2.0.0-alpha0
 &lt;/code&gt;
@@ -325,11 +967,11 @@ class MyModel2(Model):
 
 &lt;p&gt;In February 2019 OpenAI released &lt;a href=&quot;https://blog.openai.com/better-language-models/&quot;&gt;information on their new state of the art language model&lt;/a&gt; which created a lot of buzz within the community. While few disagree the results they included are better than anything we’ve seen before (even if mainly because they made a bigger model combining recent advances), many were peeved that OpenAI only released a small pre-trained version of their model rather than the full one they generated examples with. Nonetheless, the small model is also very good, and due to nshepperd’s addition to their code, we can easily fine-tune it on our own data to easily generate (near-)state of the art results specific to whatever we want.&lt;/p&gt;
 
-&lt;p&gt;Since then people have been experimenting with the model, including some like the aforementioned nsheppered adding simple scripts allowing us to fine-tune the model on our data. In this post, I am going to describe how to use easily available tools like those scripts, Google Collab and Facebook’s Data Export option in order to create borderline realistic conversation snippets.&lt;/p&gt;
+&lt;p&gt;Since then people have been experimenting with the model, including some like the aforementioned nsheppered adding simple scripts allowing us to fine-tune the model on our data. In this post, I am going to describe how to use easily available tools like those scripts, Google Colab and Facebook’s Data Export option in order to create borderline realistic conversation snippets.&lt;/p&gt;
 
 &lt;p&gt;If you don’t have enough data on facebook, you should be able to easily export your conversation data from pretty much any other service and train on that. Better yet, you can combine data from different sources - as usual with machine learning, the more data you have the better.&lt;/p&gt;
 
-&lt;p&gt;You can follow in the collab &lt;a href=&quot;https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP&quot;&gt;here&lt;/a&gt;. Make sure to click Runtime&amp;gt; Change Runtime type&amp;gt; GPU (or TPU)&lt;/p&gt;
+&lt;p&gt;You can follow in the colab &lt;a href=&quot;https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP&quot;&gt;here&lt;/a&gt;. Make sure to click Runtime&amp;gt; Change Runtime type&amp;gt; GPU (or TPU)&lt;/p&gt;
 
 &lt;h2 id=&quot;code&quot;&gt;Code&lt;/h2&gt;
 
@@ -350,7 +992,7 @@ cd gpt-2
 
 &lt;p&gt;Next, we need to download our facebook messages. Facebook explains how to do it &lt;a href=&quot;https://www.facebook.com/help/1701730696756992?helpref=hc_global_nav&quot;&gt;here&lt;/a&gt;. Only select ‘messages’ and for the format select ‘json’. After it is ready you can either download the file by clicking download or by using Dev Tools. To do so open them with F12, go to sources, and click download (and then just cancel it), then find the entry starting with file.php, right click it and ‘copy as curl’ as in this screenshot
 &lt;img src=&quot;/static/screenshot-fb.png&quot; alt=&quot;Facebook Screenshot&quot; class=&quot;img-responsive&quot; /&gt;
-then just add ! in front of the command (to run it in collab) and &lt;code class=&quot;highlighter-rouge&quot;&gt;--output fb-json.zip&lt;/code&gt; at the end to name the file.&lt;/p&gt;
+then just add ! in front of the command (to run it in colab) and &lt;code class=&quot;highlighter-rouge&quot;&gt;--output fb-json.zip&lt;/code&gt; at the end to name the file.&lt;/p&gt;
 
 &lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;
 !curl &amp;lt;link&amp;gt; --output fb-json.zip
@@ -851,7 +1493,7 @@ by running&lt;/p&gt;
 
 &lt;p&gt;The conversations look okay, though sometimes they are less coherent. It is clearly learning useful stuff - the timestamps generally go up, the conversations are relevant to the people in them, and so is the structure. Training it with more data would also definitely help.&lt;/p&gt;
 
-&lt;p&gt;Another way to make it produce slightly better results is to finetune it in the end on the chat from a specific person before generating conversations with them (I’ve added the relevant code to the collab).&lt;/p&gt;
+&lt;p&gt;Another way to make it produce slightly better results is to finetune it in the end on the chat from a specific person before generating conversations with them (I’ve added the relevant code to the colab).&lt;/p&gt;
 
 &lt;p&gt;We haven’t gotten anywhere near passing the Turing Test but I suspect that if you hook this up to facebook’s API to respond for you, it might take a while for some people to figure it out.&lt;/p&gt;</content><author><name></name></author><summary type="html">One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.</summary></entry><entry><title type="html">Building an in-browser Rock Paper Scissors Neural Network capable of beating humans</title><link href="https://svilentodorov.xyz//blog/rps/" rel="alternate" type="text/html" title="Building an in-browser Rock Paper Scissors Neural Network capable of beating humans" /><published>2018-07-31T00:00:00+02:00</published><updated>2018-07-31T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/RPS</id><content type="html" xml:base="https://svilentodorov.xyz//blog/rps/">&lt;p&gt;As the &lt;a href=&quot;https://archive.nytimes.com/www.nytimes.com/interactive/science/rock-paper-scissors.html&quot;&gt;New York Times&lt;/a&gt; have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.&lt;/p&gt;
 

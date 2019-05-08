@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.0 -->
+<title>Fine-tunning OpenAI’s GPT-2-345M on Conversation data (Update) | Svilen Todorov</title>
+<meta name="generator" content="Jekyll v3.8.5" />
+<meta property="og:title" content="Fine-tunning OpenAI’s GPT-2-345M on Conversation data (Update)" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus." />
+<meta property="og:description" content="NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus." />
+<link rel="canonical" href="https://svilentodorov.xyz//blog/gpt-345M-finetune/" />
+<meta property="og:url" content="https://svilentodorov.xyz//blog/gpt-345M-finetune/" />
+<meta property="og:site_name" content="Svilen Todorov" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-05-08T00:00:00+02:00" />
+<script type="application/ld+json">
+{"dateModified":"2019-05-08T00:00:00+02:00","datePublished":"2019-05-08T00:00:00+02:00","@type":"BlogPosting","headline":"Fine-tunning OpenAI’s GPT-2-345M on Conversation data (Update)","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/gpt-345M-finetune/"},"url":"https://svilentodorov.xyz//blog/gpt-345M-finetune/","description":"NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+            <a class="page-link" href="/rps">RPS Demo</a>
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/rps.html">RPS</a>-->
+        </div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+  <center><h2 class="post-title p-name" itemprop="name headline">Fine-tunning OpenAI&#39;s GPT-2-345M on Conversation data (Update)</h1> 
+  <h2 class="post-subtitle p-name" itemprop="name headline">Using Google Colab</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-05-08T00:00:00+02:00" itemprop="datePublished">May 8, 2019
+      </time></p>
+    </center>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of <a href="https://openai.com/blog/better-language-models/#update">GPT-2, their current state of the art language model</a> I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a <a href="https://www.kaggle.com/rtatman/ubuntu-dialogue-corpus">Two person Ubuntu-related dialogue corpus</a>.</p>
+
+<p>The newly released pre-trained version has 345 million parameters, compared to the 117M parameter version so one would expect significantly better results. Note, this is still significantly smaller than the 1.5B version they’ve shown off. OpenAI are, however, releasing the aforementioned 1.5B version along with a 762M version to partner organizations along with plans to release those to the public in the future, too.</p>
+
+<p>Although it will be interesting to play around with those much bigger GPT-2 versions, they might not even be relevant by the time they are released - training on the same data with the same amount of compute one can already most likely build an even better model using recent advances e.g. even just with better transformers like OpenAI’s <a href="https://openai.com/blog/sparse-transformer/">Sparse Transformer</a> or Google AI’s <a href="https://ai.googleblog.com/2019/01/transformer-xl-unleashing-potential-of.html">Transofmer-XL</a> both of which improve on GPT-2’s current architecture.</p>
+
+<p>I won’t go into detail describing the Colab with Facebook data, as it is almost the same as the one used with the 117M version which I describe <a href="/blog/gpt-finetune/">here</a>. We are again using <a href="https://github.com/nshepperd/gpt-2">nsheppered’s GPT training code</a>, this time with gradient checkpointing to be able to fit the larger model in memory.</p>
+
+<p>You can follow in the new GPT-2-345M collab FB data <a href="https://colab.research.google.com/drive/1EhZG2_AQLeDvW2s841d502FydMn1vgmK">here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
+
+<p><strong><a href="#facebook-examples">Generated Facebook Messenger Dialogue Samples</a></strong></p>
+
+<p>There is also the GPT-2-345M ubuntu data (including preprossesing)  <a href="https://colab.research.google.com/drive/161JjdAyqckSBLD45N9WZzFI21rUYk2ns">here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
+
+<p><strong><a href="#ubuntu-examples">Generated Ubuntu Dialogue Samples</a></strong></p>
+
+<h2 id="results">Results</h2>
+
+<p>First of, The results are visibly better. Even without fine-tuning 345M produces visibly (but not overwhelmingly so) better results than 117M, and preliminary outputs from <a href="https://www.gwern.net/GPT-2">fine-tuning it on poetry</a> are reportedly even more promising. It is hard to judge how much better but for example, I couldn’t get the loss on my small 14M facebook messages dataset to go consistently bellow <em>2.10</em> with 117M, while with 345M (and admittedly a bit more training) I got it down to <em>1.85</em>.</p>
+
+<h3 id="facebook">Facebook</h3>
+
+<p>The results are a bit better and more coherent but 14M is clearly too small a dataset. I had to do some small tricks (mainly decreasing the learning rate periodically and occasionally attempting to use the ubuntu data, too). Adding the <em>endoftext</em> token instead of two blank lines between conversations also helped as expected.</p>
+
+<h4 id="facebook-examples"><em>Facebook Examples:</em></h4>
+
+<blockquote>
+  <p>(1353629564276) Tom Middlebrook: alright, i was given a bag as a present. so i had to return it to my parents. was fine getting it again though but only with a small amount</p>
+</blockquote>
+
+<blockquote>
+  <p>(1353595877463) Svilen Todorov: nice</p>
+</blockquote>
+
+<blockquote>
+  <p>(1353655925201) Tom Middlebrook: https://www.youtube.com/watch?v=tYJhLgK1KqU</p>
+</blockquote>
+
+<blockquote>
+  <p>(1353655946673) Svilen Todorov: i should’ve probably taken a photo when i did that haha</p>
+</blockquote>
+
+<blockquote>
+  <p>(1353655984955) Svilen Todorov: i saw someone else on youtube trying to buy like 20 quid extra lol</p>
+</blockquote>
+
+<blockquote>
+  <p>(1353656240766) Svilen Todorov: i think ill have to do a job at some point after i graduate but yh</p>
+</blockquote>
+
+<blockquote>
+  <p>(1353654726000) Svilen Todorov: http://www.reddit.com/tb/y2r0r</p>
+</blockquote>
+
+<blockquote>
+  <p>(1353654728111) Svilen Todorov: i dont get why not to give him the money :D</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354159959666) Tom Middlebrook: lol</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354165011230) Tom Middlebrook: that’s awesome</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354155045207) Svilen Todorov: hahaha, yh</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354255181784) Tom Middlebrook: http://i.imgur.com/Ypk.png</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354255222767) Tom Middlebrook: I’m pretty sure the other two guys that I had work with from the day before had worked with jsa lol</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354255453761) Svilen Todorov: hahah</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354357524074) Svilen Todorov: oh ya</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354357528963) Tom Middlebrook: http://i.imgur.com/m4h5.jpg</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354357535641) Tom Middlebrook: looks really cool</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354357540333) Svilen Todorov: hahahaha</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354357562322) Svilen Todorov: nice</p>
+</blockquote>
+
+<blockquote>
+  <p>(1354357563001) Tom Middlebrook: looks like a cool outfit</p>
+</blockquote>
+
+<p><br />
+<br /></p>
+
+<blockquote>
+  <p>(1496878572976) Ioannis Agathocleous: Ill have to see a place in the east of london</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878585860) Svilen Todorov: maybe</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878623078) Svilen Todorov: not too far</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878673631) Svilen Todorov: well not that far</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878673234) Svilen Todorov: might be too much as I am not going to get much for a place that already has one</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878680863) Svilen Todorov: but dunno</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878688387) Svilen Todorov: i’ll go to a place in london instead since I don’t have a job</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878698013) Ioannis Agathocleous: I could find one somewhere on the east but the distance is pretty small</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878706547) Ioannis Agathocleous: But I dont mind</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878783822) Svilen Todorov: it’s not too far</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878792946) Svilen Todorov: well, Im pretty sure it’d be easier to just find a place in london instead if I get too many people to live with</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496878807895) Svilen Todorov: if there isnt one in the UK I might be able to get a place here or something</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496888089082) Svilen Todorov: yeah, i can find somewhere</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496888051110) Ioannis Agathocleous: Ye probs best to be a foreigner</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496888061658) Ioannis Agathocleous: Just find a new place and work</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496888093631) Svilen Todorov: yh true</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496888096719) Svilen Todorov: yh, I’ve found a place</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496888096620) Ioannis Agathocleous: You gotta find something</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496887102292) Ioannis Agathocleous: Or stay at a mate’s house for a few months</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496887143560) Svilen Todorov: will do</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496887162939) Svilen Todorov: I think you’ll find something in Bulgaria</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496887172227) Svilen Todorov: in london might be easier to find something</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496887193938) Svilen Todorov: so yh find what you want</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496888245750) Ioannis Agathocleous: Ye will do</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496895273936) Svilen Todorov: just saw a flat for 200 which is 2 hours from my place</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496895284880) Svilen Todorov: I can also get a place cheaper if I move there too</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496895358255) Ioannis Agathocleous: Seems like a decent deal</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496895641622) Ioannis Agathocleous: Ill see if I can find something from the guys</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496893649976) Svilen Todorov: looks like it’s in the center of meelerdham</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496893664983) Ioannis Agathocleous: Kl ill check it out</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496893669386) Svilen Todorov: if I move tomorrow Ill be living in London until March for a year</p>
+</blockquote>
+
+<blockquote>
+  <p>(1496893688213) Ioannis Agathocleous: Ye but I dont mind moving anyway</p>
+</blockquote>
+
+<p><br />
+<br /></p>
+
+<blockquote>
+  <p>(13136700170) Svilen Todorov: i’m going to sleep</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313670106021) Michal Rostecki: ah sorry, I forgot</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313670197807) Michal Rostecki: yeah, I will prob go there around 19:30</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313670199539) Svilen Todorov: ok, about to try to make it to the bar at least</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313670199507) Svilen Todorov: if its like that</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313670199579) Svilen Todorov: its way down</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313670199997) Michal Rostecki: yeah, now I’m on my way</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313670199994) Svilen Todorov: oh and I keep forgetting my passport when I get there</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313670199923) Svilen Todorov: well i have it already :D</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313680514053) Svilen Todorov: http://www.buzzfeed.com/buzzfeed/comments/2lh/how-do-you-use-the-device-menu-system-in-ubuntu-10-04-lucid-with-ubuntu-10-04-lucid-lucid-with-ubuntu-10-04-lucid-lucid-with-ubuntu-10-04-lucid-lucid-with-ubuntu-10-04-lucid-lucid-with-ubuntu-10-04-lucid-like-after-reinstalling-the-grub-loader-for-ubuntu-10-04/</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313671553576) Michal Rostecki: what’s your plan for today? did you find it?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313671607100) Svilen Todorov: nah got some stuff to do</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313671627252) Svilen Todorov: im heading to work now</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313671638781) Michal Rostecki: cool! I’ll probably be there around 4ish</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313671666644) Svilen Todorov: didnt get that</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313671669988) Svilen Todorov: nah it’s fine</p>
+</blockquote>
+
+<blockquote>
+  <p>(1313671670159) Michal Rostecki: ok</p>
+</blockquote>
+
+<p><br />
+<br /></p>
+
+<blockquote>
+  <p>(1544396720429) Carmen Quasi: are you going to a bar?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544396782520) Svilen Todorov: yeah sure</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544396988765) Svilen Todorov: but Ill probably stay at mine longer</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544397997134) Carmen Quasi: hihi i can come to yours at some point</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544397996679) Carmen Quasi: I’m in a park with my friend Jonas. you could just head there and drink a beer</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544402012633) Svilen Todorov: Ja</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544402269095) Svilen Todorov: If I will come by the same time Ill pass by to get my backpack</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544402529078) Carmen Quasi: it’s not so big a park</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544402839650) Carmen Quasi: i dont get where you are</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544407472321) Svilen Todorov: Ja same</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544407506681) Svilen Todorov: It’s in the center</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544407505377) Svilen Todorov: A lot bigger than London for sure</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544503854605) Carmen Quasi: yeah it’s in the center with a garden</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544505993833) Carmen Quasi: there is a pool pool in the center, not the backyard</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544507562468) Svilen Todorov: Ye fair</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544507569097) Svilen Todorov: Might come for a bit to try it</p>
+</blockquote>
+
+<blockquote>
+  <p>(1544507617387) Carmen Quasi: nice</p>
+</blockquote>
+
+<h3 id="ubuntu">Ubuntu</h3>
+
+<p>I mainly tried this out of curiosity but also in order to attempt to use a somewhat similar (dialogue) dataset for somehow improving the accuracy on my all-to-small facebook dataset. I tried multiple things but the only thing that actually helped was to train for a bit (&lt;1500 steps) on the ubuntu dataset a few times when the loss on my own dataset won’t go down and then go back. This sped things up slightly and allowed me to reach a little bit higher accuracy in the end but the difference isn’t too big.</p>
+
+<p>I only tried this for a couple of hours and used slightly less than half the data (there are 3 folders in the datasets and I only used the 951M one) but the results were quite close to what’s in the dataset. Here are some random (non-cherry picked) samples. Honestly, if you give me some actual conversations from this dataset and some generated conversations, I’m not sure if I’d do much better than 60% at recognizing which is which.</p>
+
+<h4 id="ubuntu-examples"><em>Ubuntu Examples:</em></h4>
+
+<blockquote>
+  <p>(1191738600) chrism_: hi all</p>
+</blockquote>
+
+<blockquote>
+  <p>(1191738760) chrism_: can somebody help me set up a nvidia x driver? my system doesn’t display an X server. I think it’s not a graphical problem.</p>
+</blockquote>
+
+<blockquote>
+  <p>(1191738820) jocke: I would use xorg1-driver</p>
+</blockquote>
+
+<blockquote>
+  <p>(1191738900) jocke: then do that</p>
+</blockquote>
+
+<blockquote>
+  <p>(1191738960) jocke: I usually install both but at least you can do that</p>
+</blockquote>
+
+<blockquote>
+  <p>(1191738960) jocke: I would just follow this guide to help you</p>
+</blockquote>
+
+<blockquote>
+  <p>(1191739020) jocke: https://wiki.ubuntu.com/X11/UsingX11/Manual</p>
+</blockquote>
+
+<blockquote>
+  <p>(1191739080) jocke: if your setup doesn’t load the driver it might be a bad idea to disable it. But when you run xmodmap <keycode> and it says no such buffer I assume that you are good to set it back to working state you should be fine</keycode></p>
+</blockquote>
+
+<blockquote>
+  <p>(1191739080) jocke: the first step (the xorg1-driver) is to run xmodmap from that directory. Once that is done it will be available as a device for ‘device’ on your desktop. If your only problems are with xorg1.h or X11.h, just add it to /etc/X11/xorg.conf</p>
+</blockquote>
+
+<blockquote>
+  <p>(1191739400) jocke: if you need the xorg.conf just edit my example file to change it to the one you want to have.</p>
+</blockquote>
+
+<p><br />
+<br /></p>
+
+<blockquote>
+  <p>(1299144700) luigi__: hey i have this problem, how do i stop and remove all the packages ubuntu has, it keeps re-installing everything when i change the source and i change the repository to another one</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144760) luigi__: thanks</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144760) cnj_: right-click the source folder and look for a dropdown area</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144760) cnj_: yes</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144760) cnj_: then right-click</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144760) cnj_: then type   dpkg -L      and hit enter</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144760) cnj_: then click add</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144820) cnj_: it will start downloading everything, just in case</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144820) cnj_: it will tell you to restart the system to do that</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144820) luigi__: what do you mean?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144880) cnj_: in here?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144880) luigi__: i don’t have that on my laptop</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144880) cnj_: I’ll give you a link.</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144880) cnj_: http://paste.ubuntu-nl.org/134440/</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144880) cnj_: this is my machine</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144880) cnj_:  my</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144880) cnj_: my problem</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144880) luigi__: the thing is its working perfectly fine on my laptop</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144880) cnj_: the laptop has no problems with downloading any package that is offered through my terminal</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144940) cnj_: I have no connection to you.</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144940) cnj_: in ubuntu/lubuntu/solaris</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144940) luigi__: so if i just installed those ubuntu packages, they still need reinstallation?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1299144940) cnj_: yes</p>
+</blockquote>
+
+<p><br />
+<br /></p>
+
+<blockquote>
+  <p>(1189447620) m0nix_: hmm</p>
+</blockquote>
+
+<blockquote>
+  <p>(1189447680) m0nix_: I had a good time with Wine2X, but i changed my mind, I will not use Wine2 for this application.</p>
+</blockquote>
+
+<blockquote>
+  <p>(1189447740) m0nix_: Is there a way to make the application run on Ubuntu?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1189447740) MrFool: sudo dpkg –purge wine2x ?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1189447740) MrFool: I got wine</p>
+</blockquote>
+
+<blockquote>
+  <p>(1189447740) MrFool: yes.</p>
+</blockquote>
+
+<blockquote>
+  <p>(1189447800) MrFool: I guess you don’t really need the whole x server, but that you can just install.</p>
+</blockquote>
+
+<blockquote>
+  <p>(1189447860) MrFool: Wine2 is just an extension from Wine3</p>
+</blockquote>
+
+<blockquote>
+  <p>(1189447920) MrFool: Yes you want to run X?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1189442140) MrFool: You have a server</p>
+</blockquote>
+
+<p><br />
+<br /></p>
+
+<blockquote>
+  <p>(1199918140) kalzior: anyone know where i can get fiesty to work with this new version?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1199918140) nishant: you can use gtk-fiesty</p>
+</blockquote>
+
+<blockquote>
+  <p>(1199918140) kalzior: thanks</p>
+</blockquote>
+
+<blockquote>
+  <p>(1199918140) nishant: I have never really used freestyle, but the gui interface does a good job</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321455720) wuqh2u2n: do you know how to do ubuntu and windows together??</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321455780) theadmin: you need to use the ubuntu iso to install.</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321455840) wuqh2u2n: but its just 2 partitions</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321455900) theadmin: ok so when installing ubun</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321446060) theadmin: which one is the right?</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321456600) theadmin: which ISO</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321456600) wuqh2u2n: i’ve tried downloading the iso but they’re all wrong, but theres a way to use it</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321462060) theadmin: try and use the iso you downloaded, it will be an iso you can burn to</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321462300) theadmin: thats it, you will be able to burn it to cd</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321462300) theadmin: its the right iso</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321462300) theadmin: how do i burn them? i need some help</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321462300) theadmin: i need to burn the iso from the internet</p>
+</blockquote>
+
+<blockquote>
+  <p>(1321462540) theadmin: you need to have a cd</p>
+</blockquote>
+
+<p><br /></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The conversations look better but not ideal. The model is learning even more relevant stuff - e.g. they are about mutual interests, acquaintances etc. It truly seems to have some idea of who each person is and can mostly catch the tone and relevant facts about most people I’ve talked enough to.</p>
+
+<p>It was also easy and fun to play with and makes me wonder how much better we can do with the biggest model or better techniques or ideally more of everything. At this rate, we might soon have chatbots good enough for people to not even compare them to Eliza!</p>
+
+  </div><a class="u-url" href="/blog/gpt-345M-finetune/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Svilen Todorov</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

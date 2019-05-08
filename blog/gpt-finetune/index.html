@@ -45,7 +45,7 @@
 
   <header class="post-header">
   <center><h2 class="post-title p-name" itemprop="name headline">Generating Fake Conversations by fine-tunning OpenAI&#39;s GPT-2 on data from Facebook Messenger</h1> 
-  <h2 class="post-subtitle p-name" itemprop="name headline">Using Google Collab</h1>
+  <h2 class="post-subtitle p-name" itemprop="name headline">Using Google Colab</h1>
     <p class="post-meta">
       <time class="dt-published" datetime="2019-03-12T00:00:00+01:00" itemprop="datePublished">Mar 12, 2019
       </time></p>
@@ -57,11 +57,11 @@
 
 <p>In February 2019 OpenAI released <a href="https://blog.openai.com/better-language-models/">information on their new state of the art language model</a> which created a lot of buzz within the community. While few disagree the results they included are better than anything we’ve seen before (even if mainly because they made a bigger model combining recent advances), many were peeved that OpenAI only released a small pre-trained version of their model rather than the full one they generated examples with. Nonetheless, the small model is also very good, and due to nshepperd’s addition to their code, we can easily fine-tune it on our own data to easily generate (near-)state of the art results specific to whatever we want.</p>
 
-<p>Since then people have been experimenting with the model, including some like the aforementioned nsheppered adding simple scripts allowing us to fine-tune the model on our data. In this post, I am going to describe how to use easily available tools like those scripts, Google Collab and Facebook’s Data Export option in order to create borderline realistic conversation snippets.</p>
+<p>Since then people have been experimenting with the model, including some like the aforementioned nsheppered adding simple scripts allowing us to fine-tune the model on our data. In this post, I am going to describe how to use easily available tools like those scripts, Google Colab and Facebook’s Data Export option in order to create borderline realistic conversation snippets.</p>
 
 <p>If you don’t have enough data on facebook, you should be able to easily export your conversation data from pretty much any other service and train on that. Better yet, you can combine data from different sources - as usual with machine learning, the more data you have the better.</p>
 
-<p>You can follow in the collab <a href="https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP">here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
+<p>You can follow in the colab <a href="https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP">here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
 
 <h2 id="code">Code</h2>
 
@@ -82,7 +82,7 @@ cd gpt-2
 
 <p>Next, we need to download our facebook messages. Facebook explains how to do it <a href="https://www.facebook.com/help/1701730696756992?helpref=hc_global_nav">here</a>. Only select ‘messages’ and for the format select ‘json’. After it is ready you can either download the file by clicking download or by using Dev Tools. To do so open them with F12, go to sources, and click download (and then just cancel it), then find the entry starting with file.php, right click it and ‘copy as curl’ as in this screenshot
 <img src="/static/screenshot-fb.png" alt="Facebook Screenshot" class="img-responsive" />
-then just add ! in front of the command (to run it in collab) and <code class="highlighter-rouge">--output fb-json.zip</code> at the end to name the file.</p>
+then just add ! in front of the command (to run it in colab) and <code class="highlighter-rouge">--output fb-json.zip</code> at the end to name the file.</p>
 
 <p><code class="highlighter-rouge">
 !curl &lt;link&gt; --output fb-json.zip
@@ -583,7 +583,7 @@ by running</p>
 
 <p>The conversations look okay, though sometimes they are less coherent. It is clearly learning useful stuff - the timestamps generally go up, the conversations are relevant to the people in them, and so is the structure. Training it with more data would also definitely help.</p>
 
-<p>Another way to make it produce slightly better results is to finetune it in the end on the chat from a specific person before generating conversations with them (I’ve added the relevant code to the collab).</p>
+<p>Another way to make it produce slightly better results is to finetune it in the end on the chat from a specific person before generating conversations with them (I’ve added the relevant code to the colab).</p>
 
 <p>We haven’t gotten anywhere near passing the Turing Test but I suspect that if you hook this up to facebook’s API to respond for you, it might take a while for some people to figure it out.</p>
 
