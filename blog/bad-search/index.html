@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>How is search so goddamn bad? A ‘Case Study’ | Svilen Todorov</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="How is search so goddamn bad? A ‘Case Study’" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov" />
+<meta property="og:description" content="Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov" />
+<link rel="canonical" href="https://svilentodorov.xyz//blog/bad-search/" />
+<meta property="og:url" content="https://svilentodorov.xyz//blog/bad-search/" />
+<meta property="og:site_name" content="Svilen Todorov" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-01-19T00:00:00+01:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/bad-search/","headline":"How is search so goddamn bad? A ‘Case Study’","dateModified":"2020-01-19T00:00:00+01:00","datePublished":"2020-01-19T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/bad-search/"},"description":"Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /><script>
+if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-139882809-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+  
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+            <a class="page-link" href="/rps">RPS Demo</a>
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/rps.html">RPS</a>-->
+        </div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+  <center><h2 class="post-title p-name" itemprop="name headline">How is search so goddamn bad? A ‘Case Study’</h1> 
+  <h2 class="post-subtitle p-name" itemprop="name headline"></h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-01-19T00:00:00+01:00" itemprop="datePublished">Jan 19, 2020
+      </time></p>
+    </center>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p><br /></p>
+
+<p>Google Search is ridiculously, utterly bad. Before your brain starts recalling successful searches you’ve had, and before this turns into <em>only</em> a rant let’s see some examples.</p>
+
+<p><br /></p>
+<div style="text-align: center;"><img class="img-fluid" src="/static/gsearch1.png" /></div>
+<p><br /></p>
+
+<p>This is a query for checking out what reddit thinks in regards to buying a phone, while specifying to only get results from the last month. Pretty simple I guess, yet <strong>none</strong> of the results achieved, and <strong>none</strong> of them are actually from the last month, despite Google lying that they are. Let’s quickly go through them one by one.</p>
+
+<ol>
+  <li>‘Best place to by a cheap new smartphone?’ from r/Berlin - this is about where to buy a phone, but I live in Berlin, so maybe it makes some sense as a top result… except the post is actually from <strong>6! years ago</strong>.</li>
+  <li>Specific to Audiophile phones for some reasons, and a pretty average thread (only 31 upvotes for one metric) from <strong>9 months ago</strong>. Not useful, and doesnt meet the query but still a lot better.</li>
+  <li>From 2018 (&gt;1 year ago), even less popular and less useful post (17 upvotes) on the Pixel subreddit.</li>
+  <li>Phone for privacy, small thread from <strong>&gt; 4 years ago</strong>.</li>
+  <li><strong>6 years ago</strong>, wtf.</li>
+</ol>
+
+<p>I won’t keep going with the rest, but it doesn’t get better. Why are the results reported as recent when they are from years ago, I don’t know - those are archived post so no changes have been made. At any rate, I got annoyed at this point (mentioning for those who couldn’t tell), so I switched to DuckDuckGo.</p>
+
+<p><br /></p>
+<div style="text-align: center;"><img class="img-fluid" src="/static/ddgsearch1.png" /></div>
+<p><br /></p>
+
+<p>Somehow the results are even less useful. 2 irrelevant subreddits at the top, a result from 2012, that they admit is from 2012. At this point I visibly checked on reddit if there’ve been posts about buying a phone from the last month and there are. They also show up on Google/DDG if you look for them directly so they are indexed.</p>
+
+<p>Hm, maybe adding <code class="highlighter-rouge">site:reddit.com</code> will help DDG to get there?</p>
+
+<p><br /></p>
+<div style="text-align: center;"><img class="img-fluid" src="/static/ddgsearch2.png" /></div>
+<p><br /></p>
+
+<p>Nope. As you can see, I didn’t even bother clicking on all of them now, but I can tell you the first result is deeply irrelevant and the second one leads to a 4 year old thread.</p>
+
+<p>Maybe it’s my wording then - what about ‘recommend phone reddit’ or ‘which phone to purchase reddit’? I won’t even waste anybody’s time by posting the results I got.</p>
+
+<h3 id="thoughts"><center>Thoughts</center></h3>
+
+<p>Part of the issue in this specific case is that they’ve started ignoring settings for displaying results from specific time periods. It’s definitely not the whole issue though, and not something new or specific to phone searches.</p>
+
+<p>Now, I’ve always been biased towards the new - books, tech, everything, but I can’t help but feel that a lot of things which were done pretty well before are done worse today.  We do have better technology, yet we somehow build inferior solutions with it all too often.
+And yes, I get that the incentives of users and providers don’t align perfectly, that Google isn’t your friend, etc. But what is DDG’s excuse?
+As for the Case Study part, and me saying this won’t isn’t simply a rant - I lied, hence the quotation marks in the title. Don’t trust everything you read, especially the goddamn dates on your search results.</p>
+
+  </div><a class="u-url" href="/blog/bad-search/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Svilen Todorov</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>
