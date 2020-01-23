@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Talking to Myself or How I Trained GPT2-1.5b for Rubber Ducking using My Facebook Chat Data | Svilen Todorov</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Talking to Myself or How I Trained GPT2-1.5b for Rubber Ducking using My Facebook Chat Data" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Previously in this series - finetuning 117M, finetuning 345M" />
+<meta property="og:description" content="Previously in this series - finetuning 117M, finetuning 345M" />
+<link rel="canonical" href="https://svilentodorov.xyz//blog/gpt-15b-chat-finetune/" />
+<meta property="og:url" content="https://svilentodorov.xyz//blog/gpt-15b-chat-finetune/" />
+<meta property="og:site_name" content="Svilen Todorov" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-01-23T00:00:00+01:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/gpt-15b-chat-finetune/","headline":"Talking to Myself or How I Trained GPT2-1.5b for Rubber Ducking using My Facebook Chat Data","dateModified":"2020-01-23T00:00:00+01:00","datePublished":"2020-01-23T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/gpt-15b-chat-finetune/"},"description":"Previously in this series - finetuning 117M, finetuning 345M","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /><script>
+if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-139882809-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+  
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+            <a class="page-link" href="/rps">RPS Demo</a>
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/rps.html">RPS</a>-->
+        </div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+  <center><h2 class="post-title p-name" itemprop="name headline">Talking to Myself or How I Trained GPT2-1.5b for Rubber Ducking using My Facebook Chat Data</h1> 
+  <h2 class="post-subtitle p-name" itemprop="name headline">Using only Google Colab</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-01-23T00:00:00+01:00" itemprop="datePublished">Jan 23, 2020
+      </time></p>
+    </center>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <h5 id="previously-in-this-series---finetuning-117m-finetuning-345m">Previously in this series - <a href="/blog/gpt-finetune/">finetuning 117M</a>, <a href="/blog/gpt-345M-finetune/">finetuning 345M</a></h5>
+
+<p>OpenAI’s pretrained Gpt2 models have been all the rage in nlp model finetunning. <a href="https://www.reddit.com/r/SubSimulatorGPT2/">Sub Simulators</a>, <a href="https://www.aidungeon.io/start">AI Dungeons</a>, <a href="https://www.gwern.net/GPT-2">Poetry</a>, <a href="https://slatestarcodex.com/2020/01/06/a-very-unlikely-chess-game/">Chess</a>, <a href="https://www.cardsagainsthumanityaichallenge.com/">Cards Against Humanity</a> - you name it.</p>
+
+<p>My particular interest has been in applying it to my personal chat data, so I can talk to arbitrary friends and more importantly <em>myself</em> whenever I want to. Why? Well, sometimes if you don’t hear voices you have to go and program the voices into being. More seriously, I wished to be able to talk with a version of myself so I can get an outside view of how I think, for analysing my tendencies and problems, rubber ducking, self-therapy and - let’s face it - most importantly for fun.</p>
+
+<p>I won’t go into detail describing the Colab with Facebook data, as it is almost the same as the one used with the 117M version which I describe <a href="/blog/gpt-finetune/">here</a> and <a href="/blog/gpt-345M-finetune/">here</a>. We are again using <a href="https://github.com/nshepperd/gpt-2">nsheppered’s GPT training code</a> as a base with <a href="https://github.com/shawwn/gpt-2">shawwwn’s fork</a> allowing us to train the whole of gpt-1.5b on a TPU - which means we can do so for free on Colab again! I’ve only added a little bit more so we can talk interactively with gpt2, have it respond to us as a specific person and go through the whole general back and forth which we typically call ‘having a conversation’.</p>
+
+<p>You can train your own in the new GPT2-1.5b collab FB data <a href="https://colab.research.google.com/drive/1rRpMGVfUb5sG263d1OOPXOyGRX4W1oEv">here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; TPU</p>
+
+<h6 id="note-it-is-a-lot-easier-to-train-if-you-pay-a-few-bucks-for-google-one-so-you-can-fit-it-all-easily-on-drive-a-checkpoint-of-the-model-comes-to-6-gb-so-if-you-only-keep-one-checkpoint-you-can-do-it-without-paying---it-is-just-more-hassle">Note: It is a lot easier to train if you pay a few bucks for <a href="https://one.google.com/">Google One</a> so you can fit it all easily on Drive. A checkpoint of the model comes to ~6 gb, so if you only keep one checkpoint you can do it without paying - it is just more hassle.</h6>
+
+<h6 id="note-2-it-took-me-over-a-month-of-training-to-get-it-here-using-just-colab">Note 2: It took me over a month of training to get it here using just Colab</h6>
+
+<p><strong><a href="#chat-samples">Self-Chat Samples</a></strong></p>
+
+<h2 id="motivation">Motivation</h2>
+
+<p>The idea of modelling a person fascinates me, and as language models have been becoming better and better it genuinely <em>seems</em> like they capture more and more of a person’s style and tendencies. Honestly, I don’t even need more motivation than that to want to do it - the only real question is <em>who</em> to model as better and bigger models come out?</p>
+
+<p>Now, I have to admit - my first choice would be someone like Von Neumann but that’s not someone on whom I have the right type of conversational data to do well (although there are ways to tackle the problem). The person who I <strong>am</strong> guaranteed to have data on, AND who is still very useful and interesting subject of study for myself is, you guessed it, myself.</p>
+
+<p>Is it useful though? Don’t I already have access to a pretty good, some might say <em>perfect</em> simulation of myself from the get-go? I do. However, if I can have a second one of me to bounce ideas with I’d take it. If I can analyse my problems from the outside rather than from the inside, I’d take that, too.</p>
+
+<p>After playing with the results, and extrapolating to what the next generation of models will be able to do (gpt-2 is already not the newest and best architecture), I think a lot of people might at some point want a version of themselves to talk to, bounce ideas with, get help from and so on.</p>
+
+<h2 id="a-few-more-words">A Few More Words</h2>
+
+<p>I’ve spent some time talking to the irc chat bots of nshepperd and shawwn (both trained on the same data) and had a lot of fun with it. Talking to myself though has been highly addictive, and I’ve been running a Colab where I occasionally shoot myself a question or go into a deep conversation with my gpt2 clone for days now. It’s …interesting.</p>
+
+<p>One thing I didn’t realize though was how personal it is - it’s all trained on my facebook messenger data, where I often talk with my closest friends. It takes very little for gpt to start talking about intimate topics which I’d neither want to share nor would they be as meaningful to anyone else.</p>
+
+<p>Having said that the next are my last 7 unfiltered (I’ve only changed the names) conversations with it, where I am actively trying to avoid sensitive topics (I still had to restart it twice due to sensitive subjects).</p>
+
+<h2 id="results">Results</h2>
+
+<p>The end loss I reached (for whatever that is worth) was just over 0.6, substantially lower than with the smaller models. My dataset is still pretty small - 14mb, and the next step would be to add my personal data from other sources. Yet, it does quite well, though perhaps it wouldn’t seem as exciting to others.</p>
+
+<h3 id="facebook">Facebook</h3>
+
+<p>The way it works is - I write a sentence under the name of a friend from the dataset but here labeled as ‘Me’, pass it to the model while prompting it to start typing using my name - ‘Svilen Todorov’, (here labeled as ‘Gpt Me’). When it starts outputting something not by ‘Svilen Todorov’ I cut it off, and write myself. Then I feed that + the history so far to the model, which allows us to have an arbitrarily long coherent conversation.</p>
+
+<h4 id="chat-samples"><em>Chat Samples:</em></h4>
+
+<details>
+<summary>
+<i>Example 1 </i>
+</summary>
+<br />Me: How's work?
+
+ <br /><b>GPT Me</b>: ive been working a bit but still not in the office
+
+ <br />Me: I've been working, too. Can't solve this damn bug I have.
+
+ <br /><b>GPT Me</b>: ive spent hours on it
+ <br /><b>GPT Me</b>: but to no avail
+<br /><b>GPT Me</b>: im spending all my time on it
+
+<br />Me: I checked everything, yet it runs out of memory despite obvious leaks. hoooow
+
+ <br /><b>GPT Me</b>: ive been wasting so much of my time on it tho
+ <br /><b>GPT Me</b>: 16gb memory, 16gb video ram, 60 hours a week for 3 years
+<br /><b>GPT Me</b>: barely have anything open other than youtube and facebook
+
+<br />Me: oh it's a browser issue? man the web sure sounds bloated nowadays
+
+ <br /><b>GPT Me</b>: ive tried everything
+
+ <br />Me: did you try turning it on and off?
+
+ <br /><b>GPT Me</b>: haha
+ <br /><b>GPT Me</b>: ive changed it between view and off in the dropbox since the beginning, should be the same now as in your case and I doesnt seem to be working
+ <br /><b>GPT Me</b>: and tried a few things
+<br /><b>GPT Me</b>: nothing seems to be working
+<br /><b>GPT Me</b>: i uploaded a new one though when you did
+<br /><b>GPT Me</b>: but pointless to try it now
+
+<br />Me: don't give up
+
+ <br /><b>GPT Me</b>: ive uploaded a new one
+ <br /><b>GPT Me</b>: doesnt run properly
+<br /><b>GPT Me</b>: etc.
+<br /><b>GPT Me</b>: still nothing
+<br /><b>GPT Me</b>: maybe in a few days when i have a few gigs under my belt it will run a bit better
+<br /><b>GPT Me</b>: and then in the mean time i can send you what i have
+<br /><b>GPT Me</b>: to use as you like
+<br /><b>GPT Me</b>: until then use whatever is in my dropbox
+<br /><b>GPT Me</b>: if you want i can even send you my complete open source build, so you can build it and send me what i use
+
+<br />Me: ok, let's do that
+
+ <br /><b>GPT Me</b>: ive only sent you a part of the source so i can get the full thing
+ <br /><b>GPT Me</b>: https://github.com/p5pit/pciusb
+
+<br />Me: I can't access it. Can you resend the link?
+
+ <br /><b>GPT Me</b>: ive just changed the link in the source
+
+ <br />Me: what's the new url?
+
+ <br /><b>GPT Me</b>: ive just changed the name aboven you send it
+ <br /><b>GPT Me</b>: https://github.com/p5pit/pciusb/tree/master/libs
+<br /><b>GPT Me</b>: but you need to update the links in the 'message' part
+<br /><b>GPT Me</b>: anyway whats up with you
+
+<br />Me: Not much, just reading
+
+ <br /><b>GPT Me</b>: ive been at lectures 4-7
+ <br /><b>GPT Me</b>: im helping a mate with some maths problems
+<br /><b>GPT Me</b>: and trying to read a paper since 5
+
+<br />Me: ok cool
+
+ <br /><b>GPT Me</b>: ive not sure what it was on
+ <br /><b>GPT Me</b>: Lyndon had problems with reading just finding the right words in random papers to use them to make a point
+<br /><b>GPT Me</b>: and it was on whether certain types of choice can build a successful models to fit the data to believe
+</details>
+<p><br /></p>
+<details>
+	<summary>
+	<i>Example 2 </i>
+</summary>
+<br />Me: hey how are you
+
+ <br /><b>GPT Me</b>: ive quit and you know where to find me
+
+ <br />Me: what did you quit
+
+ <br /><b>GPT Me</b>: my job, ive given a few interviews here and there
+ <br /><b>GPT Me</b>: and my boss is giving me shit for not doing more work during the day
+<br /><b>GPT Me</b>: but ive quit
+<br /><b>GPT Me</b>: he's so annoyed at me
+<br /><b>GPT Me</b>: thats a bit of an overreaction
+
+<br />Me: yeah you shouldnt have to work
+
+ <br /><b>GPT Me</b>: ive been working since 8 am today
+
+ <br />Me: oh, you quit your job and are working on getting a new one?
+
+ <br /><b>GPT Me</b>: ive been trying to for a while now
+ <br /><b>GPT Me</b>: and the previous one ends in oct
+
+<br />Me: what job are you looking for?
+
+ <br /><b>GPT Me</b>: ive been searching for 'concierge' level stuff
+ <br /><b>GPT Me</b>: i like working on cutting edge stuff
+
+<br />Me: so something in AI again?
+
+ <br /><b>GPT Me</b>: ive been looking at it for 8 months at least
+ <br /><b>GPT Me</b>: and they want you to start at 17 / 20 euro a day
+<br /><b>GPT Me</b>: with no holiday
+<br /><b>GPT Me</b>: which is pretty ridiculous
+
+<br />Me: that does seem like a ridiculously low salary
+
+ <br /><b>GPT Me</b>: ive talked to people at home and abroad about it
+ <br /><b>GPT Me</b>: and they were all 'wtf'
+<br /><b>GPT Me</b>: i havent even called in to my third favourite coffee place to try to get them to put me as a regular
+
+<br />Me: interesting
+
+ <br /><b>GPT Me</b>: ive gone to application after meeting with them
+ <br /><b>GPT Me</b>: :D
+<br /><b>GPT Me</b>: coffee and biscuits*
+
+<br />Me: how did it go
+
+ <br /><b>GPT Me</b>: ive only went for a small place so far, startup
+ <br /><b>GPT Me</b>: and they wanted me to make a profile there
+<br /><b>GPT Me</b>: and to tell them about the personal stuff like my salary and social security
+<br /><b>GPT Me</b>: and if i want it there it has to be on the phone
+<br /><b>GPT Me</b>: and so on
+
+
+</details>
+<p><br /></p>
+
+<details>
+	<summary>
+	<i>Example 3 </i>
+</summary>
+
+<br />Me: whats up
+
+ <br /><b>GPT Me</b>: ive been having a lot of success with my programming but dunno if Ive succeed
+ <br /><b>GPT Me</b>: i have a lot of stuff
+<br /><b>GPT Me</b>: not sure how many hours Im going to spend a day on it
+
+<br />Me: you are not working too much and getting burnt out are you?
+
+ <br /><b>GPT Me</b>: ive had years with zero effort and amazing results
+ <br /><b>GPT Me</b>: - especially when compared to other programmers
+<br /><b>GPT Me</b>: so yeah, probably a bit
+
+<br />Me: well, take it easy man
+
+ <br /><b>GPT Me</b>: ive been doing it for a few hours a day for a few years now
+ <br /><b>GPT Me</b>: i really want to move to machine learning though
+<br /><b>GPT Me</b>: and Ive started on that over a year ago
+
+<br />Me: what ML stuff do you want to do
+
+ <br /><b>GPT Me</b>: ive done a little in R, but want to move to using things like neural nets for a lot more
+ <br /><b>GPT Me</b>: ideally something which is more general
+<br /><b>GPT Me</b>: and less focused on just driving
+
+<br />Me: but what do you want to work on specifically
+
+ <br /><b>GPT Me</b>: ive helped people a lot with getting them to focus on a specific problem
+ <br /><b>GPT Me</b>: at this point
+<br /><b>GPT Me</b>: :D
+
+<br />Me: so what problem are YOU focusing on
+
+ <br /><b>GPT Me</b>: ive helped a lot with getting them to focus on adding simple analytics
+ <br /><b>GPT Me</b>: to their sites
+<br /><b>GPT Me</b>: and getting them to focus on just a few things
+<br /><b>GPT Me</b>: rather than whole things
+<br /><b>GPT Me</b>: but im moving more towards the latter
+
+<br />Me: hm
+
+ <br /><b>GPT Me</b>: ive done a lot of the heavy lifting for them, by getting them to focus on a task that is either too hard or overly boring for them
+ <br /><b>GPT Me</b>: but thats a bit of an unfair comparison
+<br /><b>GPT Me</b>: they have their own stuff
+
+<br />Me: and what do you have
+
+ <br /><b>GPT Me</b>: ive done a lot, but they have their stuff
+ <br /><b>GPT Me</b>: i have to move away from that
+<br /><b>GPT Me</b>: in a few months
+<br /><b>GPT Me</b>: and program something better
+
+<br />Me: like what
+
+ <br /><b>GPT Me</b>: something general
+ <br /><b>GPT Me</b>: agi
+
+</details>
+<p><br /></p>
+
+<details>
+	<summary>
+	<i>Example 4 </i>
+</summary>
+
+<br /><b>GPT Me</b>: ive done fuck all for an hour now
+<br /><b>GPT Me</b>: nothing
+<br /><b>GPT Me</b>: i shouldnt be working today
+<br /><b>GPT Me</b>: i was supposed to be working yesterday too but cba
+<br /><b>GPT Me</b>: just tired
+
+<br />Me: you seem to be tired all the time, man. everything ok?
+
+ <br /><b>GPT Me</b>: ive been sleeping since 9
+ <br /><b>GPT Me</b>: no, not really
+<br /><b>GPT Me</b>: my back hurts
+<br /><b>GPT Me</b>: and i hurt my back peacing out
+<br /><b>GPT Me</b>: but other than that im ok
+<br /><b>GPT Me</b>: i can do little but write
+<br /><b>GPT Me</b>: but i cant read and i havent done anything in days
+<br /><b>GPT Me</b>: i am so bored
+<br /><b>GPT Me</b>: my head is so bad
+<br /><b>GPT Me</b>: :/
+
+<br />Me: it happens - maybe take a break until you feel better
+
+ <br /><b>GPT Me</b>: ive never been so annoyed by my head
+ <br /><b>GPT Me</b>: i can barely use the computer
+
+<br />Me: damn that sucks
+
+ <br /><b>GPT Me</b>: ive been worse
+ <br /><b>GPT Me</b>: but i dont think its as bad as my back
+<br /><b>GPT Me</b>: which cant even move
+
+<br />Me: do you need any help?
+
+ <br /><b>GPT Me</b>: ive been asking people to do shit for me
+ <br /><b>GPT Me</b>: for a long time now
+<br /><b>GPT Me</b>: no help
+<br /><b>GPT Me</b>: people give me shit for not doing more
+<br /><b>GPT Me</b>: havent had a break until now
+<br /><b>GPT Me</b>: i feel so bad for not being able to pass out
+
+<br />Me: what have you tried for your sleeping problems so far?
+
+ <br /><b>GPT Me</b>: ive been trying for a long time an antihistamines
+ <br /><b>GPT Me</b>:beta-blockers
+<br /><b>GPT Me</b>:xanax
+<br /><b>GPT Me</b>:histamine
+<br /><b>GPT Me</b>:hainamines
+<br /><b>GPT Me</b>:hordamances
+<br /><b>GPT Me</b>:hordana
+<br /><b>GPT Me</b>:hordano
+<br /><b>GPT Me</b>:shrooms
+<br /><b>GPT Me</b>:whatever
+<br /><b>GPT Me</b>: not even going to read now
+<br /><b>GPT Me</b>: too tired
+<br /><b>GPT Me</b>: anything else
+<br /><b>GPT Me</b>: slowing myself down
+<br /><b>GPT Me</b>: exhausted
+<br /><b>GPT Me</b>: read the whole thing now
+
+<br />Me: I did but I am confused. And you shouldn't take shrooms to sleep.
+
+<br /><b>GPT Me</b>: i didnt really
+<br /><b>GPT Me</b>: its a whole thing
+</details>
+<p><br /></p>
+
+<details>
+	<summary>
+	<i>Example 5 </i>
+</summary>
+<br />Me: want to listen to something cool. send me a track
+
+ <br /><b>GPT Me</b>: ive been putting tracks from acts I like on and off
+ <br /><b>GPT Me</b>: into my library
+
+<br />Me: got any links to share?
+
+ <br /><b>GPT Me</b>: ive been pushing some friends to listen to more stuff
+ <br /><b>GPT Me</b>: so you can do that too now :D
+<br /><b>GPT Me</b>: https://www.youtube.com/watch?v=hfTPiS7Nmw
+<br /><b>GPT Me</b>: https://www.youtube.com/watch?v=QsXgEzx_GGk
+<br /><b>GPT Me</b>: and this other one is one of the earlier songs I liked from them
+<br /><b>GPT Me</b>: https://www.youtube.com/watch?v=Iqz02saPcoM
+
+<br />Me: cool! I like the cramps. Got any techno tho?
+
+ <br /><b>GPT Me</b>: ive been trying to get people to listen to some of the stuff
+
+ <br />Me: which stuff? what artists or labels?
+
+ <br /><b>GPT Me</b>: ive been pushing mostly labelless stuff which are usually quite good
+ <br /><b>GPT Me</b>: stuff by bez batteries and their cousin or whatever
+<br /><b>GPT Me</b>: and stuff by dvs1 and his cousin
+<br /><b>GPT Me</b>: or vatican shadow or whatever
+<br /><b>GPT Me</b>: ive sent you the first two
+
+<br />Me: cool
+
+</details>
+<p><br /></p>
+
+<details>
+	<summary>
+	<i>Example 6 </i>
+</summary>
+<br />Me: hey man, what are you up to this weekend?
+
+ <br /><b>GPT Me</b>: ive tickets for a party on friday
+ <br /><b>GPT Me</b>: wasnt expecting to go out this early
+<br /><b>GPT Me</b>: but got tickets during the sale
+<br /><b>GPT Me</b>: so im waking up early i guess
+
+<br />Me: cool, what's the party?
+
+ <br /><b>GPT Me</b>: ive told people and they havent been able to guess
+ <br /><b>GPT Me</b>: https://www.facebook.com/events/553455714529578/
+<br /><b>GPT Me</b>: its a bit weird
+<br /><b>GPT Me</b>: i have friends in charge
+<br /><b>GPT Me</b>: who i trust more than me
+<br /><b>GPT Me</b>: to tell me if i have a ticket
+
+<br />Me: looks good. who's playing?
+
+ <br /><b>GPT Me</b>: ive asked them
+ <br /><b>GPT Me</b>: they said they dont know
+<br /><b>GPT Me</b>: i hope i do
+<br /><b>GPT Me</b>: but they were saying it in a way that it sounds bad
+<br /><b>GPT Me</b>: :D
+<br /><b>GPT Me</b>: aufnahme'samenere
+<br /><b>GPT Me</b>: its a bit weird
+<br /><b>GPT Me</b>: the only guy that ive met like him is berghainarian 
+<br /><b>GPT Me</b>: no wait that was mike
+<br /><b>GPT Me</b>: still ja
+<br /><b>GPT Me</b>: and its this group that does weird stuff
+<br /><b>GPT Me</b>: that guy does the sound, and looks kind of weird
+
+<br />Me: sounds pretty interesting really
+
+ <br /><b>GPT Me</b>: ive read a little about him on wiki but thats it
+ <br /><b>GPT Me</b>: he is apparently a maker
+<br /><b>GPT Me</b>: but doesnt really know how the word works
+
+<br />Me: do I know him?
+
+ <br /><b>GPT Me</b>: ive met him and his brother at makerfaire
+ <br /><b>GPT Me</b>: very briefly
+<br /><b>GPT Me</b>: but they were really high
+<br /><b>GPT Me</b>: and i dont really remember them
+<br /><b>GPT Me</b>: thats 2 months ago
+<br /><b>GPT Me</b>: :D
+
+<br />Me: fair enough
+</details>
+<p><br /></p>
+
+<details>
+	<summary>
+	<i>Example 7 </i>
+</summary>
+<br />Me: how would you describe yourself
+
+ <br /><b>GPT Me</b>: ive been working in the same job for 3 and a half years now
+ <br /><b>GPT Me</b>: relatively new to berlin
+<br /><b>GPT Me</b>: 25
+<br /><b>GPT Me</b>: 6 years as a programmer/machine learning person
+<br /><b>GPT Me</b>: pretty much all my time for the last 5 years has been spent on just learning machine learning and not programming really
+<br /><b>GPT Me</b>: and Im pretty sure that even if I was to move elsewhere and work with people from different fields, I would still not be able to keep up
+<br /><b>GPT Me</b>: I would spend most of my time on just learning the ropes and whatever else they often have free or cheap classes for everyone
+<br /><b>GPT Me</b>: that seems to be the general approach in many places
+<br /><b>GPT Me</b>: but I havent seen that approach work for me
+<br /><b>GPT Me</b>: i spend literally every day with people and projects that dont allow me to do more than that
+
+<br />Me: and what about your personal life and hobbies?
+
+ <br /><b>GPT Me</b>: ive just been doing the same stuff ever since I moved to berlin a year ago
+ <br /><b>GPT Me</b>: didnt really do much else than that and the online courses to where I am now
+<br /><b>GPT Me</b>: I used to spend my time more on random stuff
+<br /><b>GPT Me</b>: like programming, music, reading things like that
+
+<br />Me: what about going out
+
+<br /><b>GPT Me</b>: and its rained a lot the last few days which doesnt help either
+<br /><b>GPT Me</b>: https://www.facebook.com/photo.php?fbid=324979844210832&amp;set=a.324977827544367.75530.14546_1858271655695&amp;type=3&amp;theater
+
+<br />Me: sounds fun
+</details>
+<p><br /></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The conversations aren’t ideal but it’s <strong>a lot</strong> fun playing with it. Sadly the stuff I talk about on facebook is either too personal or generic ( e.g. arranging to meet people) so I am unsure how well I’ve managed to convey the fun of talking to it. Perhaps <a href="https://twitter.com/theshawwn/status/1206721762987315207">another sample</a> of gpt2 talking as me, but with the irc bot mentioned earlier (and ran by nshepperd), might convey it. You can find some more of those samples on Shawn’s twitter + a lot more gpt fun from his collaborations with <a href="http://gwern.net">gwern</a>.</p>
+
+<p>I genuinely think that even with gpt2, let alone bigger and better models you can get a lot of use out of having a model of yourself you can talk to - and not just yourself. Playing with this has really made me realise the value of a service that can create a model of dead or dying relatives, and I want to eventually set up something for my loved ones - at minimum the data collection part.</p>
+
+<p>It will be unfair to say that it is always great though - sometimes it talks about whatever it wants to and the conversation can be harder to steer, otherwise it follows my lead easily. From what I can see in my actual messages I do this a lot, so maybe it is just copying me. Additionally it sometimes talks about things that aren’t really True - like the back pain in Example 1, and if you play with the different parameters (top_k/top_p and temperature mainly) you can force it to go on long tirades which eventually become nonsensical. It’s definitely not perfect.. but it sure is fascinating to me.</p>
+
+<p>Fun fact - there is a sentence in this post written entirely by the GPT version of Me. I wonder how easy it is to spot.</p>
+
+
+  </div><a class="u-url" href="/blog/gpt-15b-chat-finetune/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Svilen Todorov</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

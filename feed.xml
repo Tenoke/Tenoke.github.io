@@ -1,4 +1,447 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://svilentodorov.xyz//feed.xml" rel="self" type="application/atom+xml" /><link href="https://svilentodorov.xyz//" rel="alternate" type="text/html" /><updated>2020-01-19T16:38:58+01:00</updated><id>https://svilentodorov.xyz//feed.xml</id><title type="html">Svilen Todorov</title><subtitle>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</subtitle><entry><title type="html">How is search so goddamn bad? A ‘Case Study’</title><link href="https://svilentodorov.xyz//blog/bad-search/" rel="alternate" type="text/html" title="How is search so goddamn bad? A ‘Case Study’" /><published>2020-01-19T00:00:00+01:00</published><updated>2020-01-19T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/bad-search</id><content type="html" xml:base="https://svilentodorov.xyz//blog/bad-search/">&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://svilentodorov.xyz//feed.xml" rel="self" type="application/atom+xml" /><link href="https://svilentodorov.xyz//" rel="alternate" type="text/html" /><updated>2020-01-23T09:12:53+01:00</updated><id>https://svilentodorov.xyz//feed.xml</id><title type="html">Svilen Todorov</title><subtitle>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</subtitle><entry><title type="html">Talking to Myself or How I Trained GPT2-1.5b for Rubber Ducking using My Facebook Chat Data</title><link href="https://svilentodorov.xyz//blog/gpt-15b-chat-finetune/" rel="alternate" type="text/html" title="Talking to Myself or How I Trained GPT2-1.5b for Rubber Ducking using My Facebook Chat Data" /><published>2020-01-23T00:00:00+01:00</published><updated>2020-01-23T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/gpt-15b-finetune</id><content type="html" xml:base="https://svilentodorov.xyz//blog/gpt-15b-chat-finetune/">&lt;h5 id=&quot;previously-in-this-series---finetuning-117m-finetuning-345m&quot;&gt;Previously in this series - &lt;a href=&quot;/blog/gpt-finetune/&quot;&gt;finetuning 117M&lt;/a&gt;, &lt;a href=&quot;/blog/gpt-345M-finetune/&quot;&gt;finetuning 345M&lt;/a&gt;&lt;/h5&gt;
+
+&lt;p&gt;OpenAI’s pretrained Gpt2 models have been all the rage in nlp model finetunning. &lt;a href=&quot;https://www.reddit.com/r/SubSimulatorGPT2/&quot;&gt;Sub Simulators&lt;/a&gt;, &lt;a href=&quot;https://www.aidungeon.io/start&quot;&gt;AI Dungeons&lt;/a&gt;, &lt;a href=&quot;https://www.gwern.net/GPT-2&quot;&gt;Poetry&lt;/a&gt;, &lt;a href=&quot;https://slatestarcodex.com/2020/01/06/a-very-unlikely-chess-game/&quot;&gt;Chess&lt;/a&gt;, &lt;a href=&quot;https://www.cardsagainsthumanityaichallenge.com/&quot;&gt;Cards Against Humanity&lt;/a&gt; - you name it.&lt;/p&gt;
+
+&lt;p&gt;My particular interest has been in applying it to my personal chat data, so I can talk to arbitrary friends and more importantly &lt;em&gt;myself&lt;/em&gt; whenever I want to. Why? Well, sometimes if you don’t hear voices you have to go and program the voices into being. More seriously, I wished to be able to talk with a version of myself so I can get an outside view of how I think, for analysing my tendencies and problems, rubber ducking, self-therapy and - let’s face it - most importantly for fun.&lt;/p&gt;
+
+&lt;p&gt;I won’t go into detail describing the Colab with Facebook data, as it is almost the same as the one used with the 117M version which I describe &lt;a href=&quot;/blog/gpt-finetune/&quot;&gt;here&lt;/a&gt; and &lt;a href=&quot;/blog/gpt-345M-finetune/&quot;&gt;here&lt;/a&gt;. We are again using &lt;a href=&quot;https://github.com/nshepperd/gpt-2&quot;&gt;nsheppered’s GPT training code&lt;/a&gt; as a base with &lt;a href=&quot;https://github.com/shawwn/gpt-2&quot;&gt;shawwwn’s fork&lt;/a&gt; allowing us to train the whole of gpt-1.5b on a TPU - which means we can do so for free on Colab again! I’ve only added a little bit more so we can talk interactively with gpt2, have it respond to us as a specific person and go through the whole general back and forth which we typically call ‘having a conversation’.&lt;/p&gt;
+
+&lt;p&gt;You can train your own in the new GPT2-1.5b collab FB data &lt;a href=&quot;https://colab.research.google.com/drive/1rRpMGVfUb5sG263d1OOPXOyGRX4W1oEv&quot;&gt;here&lt;/a&gt;. Make sure to click Runtime&amp;gt; Change Runtime type&amp;gt; TPU&lt;/p&gt;
+
+&lt;h6 id=&quot;note-it-is-a-lot-easier-to-train-if-you-pay-a-few-bucks-for-google-one-so-you-can-fit-it-all-easily-on-drive-a-checkpoint-of-the-model-comes-to-6-gb-so-if-you-only-keep-one-checkpoint-you-can-do-it-without-paying---it-is-just-more-hassle&quot;&gt;Note: It is a lot easier to train if you pay a few bucks for &lt;a href=&quot;https://one.google.com/&quot;&gt;Google One&lt;/a&gt; so you can fit it all easily on Drive. A checkpoint of the model comes to ~6 gb, so if you only keep one checkpoint you can do it without paying - it is just more hassle.&lt;/h6&gt;
+
+&lt;h6 id=&quot;note-2-it-took-me-over-a-month-of-training-to-get-it-here-using-just-colab&quot;&gt;Note 2: It took me over a month of training to get it here using just Colab&lt;/h6&gt;
+
+&lt;p&gt;&lt;strong&gt;&lt;a href=&quot;#chat-samples&quot;&gt;Self-Chat Samples&lt;/a&gt;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;motivation&quot;&gt;Motivation&lt;/h2&gt;
+
+&lt;p&gt;The idea of modelling a person fascinates me, and as language models have been becoming better and better it genuinely &lt;em&gt;seems&lt;/em&gt; like they capture more and more of a person’s style and tendencies. Honestly, I don’t even need more motivation than that to want to do it - the only real question is &lt;em&gt;who&lt;/em&gt; to model as better and bigger models come out?&lt;/p&gt;
+
+&lt;p&gt;Now, I have to admit - my first choice would be someone like Von Neumann but that’s not someone on whom I have the right type of conversational data to do well (although there are ways to tackle the problem). The person who I &lt;strong&gt;am&lt;/strong&gt; guaranteed to have data on, AND who is still very useful and interesting subject of study for myself is, you guessed it, myself.&lt;/p&gt;
+
+&lt;p&gt;Is it useful though? Don’t I already have access to a pretty good, some might say &lt;em&gt;perfect&lt;/em&gt; simulation of myself from the get-go? I do. However, if I can have a second one of me to bounce ideas with I’d take it. If I can analyse my problems from the outside rather than from the inside, I’d take that, too.&lt;/p&gt;
+
+&lt;p&gt;After playing with the results, and extrapolating to what the next generation of models will be able to do (gpt-2 is already not the newest and best architecture), I think a lot of people might at some point want a version of themselves to talk to, bounce ideas with, get help from and so on.&lt;/p&gt;
+
+&lt;h2 id=&quot;a-few-more-words&quot;&gt;A Few More Words&lt;/h2&gt;
+
+&lt;p&gt;I’ve spent some time talking to the irc chat bots of nshepperd and shawwn (both trained on the same data) and had a lot of fun with it. Talking to myself though has been highly addictive, and I’ve been running a Colab where I occasionally shoot myself a question or go into a deep conversation with my gpt2 clone for days now. It’s …interesting.&lt;/p&gt;
+
+&lt;p&gt;One thing I didn’t realize though was how personal it is - it’s all trained on my facebook messenger data, where I often talk with my closest friends. It takes very little for gpt to start talking about intimate topics which I’d neither want to share nor would they be as meaningful to anyone else.&lt;/p&gt;
+
+&lt;p&gt;Having said that the next are my last 7 unfiltered (I’ve only changed the names) conversations with it, where I am actively trying to avoid sensitive topics (I still had to restart it twice due to sensitive subjects).&lt;/p&gt;
+
+&lt;h2 id=&quot;results&quot;&gt;Results&lt;/h2&gt;
+
+&lt;p&gt;The end loss I reached (for whatever that is worth) was just over 0.6, substantially lower than with the smaller models. My dataset is still pretty small - 14mb, and the next step would be to add my personal data from other sources. Yet, it does quite well, though perhaps it wouldn’t seem as exciting to others.&lt;/p&gt;
+
+&lt;h3 id=&quot;facebook&quot;&gt;Facebook&lt;/h3&gt;
+
+&lt;p&gt;The way it works is - I write a sentence under the name of a friend from the dataset but here labeled as ‘Me’, pass it to the model while prompting it to start typing using my name - ‘Svilen Todorov’, (here labeled as ‘Gpt Me’). When it starts outputting something not by ‘Svilen Todorov’ I cut it off, and write myself. Then I feed that + the history so far to the model, which allows us to have an arbitrarily long coherent conversation.&lt;/p&gt;
+
+&lt;h4 id=&quot;chat-samples&quot;&gt;&lt;em&gt;Chat Samples:&lt;/em&gt;&lt;/h4&gt;
+
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example 1 &lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;Me: How's work?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been working a bit but still not in the office
+
+ &lt;br /&gt;Me: I've been working, too. Can't solve this damn bug I have.
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive spent hours on it
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but to no avail
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: im spending all my time on it
+
+&lt;br /&gt;Me: I checked everything, yet it runs out of memory despite obvious leaks. hoooow
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been wasting so much of my time on it tho
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: 16gb memory, 16gb video ram, 60 hours a week for 3 years
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: barely have anything open other than youtube and facebook
+
+&lt;br /&gt;Me: oh it's a browser issue? man the web sure sounds bloated nowadays
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive tried everything
+
+ &lt;br /&gt;Me: did you try turning it on and off?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: haha
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive changed it between view and off in the dropbox since the beginning, should be the same now as in your case and I doesnt seem to be working
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and tried a few things
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: nothing seems to be working
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i uploaded a new one though when you did
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but pointless to try it now
+
+&lt;br /&gt;Me: don't give up
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive uploaded a new one
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: doesnt run properly
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: etc.
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: still nothing
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: maybe in a few days when i have a few gigs under my belt it will run a bit better
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and then in the mean time i can send you what i have
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: to use as you like
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: until then use whatever is in my dropbox
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: if you want i can even send you my complete open source build, so you can build it and send me what i use
+
+&lt;br /&gt;Me: ok, let's do that
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive only sent you a part of the source so i can get the full thing
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: https://github.com/p5pit/pciusb
+
+&lt;br /&gt;Me: I can't access it. Can you resend the link?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive just changed the link in the source
+
+ &lt;br /&gt;Me: what's the new url?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive just changed the name aboven you send it
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: https://github.com/p5pit/pciusb/tree/master/libs
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but you need to update the links in the 'message' part
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: anyway whats up with you
+
+&lt;br /&gt;Me: Not much, just reading
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been at lectures 4-7
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: im helping a mate with some maths problems
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and trying to read a paper since 5
+
+&lt;br /&gt;Me: ok cool
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive not sure what it was on
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: Lyndon had problems with reading just finding the right words in random papers to use them to make a point
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and it was on whether certain types of choice can build a successful models to fit the data to believe
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+&lt;details&gt;
+	&lt;summary&gt;
+	&lt;i&gt;Example 2 &lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;Me: hey how are you
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive quit and you know where to find me
+
+ &lt;br /&gt;Me: what did you quit
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: my job, ive given a few interviews here and there
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and my boss is giving me shit for not doing more work during the day
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but ive quit
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: he's so annoyed at me
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: thats a bit of an overreaction
+
+&lt;br /&gt;Me: yeah you shouldnt have to work
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been working since 8 am today
+
+ &lt;br /&gt;Me: oh, you quit your job and are working on getting a new one?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been trying to for a while now
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and the previous one ends in oct
+
+&lt;br /&gt;Me: what job are you looking for?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been searching for 'concierge' level stuff
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i like working on cutting edge stuff
+
+&lt;br /&gt;Me: so something in AI again?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been looking at it for 8 months at least
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and they want you to start at 17 / 20 euro a day
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: with no holiday
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: which is pretty ridiculous
+
+&lt;br /&gt;Me: that does seem like a ridiculously low salary
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive talked to people at home and abroad about it
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and they were all 'wtf'
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i havent even called in to my third favourite coffee place to try to get them to put me as a regular
+
+&lt;br /&gt;Me: interesting
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive gone to application after meeting with them
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: :D
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: coffee and biscuits*
+
+&lt;br /&gt;Me: how did it go
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive only went for a small place so far, startup
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and they wanted me to make a profile there
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and to tell them about the personal stuff like my salary and social security
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and if i want it there it has to be on the phone
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and so on
+
+
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;details&gt;
+	&lt;summary&gt;
+	&lt;i&gt;Example 3 &lt;/i&gt;
+&lt;/summary&gt;
+
+&lt;br /&gt;Me: whats up
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been having a lot of success with my programming but dunno if Ive succeed
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i have a lot of stuff
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: not sure how many hours Im going to spend a day on it
+
+&lt;br /&gt;Me: you are not working too much and getting burnt out are you?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive had years with zero effort and amazing results
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: - especially when compared to other programmers
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: so yeah, probably a bit
+
+&lt;br /&gt;Me: well, take it easy man
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been doing it for a few hours a day for a few years now
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i really want to move to machine learning though
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and Ive started on that over a year ago
+
+&lt;br /&gt;Me: what ML stuff do you want to do
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive done a little in R, but want to move to using things like neural nets for a lot more
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ideally something which is more general
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and less focused on just driving
+
+&lt;br /&gt;Me: but what do you want to work on specifically
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive helped people a lot with getting them to focus on a specific problem
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: at this point
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: :D
+
+&lt;br /&gt;Me: so what problem are YOU focusing on
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive helped a lot with getting them to focus on adding simple analytics
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: to their sites
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and getting them to focus on just a few things
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: rather than whole things
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but im moving more towards the latter
+
+&lt;br /&gt;Me: hm
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive done a lot of the heavy lifting for them, by getting them to focus on a task that is either too hard or overly boring for them
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but thats a bit of an unfair comparison
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: they have their own stuff
+
+&lt;br /&gt;Me: and what do you have
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive done a lot, but they have their stuff
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i have to move away from that
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: in a few months
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and program something better
+
+&lt;br /&gt;Me: like what
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: something general
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: agi
+
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;details&gt;
+	&lt;summary&gt;
+	&lt;i&gt;Example 4 &lt;/i&gt;
+&lt;/summary&gt;
+
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive done fuck all for an hour now
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: nothing
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i shouldnt be working today
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i was supposed to be working yesterday too but cba
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: just tired
+
+&lt;br /&gt;Me: you seem to be tired all the time, man. everything ok?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been sleeping since 9
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: no, not really
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: my back hurts
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and i hurt my back peacing out
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but other than that im ok
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i can do little but write
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but i cant read and i havent done anything in days
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i am so bored
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: my head is so bad
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: :/
+
+&lt;br /&gt;Me: it happens - maybe take a break until you feel better
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive never been so annoyed by my head
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i can barely use the computer
+
+&lt;br /&gt;Me: damn that sucks
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been worse
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but i dont think its as bad as my back
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: which cant even move
+
+&lt;br /&gt;Me: do you need any help?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been asking people to do shit for me
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: for a long time now
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: no help
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: people give me shit for not doing more
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: havent had a break until now
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i feel so bad for not being able to pass out
+
+&lt;br /&gt;Me: what have you tried for your sleeping problems so far?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been trying for a long time an antihistamines
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;:beta-blockers
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;:xanax
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;:histamine
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;:hainamines
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;:hordamances
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;:hordana
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;:hordano
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;:shrooms
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;:whatever
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: not even going to read now
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: too tired
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: anything else
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: slowing myself down
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: exhausted
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: read the whole thing now
+
+&lt;br /&gt;Me: I did but I am confused. And you shouldn't take shrooms to sleep.
+
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i didnt really
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: its a whole thing
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;details&gt;
+	&lt;summary&gt;
+	&lt;i&gt;Example 5 &lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;Me: want to listen to something cool. send me a track
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been putting tracks from acts I like on and off
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: into my library
+
+&lt;br /&gt;Me: got any links to share?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been pushing some friends to listen to more stuff
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: so you can do that too now :D
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: https://www.youtube.com/watch?v=hfTPiS7Nmw
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: https://www.youtube.com/watch?v=QsXgEzx_GGk
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and this other one is one of the earlier songs I liked from them
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: https://www.youtube.com/watch?v=Iqz02saPcoM
+
+&lt;br /&gt;Me: cool! I like the cramps. Got any techno tho?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been trying to get people to listen to some of the stuff
+
+ &lt;br /&gt;Me: which stuff? what artists or labels?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been pushing mostly labelless stuff which are usually quite good
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: stuff by bez batteries and their cousin or whatever
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and stuff by dvs1 and his cousin
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: or vatican shadow or whatever
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive sent you the first two
+
+&lt;br /&gt;Me: cool
+
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;details&gt;
+	&lt;summary&gt;
+	&lt;i&gt;Example 6 &lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;Me: hey man, what are you up to this weekend?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive tickets for a party on friday
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: wasnt expecting to go out this early
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but got tickets during the sale
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: so im waking up early i guess
+
+&lt;br /&gt;Me: cool, what's the party?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive told people and they havent been able to guess
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: https://www.facebook.com/events/553455714529578/
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: its a bit weird
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i have friends in charge
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: who i trust more than me
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: to tell me if i have a ticket
+
+&lt;br /&gt;Me: looks good. who's playing?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive asked them
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: they said they dont know
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i hope i do
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but they were saying it in a way that it sounds bad
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: :D
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: aufnahme'samenere
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: its a bit weird
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: the only guy that ive met like him is berghainarian 
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: no wait that was mike
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: still ja
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and its this group that does weird stuff
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: that guy does the sound, and looks kind of weird
+
+&lt;br /&gt;Me: sounds pretty interesting really
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive read a little about him on wiki but thats it
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: he is apparently a maker
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but doesnt really know how the word works
+
+&lt;br /&gt;Me: do I know him?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive met him and his brother at makerfaire
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: very briefly
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but they were really high
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and i dont really remember them
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: thats 2 months ago
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: :D
+
+&lt;br /&gt;Me: fair enough
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;details&gt;
+	&lt;summary&gt;
+	&lt;i&gt;Example 7 &lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;Me: how would you describe yourself
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive been working in the same job for 3 and a half years now
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: relatively new to berlin
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: 25
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: 6 years as a programmer/machine learning person
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: pretty much all my time for the last 5 years has been spent on just learning machine learning and not programming really
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and Im pretty sure that even if I was to move elsewhere and work with people from different fields, I would still not be able to keep up
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: I would spend most of my time on just learning the ropes and whatever else they often have free or cheap classes for everyone
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: that seems to be the general approach in many places
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: but I havent seen that approach work for me
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: i spend literally every day with people and projects that dont allow me to do more than that
+
+&lt;br /&gt;Me: and what about your personal life and hobbies?
+
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: ive just been doing the same stuff ever since I moved to berlin a year ago
+ &lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: didnt really do much else than that and the online courses to where I am now
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: I used to spend my time more on random stuff
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: like programming, music, reading things like that
+
+&lt;br /&gt;Me: what about going out
+
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: and its rained a lot the last few days which doesnt help either
+&lt;br /&gt;&lt;b&gt;GPT Me&lt;/b&gt;: https://www.facebook.com/photo.php?fbid=324979844210832&amp;amp;set=a.324977827544367.75530.14546_1858271655695&amp;amp;type=3&amp;amp;theater
+
+&lt;br /&gt;Me: sounds fun
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
+
+&lt;p&gt;The conversations aren’t ideal but it’s &lt;strong&gt;a lot&lt;/strong&gt; fun playing with it. Sadly the stuff I talk about on facebook is either too personal or generic ( e.g. arranging to meet people) so I am unsure how well I’ve managed to convey the fun of talking to it. Perhaps &lt;a href=&quot;https://twitter.com/theshawwn/status/1206721762987315207&quot;&gt;another sample&lt;/a&gt; of gpt2 talking as me, but with the irc bot mentioned earlier (and ran by nshepperd), might convey it. You can find some more of those samples on Shawn’s twitter + a lot more gpt fun from his collaborations with &lt;a href=&quot;http://gwern.net&quot;&gt;gwern&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I genuinely think that even with gpt2, let alone bigger and better models you can get a lot of use out of having a model of yourself you can talk to - and not just yourself. Playing with this has really made me realise the value of a service that can create a model of dead or dying relatives, and I want to eventually set up something for my loved ones - at minimum the data collection part.&lt;/p&gt;
+
+&lt;p&gt;It will be unfair to say that it is always great though - sometimes it talks about whatever it wants to and the conversation can be harder to steer, otherwise it follows my lead easily. From what I can see in my actual messages I do this a lot, so maybe it is just copying me. Additionally it sometimes talks about things that aren’t really True - like the back pain in Example 1, and if you play with the different parameters (top_k/top_p and temperature mainly) you can force it to go on long tirades which eventually become nonsensical. It’s definitely not perfect.. but it sure is fascinating to me.&lt;/p&gt;
+
+&lt;p&gt;Fun fact - there is a sentence in this post written entirely by the GPT version of Me. I wonder how easy it is to spot.&lt;/p&gt;</content><author><name></name></author><category term="gpt" /><category term="gpt2" /><category term="finetune" /><category term="colab" /><category term="neural-network" /><category term="chat" /><category term="reflection" /><category term="therapeutic" /><category term="rubber-duck" /><category term="nlp" /><category term="transformers" /><summary type="html">Previously in this series - finetuning 117M, finetuning 345M</summary></entry><entry><title type="html">How is search so goddamn bad? A ‘Case Study’</title><link href="https://svilentodorov.xyz//blog/bad-search/" rel="alternate" type="text/html" title="How is search so goddamn bad? A ‘Case Study’" /><published>2020-01-19T00:00:00+01:00</published><updated>2020-01-19T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/bad-search</id><content type="html" xml:base="https://svilentodorov.xyz//blog/bad-search/">&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
 
 &lt;p&gt;Google Search is ridiculously, utterly bad. Before your brain starts recalling successful searches you’ve had, and before this turns into &lt;em&gt;only&lt;/em&gt; a rant let’s see some examples.&lt;/p&gt;
 
@@ -40,7 +483,7 @@
 
 &lt;p&gt;Now, I’ve always been biased towards the new - books, tech, everything, but I can’t help but feel that a lot of things which were done pretty well before are done worse today.  We do have better technology, yet we somehow build inferior solutions with it all too often. Further, if they had the same bias of showing me only recent results I’ll understand it better, but that’s not even the case.
 And yes, I get that the incentives of users and providers don’t align perfectly, that Google isn’t your friend, etc. But what is DDG’s excuse?
-As for the Case Study part, and me saying this isn’t simply a rant - I lied, hence the quotation marks in the title. Don’t trust everything you read, especially the goddamn dates on your search results.&lt;/p&gt;</content><author><name></name></author><summary type="html"></summary></entry><entry><title type="html">Fine-tunning OpenAI’s (Larger) GPT-2-345M on Conversation data (Update)</title><link href="https://svilentodorov.xyz//blog/gpt-345M-finetune/" rel="alternate" type="text/html" title="Fine-tunning OpenAI's (Larger) GPT-2-345M on Conversation data (Update)" /><published>2019-05-08T00:00:00+02:00</published><updated>2019-05-08T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/gpt-345m-finetune</id><content type="html" xml:base="https://svilentodorov.xyz//blog/gpt-345M-finetune/">&lt;p&gt;NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of &lt;a href=&quot;https://openai.com/blog/better-language-models/#update&quot;&gt;GPT-2, their current state of the art language model&lt;/a&gt; I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a &lt;a href=&quot;https://www.kaggle.com/rtatman/ubuntu-dialogue-corpus&quot;&gt;Two person Ubuntu-related dialogue corpus&lt;/a&gt;.&lt;/p&gt;
+As for the Case Study part, and me saying this isn’t simply a rant - I lied, hence the quotation marks in the title. Don’t trust everything you read, especially the goddamn dates on your search results.&lt;/p&gt;</content><author><name></name></author><category term="google" /><category term="duckduckgo" /><category term="ddg" /><category term="search" /><category term="bad" /><category term="case" /><category term="study" /><category term="problem" /><summary type="html"></summary></entry><entry><title type="html">Fine-tunning OpenAI’s (Larger) GPT-2-345M on Conversation data (Update)</title><link href="https://svilentodorov.xyz//blog/gpt-345M-finetune/" rel="alternate" type="text/html" title="Fine-tunning OpenAI's (Larger) GPT-2-345M on Conversation data (Update)" /><published>2019-05-08T00:00:00+02:00</published><updated>2019-05-08T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/gpt-345m-finetune</id><content type="html" xml:base="https://svilentodorov.xyz//blog/gpt-345M-finetune/">&lt;p&gt;NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of &lt;a href=&quot;https://openai.com/blog/better-language-models/#update&quot;&gt;GPT-2, their current state of the art language model&lt;/a&gt; I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a &lt;a href=&quot;https://www.kaggle.com/rtatman/ubuntu-dialogue-corpus&quot;&gt;Two person Ubuntu-related dialogue corpus&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;The newly released pre-trained version has 345 million parameters, compared to the 117M parameter version so one would expect significantly better results. Note, this is still significantly smaller than the 1.5B version they’ve shown off. OpenAI are, however, releasing the aforementioned 1.5B version along with a 762M version to partner organizations along with plans to release those to the public in the future, too.&lt;/p&gt;
 
@@ -682,7 +1125,7 @@ As for the Case Study part, and me saying this isn’t simply a rant - I lied, h
 
 &lt;p&gt;The conversations look better but not ideal. The model is learning even more relevant stuff - e.g. they are about mutual interests, acquaintances etc. It truly seems to have some idea of who each person is and can mostly catch the tone and relevant facts about most people I’ve talked enough to.&lt;/p&gt;
 
-&lt;p&gt;It was also easy and fun to play with and makes me wonder how much better we can do with the biggest model or better techniques or ideally more of everything. At this rate, we might soon have chatbots good enough for people to not even compare them to Eliza!&lt;/p&gt;</content><author><name></name></author><summary type="html">NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus.</summary></entry><entry><title type="html">A Proposed Task for Training a Human-Imitating System as a Benchmark and Potential Part of The Road to AGI</title><link href="https://svilentodorov.xyz//blog/human-imitating-task/" rel="alternate" type="text/html" title="A Proposed Task for Training a Human-Imitating System as a Benchmark and Potential Part of The Road to AGI" /><published>2019-04-29T00:00:00+02:00</published><updated>2019-04-29T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/human-imitating-task</id><content type="html" xml:base="https://svilentodorov.xyz//blog/human-imitating-task/">&lt;h2 id=&quot;basic-idea&quot;&gt;Basic idea&lt;/h2&gt;
+&lt;p&gt;It was also easy and fun to play with and makes me wonder how much better we can do with the biggest model or better techniques or ideally more of everything. At this rate, we might soon have chatbots good enough for people to not even compare them to Eliza!&lt;/p&gt;</content><author><name></name></author><category term="gpt" /><category term="gpt2" /><category term="finetune" /><category term="colab" /><category term="nlp" /><summary type="html">NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus.</summary></entry><entry><title type="html">A Proposed Task for Training a Human-Imitating System as a Benchmark and Potential Part of The Road to AGI</title><link href="https://svilentodorov.xyz//blog/human-imitating-task/" rel="alternate" type="text/html" title="A Proposed Task for Training a Human-Imitating System as a Benchmark and Potential Part of The Road to AGI" /><published>2019-04-29T00:00:00+02:00</published><updated>2019-04-29T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/human-imitating-task</id><content type="html" xml:base="https://svilentodorov.xyz//blog/human-imitating-task/">&lt;h2 id=&quot;basic-idea&quot;&gt;Basic idea&lt;/h2&gt;
 
 &lt;p&gt;One of the most important pieces for training a more general ‘human-like’ System (Neural Network) is having a good open-ended task which is either unsupervised or where generating very large amounts of data is doable.&lt;/p&gt;
 
@@ -731,7 +1174,7 @@ Also how much better (or if not better, how come) would for example the text-rel
 &lt;sup&gt;
 I would be very interested to hear about arguments why this would or wouldn’t work, potential improvements or alternatives (e.g. having a RL and/or GAN-like approach with a similar task which is also doable), or if there is anyone working on something similar to this. Feel free to contact me about this or any related or unrelated offers for work or collaboration.
 &lt;/sup&gt;
-&lt;/sub&gt;&lt;/p&gt;</content><author><name></name></author><summary type="html">Basic idea</summary></entry><entry><title type="html">Adding Layers to the middle of a pre-trained network whithout invalidating the weights</title><link href="https://svilentodorov.xyz//blog/add-layers/" rel="alternate" type="text/html" title="Adding Layers to the middle of a pre-trained network whithout invalidating the weights" /><published>2019-03-22T00:00:00+01:00</published><updated>2019-03-22T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/add-layers</id><content type="html" xml:base="https://svilentodorov.xyz//blog/add-layers/">&lt;p&gt;Fine-tunning pre-trained neural networks on new data has shown a lot of promise in &lt;a href=&quot;https://cv-tricks.com/keras/fine-tuning-tensorflow/&quot;&gt;many&lt;/a&gt; &lt;a href=&quot;http://nlp.fast.ai/&quot;&gt;domains&lt;/a&gt;. One simple example is my &lt;a href=&quot;/blog/gpt-finetune&quot;&gt;last post&lt;/a&gt; where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.&lt;/p&gt;
+&lt;/sub&gt;&lt;/p&gt;</content><author><name></name></author><category term="agi" /><category term="ai" /><category term="task" /><category term="proposal" /><category term="imitate" /><summary type="html">Basic idea</summary></entry><entry><title type="html">Adding Layers to the middle of a pre-trained network whithout invalidating the weights</title><link href="https://svilentodorov.xyz//blog/add-layers/" rel="alternate" type="text/html" title="Adding Layers to the middle of a pre-trained network whithout invalidating the weights" /><published>2019-03-22T00:00:00+01:00</published><updated>2019-03-22T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/add-layers</id><content type="html" xml:base="https://svilentodorov.xyz//blog/add-layers/">&lt;p&gt;Fine-tunning pre-trained neural networks on new data has shown a lot of promise in &lt;a href=&quot;https://cv-tricks.com/keras/fine-tuning-tensorflow/&quot;&gt;many&lt;/a&gt; &lt;a href=&quot;http://nlp.fast.ai/&quot;&gt;domains&lt;/a&gt;. One simple example is my &lt;a href=&quot;/blog/gpt-finetune&quot;&gt;last post&lt;/a&gt; where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.&lt;/p&gt;
 
 &lt;p&gt;Using pre-trained models and further training them is especially useful for organizations with small datasets or resources, and in most cases, it is cost and otherwise effective to do it. However, despite it being widely used, people rarely talk about taking a pre-trained model and making it bigger by adding more layers in the middle of the network rather than just the end.&lt;/p&gt;
 
@@ -1005,7 +1448,7 @@ class MyModel2(Model):
 
 &lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
 
-&lt;p&gt;Increasing the size of a network is something usually done before training from scratch but that doesn’t always need to be the case. You can add one or better yet more layers across the network or even at the very start. Whether this will help depends - mainly on whether you needed a bigger net from the start - but it can definitely save you time.&lt;/p&gt;</content><author><name></name></author><summary type="html">Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.</summary></entry><entry><title type="html">Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger</title><link href="https://svilentodorov.xyz//blog/gpt-finetune/" rel="alternate" type="text/html" title="Generating Fake Conversations by fine-tunning OpenAI's GPT-2 on data from Facebook Messenger" /><published>2019-03-12T00:00:00+01:00</published><updated>2019-03-12T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/gpt-finetune</id><content type="html" xml:base="https://svilentodorov.xyz//blog/gpt-finetune/">&lt;p&gt;One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.&lt;/p&gt;
+&lt;p&gt;Increasing the size of a network is something usually done before training from scratch but that doesn’t always need to be the case. You can add one or better yet more layers across the network or even at the very start. Whether this will help depends - mainly on whether you needed a bigger net from the start - but it can definitely save you time.&lt;/p&gt;</content><author><name></name></author><category term="neural" /><category term="network" /><category term="ml" /><category term="layer" /><summary type="html">Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.</summary></entry><entry><title type="html">Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger</title><link href="https://svilentodorov.xyz//blog/gpt-finetune/" rel="alternate" type="text/html" title="Generating Fake Conversations by fine-tunning OpenAI's GPT-2 on data from Facebook Messenger" /><published>2019-03-12T00:00:00+01:00</published><updated>2019-03-12T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/gpt-finetune</id><content type="html" xml:base="https://svilentodorov.xyz//blog/gpt-finetune/">&lt;p&gt;One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.&lt;/p&gt;
 
 &lt;p&gt;In February 2019 OpenAI released &lt;a href=&quot;https://blog.openai.com/better-language-models/&quot;&gt;information on their new state of the art language model&lt;/a&gt; which created a lot of buzz within the community. While few disagree the results they included are better than anything we’ve seen before (even if mainly because they made a bigger model combining recent advances), many were peeved that OpenAI only released a small pre-trained version of their model rather than the full one they generated examples with. Nonetheless, the small model is also very good, and due to nshepperd’s addition to their code, we can easily fine-tune it on our own data to easily generate (near-)state of the art results specific to whatever we want.&lt;/p&gt;
 
@@ -1537,7 +1980,7 @@ by running&lt;/p&gt;
 
 &lt;p&gt;Another way to make it produce slightly better results is to finetune it in the end on the chat from a specific person before generating conversations with them (I’ve added the relevant code to the colab).&lt;/p&gt;
 
-&lt;p&gt;We haven’t gotten anywhere near passing the Turing Test but I suspect that if you hook this up to facebook’s API to respond for you, it might take a while for some people to figure it out.&lt;/p&gt;</content><author><name></name></author><summary type="html">One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.</summary></entry><entry><title type="html">Building an in-browser Rock Paper Scissors Neural Network capable of beating humans</title><link href="https://svilentodorov.xyz//blog/rps/" rel="alternate" type="text/html" title="Building an in-browser Rock Paper Scissors Neural Network capable of beating humans" /><published>2018-07-31T00:00:00+02:00</published><updated>2018-07-31T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/RPS</id><content type="html" xml:base="https://svilentodorov.xyz//blog/rps/">&lt;p&gt;As the &lt;a href=&quot;https://archive.nytimes.com/www.nytimes.com/interactive/science/rock-paper-scissors.html&quot;&gt;New York Times&lt;/a&gt; have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.&lt;/p&gt;
+&lt;p&gt;We haven’t gotten anywhere near passing the Turing Test but I suspect that if you hook this up to facebook’s API to respond for you, it might take a while for some people to figure it out.&lt;/p&gt;</content><author><name></name></author><category term="gpt" /><category term="gpt2" /><category term="finetune" /><category term="colab" /><category term="nlp" /><summary type="html">One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.</summary></entry><entry><title type="html">Building an in-browser Rock Paper Scissors Neural Network capable of beating humans</title><link href="https://svilentodorov.xyz//blog/rps/" rel="alternate" type="text/html" title="Building an in-browser Rock Paper Scissors Neural Network capable of beating humans" /><published>2018-07-31T00:00:00+02:00</published><updated>2018-07-31T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/RPS</id><content type="html" xml:base="https://svilentodorov.xyz//blog/rps/">&lt;p&gt;As the &lt;a href=&quot;https://archive.nytimes.com/www.nytimes.com/interactive/science/rock-paper-scissors.html&quot;&gt;New York Times&lt;/a&gt; have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.&lt;/p&gt;
 
 &lt;p&gt;The goals here are simple - we want to run the Neural Net in the user’s browser, and we want it to have some edge and win against most humans.&lt;/p&gt;
 
