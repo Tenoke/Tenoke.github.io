@@ -15,9 +15,10 @@ visibility: hidden;
 }
 
 a:hover span{ 
+position: fixed; /* or absolute */
+right: 0.5%;
+bottom: 2%;
 visibility: visible;
-top: 0;
-bottom:0;
-left: 5.5em; 
-width:40em;
+width:35em;
+height:21em;
 }
