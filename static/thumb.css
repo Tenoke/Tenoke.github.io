@@ -14,11 +14,17 @@ padding: 2px;
 visibility: hidden;
 }
 
-a:hover span{ 
+a span img{ 
 position: fixed; /* or absolute */
 right: 0.5%;
 bottom: 2%;
-visibility: visible;
 width:35em;
 height:21em;
+max-width: 99%;
+}
+
+
+a:hover span{ 
+visibility: visible;
+
 }
