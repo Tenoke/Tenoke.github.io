@@ -8,9 +8,6 @@ z-index: 50;
 }
 
 a span{ 
-position: absolute;
-background-color: lightgray;
-padding: 2px;
 visibility: hidden;
 }
 
@@ -27,4 +24,8 @@ max-width: 99%;
 a:hover span{ 
 visibility: visible;
 
+}
+
+span.username {
+visibility: visible;
 }
