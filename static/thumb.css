@@ -1,0 +1,23 @@
+a{
+position: relative;
+}
+
+a:hover{
+background-color: transparent;
+z-index: 50;
+}
+
+a span{ 
+position: absolute;
+background-color: lightgray;
+padding: 2px;
+visibility: hidden;
+}
+
+a:hover span{ 
+visibility: visible;
+top: 0;
+bottom:0;
+left: 5.5em; 
+width:40em;
+}

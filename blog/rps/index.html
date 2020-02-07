@@ -18,19 +18,8 @@
 {"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/rps/","headline":"Building an in-browser Rock Paper Scissors Neural Network capable of beating humans","dateModified":"2018-07-31T00:00:00+02:00","datePublished":"2018-07-31T00:00:00+02:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/rps/"},"description":"As the New York Times have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css">
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /><script>
-if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-139882809-1', 'auto');
-  ga('send', 'pageview');
-}
-</script>
-  
-</head>
+  <link rel="stylesheet" href="/static/thumb.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /></head>
 <body><header class="site-header" role="banner">
 
   <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
@@ -47,7 +36,7 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
             <a class="page-link" href="/rps">RPS Demo</a>
             <a class="page-link" href="/blog">Blog</a>
             <a class="page-link" href="/about">About</a>
-<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/rps.html">RPS</a>-->
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/rps/">RPS</a>-->
         </div>
       </nav></div>
 </header>
@@ -65,7 +54,7 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>As the <a href="https://archive.nytimes.com/www.nytimes.com/interactive/science/rock-paper-scissors.html">New York Times</a> have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.</p>
+    <p>As the <a href="https://archive.nytimes.com/www.nytimes.com/interactive/science/rock-paper-scissors.html"><span><img src="/static/previews/a42519d4a8d9ade7.png"></span><span><img src="/static/previews/a42519d4a8d9ade7.png"></span>New York Times</a> have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.</p>
 
 <p>The goals here are simple - we want to run the Neural Net in the user’s browser, and we want it to have some edge and win against most humans.</p>
 
@@ -81,7 +70,7 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
 
 <p>Thus, we are going to take advantage of being able to import a tensorflow/keras model into tensorflow.js, which as far as I can tell is almost always the better option.</p>
 
-<p>Note: The <a href="https://github.com/Tenoke/tensorflowjs-rps">associated repo</a> has the code, data, and all pip-installable prerequisites.</p>
+<p>Note: The <a href="https://github.com/Tenoke/tensorflowjs-rps"><span><img src="/static/previews/e8e45eedf15bfd87.png"></span><span><img src="/static/previews/e8e45eedf15bfd87.png"></span><span><img src="/static/previews/e8e45eedf15bfd87.png"></span><span><img src="/static/previews/e8e45eedf15bfd87.png"></span>associated repo</a> has the code, data, and all pip-installable prerequisites.</p>
 
 <h3 id="overview-of-approach">Overview of approach</h3>
 
@@ -103,7 +92,7 @@ import numpy as np
 
 <h3 id="data">Data</h3>
 
-<p>I looked for any RPS data to build the initial model on, and the first thing which popped out and seemed usable was <a href="https://github.com/PizzaRollExpert/Rock-paper-scissors-data/">This repo</a></p>
+<p>I looked for any RPS data to build the initial model on, and the first thing which popped out and seemed usable was <a href="https://github.com/PizzaRollExpert/Rock-paper-scissors-data/"><span><img src="/static/previews/5d4651eeacc521f9.png"></span><span><img src="/static/previews/5d4651eeacc521f9.png"></span>This repo</a></p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>%%bash
 wget https://github.com/PizzaRollExpert/Rock-paper-scissors-data/raw/master/data.txt
@@ -147,7 +136,7 @@ data = np.concatenate((data2, data))
 
 <p>Now we have our X - the prepared data for passing to the model to base its guesses, but we need to create our y (ground truth), too.</p>
 
-<p>First, we are going to make a small helper function for determining who won a given round. I googled around for an easier way to check who won instead of <code class="highlighter-rouge">if player1 == 'rock' and player2 ==..</code>, and I created the function below, based on what I saw <a href="https://stackoverflow.com/questions/11377117/rock-paper-scissors-determine-win-loss-tie-using-math">Here</a>. I admit, I had to triple-check if it works properly.</p>
+<p>First, we are going to make a small helper function for determining who won a given round. I googled around for an easier way to check who won instead of <code class="highlighter-rouge">if player1 == 'rock' and player2 ==..</code>, and I created the function below, based on what I saw <a href="https://stackoverflow.com/questions/11377117/rock-paper-scissors-determine-win-loss-tie-using-math"><span><img src="/static/previews/94596c07c1f7e4fa.png"></span><span><img src="/static/previews/94596c07c1f7e4fa.png"></span>Here</a>. I admit, I had to triple-check if it works properly.</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def calculate_winner(x):
     result = x[0] - x[1]
@@ -348,7 +337,7 @@ function moveBasedOn(move) {
 }
 </code></pre></div></div>
 
-<p>That’s it. You can now play against the model by opening the console in your browser, and calling chooseMove(..) with ‘rock’, ‘paper’ or ‘scissors’, or building a frontend around the model like the one in the <a href="https://github.com/Tenoke/tensorflowjs-rps">github repo</a> accompanying this post.</p>
+<p>That’s it. You can now play against the model by opening the console in your browser, and calling chooseMove(..) with ‘rock’, ‘paper’ or ‘scissors’, or building a frontend around the model like the one in the <a href="https://github.com/Tenoke/tensorflowjs-rps"><span><img src="/static/previews/e8e45eedf15bfd87.png"></span><span><img src="/static/previews/e8e45eedf15bfd87.png"></span><span><img src="/static/previews/e8e45eedf15bfd87.png"></span><span><img src="/static/previews/e8e45eedf15bfd87.png"></span>github repo</a> accompanying this post.</p>
 
   </div><a class="u-url" href="/blog/rps/" hidden></a>
 </article>
@@ -367,7 +356,7 @@ function moveBasedOn(move) {
           <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
       </div>
 
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
 </div>
 
       <div class="footer-col footer-col-3">

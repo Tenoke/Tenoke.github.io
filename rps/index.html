@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.12.3"> </script><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>RPS | Svilen Todorov</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="RPS" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov" />
+<meta property="og:description" content="Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov" />
+<link rel="canonical" href="https://svilentodorov.xyz//rps/" />
+<meta property="og:url" content="https://svilentodorov.xyz//rps/" />
+<meta property="og:site_name" content="Svilen Todorov" />
+<script type="application/ld+json">
+{"@type":"WebPage","url":"https://svilentodorov.xyz//rps/","headline":"RPS","description":"Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/static/thumb.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /></head>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" crossorigin="anonymous">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <body>
+ <div class="container">
+      <nav class="navbar navbar-expand-lg navbar-light bg-white">
+        <div class="mx-auto order-0">
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+              <a class="nav-item nav-link " href="/">Home</a>
+              <a class="nav-item nav-link " href="/about">About</a>
+              <a class="nav-item nav-link " href="/blog">Blog</a>
+              <a class="nav-item nav-link active" href="/rps">RPS Demo</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+      </br>
+      <div class="row justify-content-center">
+        <div class="col-6">
+          <h2> <p>RPS via tensorflow.js</p> </h2>
+          <p>LSTM-based Keras Rock Paper Scissors model running in the browser.</p>
+          
+            <hr>
+            <div>
+              <div> 
+                <h5>You <small class="font-weight-bold" id='humanWins'>0</small> </h5> 
+
+                <button type="button" class="btn btn-default btn-lg" onclick="chooseMove(1)" placeholder="rock" id='predictInputRock'><i class="fa fa-hand-rock-o"></i></button>
+                <button type="button" class="btn btn-default btn-lg" onclick="chooseMove(2)" placeholder="paper" id='predictInputPaper'><i class="fa fa-hand-paper-o"></i></button>
+                <button type="button" class="btn btn-default btn-lg" onclick="chooseMove(3)" placeholder="scissors" id='predictInputScissors'><i class="fa fa-hand-scissors-o"></i></button>
+              </div>
+              <hr>
+              <div> 
+                <h5>PC <small class="font-weight-bold" id='computerWins'>0</small></h5> 
+
+                <p aria-disabled="true" aria-pressed="true" class="invisible " placeholder="rock" id='ComputerInput'><i class="fa fa-hand-rock-o"></i></p>
+              </div>
+              <hr>
+              <h5>Ties <small class="font-weight-bold" id='ties'>0</small></h5> 
+            </div>
+
+        <br><br><br>
+        <div class="">
+            <div >
+              <p><a href="/blog/rps" class="list-group-item list-group-item-action text-dark">Accompanying blog post with code and explanation</a></p>
+              <p><a href="https://github.com/Tenoke/tensorflowjs-rps" class="list-group-item list-group-item-action text-dark">Github repo</a></p>
+              </a>
+
+            </div>
+        </div>
+        </div>
+
+      </div>
+      </div>
+
+    </div>
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Svilen Todorov</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+<script type="text/javascript" src="/static/utils.js"></script>
+    <script type="text/javascript" src="/static/load-rps.js"></script>
+  </body>
+
+</html>
