@@ -9,17 +9,17 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation." />
 <meta property="og:description" content="Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation." />
-<link rel="canonical" href="https://svilentodorov.xyz//blog/add-layers/" />
-<meta property="og:url" content="https://svilentodorov.xyz//blog/add-layers/" />
+<link rel="canonical" href="http://localhost:4000/blog/add-layers/" />
+<meta property="og:url" content="http://localhost:4000/blog/add-layers/" />
 <meta property="og:site_name" content="Svilen Todorov" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-03-22T00:00:00+01:00" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/add-layers/","headline":"Adding Layers to the middle of a pre-trained network whithout invalidating the weights","dateModified":"2019-03-22T00:00:00+01:00","datePublished":"2019-03-22T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/add-layers/"},"description":"Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.","@context":"https://schema.org"}</script>
+{"@type":"BlogPosting","url":"http://localhost:4000/blog/add-layers/","headline":"Adding Layers to the middle of a pre-trained network whithout invalidating the weights","dateModified":"2019-03-22T00:00:00+01:00","datePublished":"2019-03-22T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/blog/add-layers/"},"description":"Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css">
   <link rel="stylesheet" href="/static/thumb.css">
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /></head>
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Svilen Todorov" /></head>
 <body><header class="site-header" role="banner">
 
   <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
@@ -54,7 +54,7 @@
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>Fine-tunning pre-trained neural networks on new data has shown a lot of promise in <a href="https://cv-tricks.com/keras/fine-tuning-tensorflow/"><span><img src="/static/previews/ca58282281e1f750.png"></span><span><img src="/static/previews/ca58282281e1f750.png"></span>many</a> <a href="http://nlp.fast.ai/"><span><img src="/static/previews/8d009be43813d1fc.png"></span><span><img src="/static/previews/8d009be43813d1fc.png"></span>domains</a>. One simple example is my <a href="/blog/gpt-finetune"><span><img src="/static/previews/52c7b89bd116eeed.png"></span><span><img src="/static/previews/52c7b89bd116eeed.png"></span>last post</a> where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.</p>
+    <p>Fine-tunning pre-trained neural networks on new data has shown a lot of promise in <a href="https://cv-tricks.com/keras/fine-tuning-tensorflow/"><span><img src="/static/previews/ca58282281e1f750.png"></span>many</a> <a href="http://nlp.fast.ai/"><span><img src="/static/previews/8d009be43813d1fc.png"></span>domains</a>. One simple example is my <a href="/blog/gpt-finetune"><span><img src="/static/previews/52c7b89bd116eeed.png"></span>last post</a> where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.</p>
 
 <p>Using pre-trained models and further training them is especially useful for organizations with small datasets or resources, and in most cases, it is cost and otherwise effective to do it. However, despite it being widely used, people rarely talk about taking a pre-trained model and making it bigger by adding more layers in the middle of the network rather than just the end.</p>
 
@@ -62,9 +62,9 @@
 
 <p>These posts (along with the last) are my first two in a series where I will attempt to increase the size of OpenAI’s GPT-2 model while taking advantage of the training the model has already gotten. Their model is a great candidate for this experiment, as OpenAI have already demonstrated great results with what is basically a bigger version of it. If anyone else is working on something similar or has links to related research I might have missed - feel free to email me, or hell - even cite me.</p>
 
-<p>Note: The basic network example is mostly taken from the <a href="https://www.tensorflow.org/alpha/tutorials/quickstart/advanced"><span><img src="/static/previews/9047628b31acf83c.png"></span><span><img src="/static/previews/9047628b31acf83c.png"></span>Tensorflow 2.0 Getting started article</a>. I used this as an opportunity to play a little with the new API.</p>
+<p>Note: The basic network example is mostly taken from the <a href="https://www.tensorflow.org/alpha/tutorials/quickstart/advanced"><span><img src="/static/previews/9047628b31acf83c.png"></span>Tensorflow 2.0 Getting started article</a>. I used this as an opportunity to play a little with the new API.</p>
 
-<p>You can follow in the colab <a href="https://colab.research.google.com/drive/1KocZA0Zgo68eMKWXg-W3W6Ev0F6n88cX"><span><img src="/static/previews/8db8f5823929816b.png"></span><span><img src="/static/previews/8db8f5823929816b.png"></span>here</a>.</p>
+<p>You can follow in the colab <a href="https://colab.research.google.com/drive/1KocZA0Zgo68eMKWXg-W3W6Ev0F6n88cX"><span><img src="/static/previews/8db8f5823929816b.png"></span>here</a>.</p>
 
 <h2 id="code">Code</h2>
 
@@ -346,7 +346,7 @@ class MyModel2(Model):
           <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
       </div>
 
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
 </div>
 
       <div class="footer-col footer-col-3">
