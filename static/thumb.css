@@ -14,7 +14,7 @@ visibility: hidden;
 a span img{ 
 position: fixed; /* or absolute */
 right: 0.5%;
-bottom: 1%;
+bottom: 0.5%;
 width:35em;
 height:21em;
 max-width: 99%;

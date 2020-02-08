@@ -9,17 +9,17 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus." />
 <meta property="og:description" content="NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus." />
-<link rel="canonical" href="https://svilentodorov.xyz//blog/gpt-345M-finetune/" />
-<meta property="og:url" content="https://svilentodorov.xyz//blog/gpt-345M-finetune/" />
+<link rel="canonical" href="http://localhost:4000/blog/gpt-345M-finetune/" />
+<meta property="og:url" content="http://localhost:4000/blog/gpt-345M-finetune/" />
 <meta property="og:site_name" content="Svilen Todorov" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-05-08T00:00:00+02:00" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/gpt-345M-finetune/","headline":"Fine-tunning OpenAI’s (Larger) GPT-2-345M on Conversation data (Update)","dateModified":"2019-05-08T00:00:00+02:00","datePublished":"2019-05-08T00:00:00+02:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/gpt-345M-finetune/"},"description":"NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus.","@context":"https://schema.org"}</script>
+{"@type":"BlogPosting","url":"http://localhost:4000/blog/gpt-345M-finetune/","headline":"Fine-tunning OpenAI’s (Larger) GPT-2-345M on Conversation data (Update)","dateModified":"2019-05-08T00:00:00+02:00","datePublished":"2019-05-08T00:00:00+02:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/blog/gpt-345M-finetune/"},"description":"NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of GPT-2, their current state of the art language model I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a Two person Ubuntu-related dialogue corpus.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css">
   <link rel="stylesheet" href="/static/thumb.css">
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /></head>
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Svilen Todorov" /></head>
 <body><header class="site-header" role="banner">
 
   <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
@@ -33,10 +33,10 @@
         </label>
 
         <div class="trigger">
-            <a class="page-link" href="/rps"><span><img src="/static/previews/b912c32e013898b7.png"></span>RPS Demo</a>
-            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
-            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
-<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
+            <a class="page-link" href="/rps"><span><img src="/static/previews/b912c32e013898b7.png"></span><span><img src="/static/previews/b912c32e013898b7.png"></span>RPS Demo</a>
+            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
+            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
         </div>
       </nav></div>
 </header>
@@ -54,25 +54,25 @@
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of <a href="https://openai.com/blog/better-language-models/#update">GPT-2, their current state of the art language model</a> I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a <a href="https://www.kaggle.com/rtatman/ubuntu-dialogue-corpus"><span><img src="/static/previews/5aa13f5dcc32144d.png"></span>Two person Ubuntu-related dialogue corpus</a>.</p>
+    <p>NLP, Machine Conversations and the road to passing the Turing Test have always interested me. That’s why when OpenAI released a larger (345M parameters vs the previous ) version of <a href="https://openai.com/blog/better-language-models/#update">GPT-2, their current state of the art language model</a> I jumped to test it out on my small but personal dataset of 14mb of my own facebook conversations along with testing it a bit on a <a href="https://www.kaggle.com/rtatman/ubuntu-dialogue-corpus"><span><img src="/static/previews/5aa13f5dcc32144d.png"></span><span><img src="/static/previews/5aa13f5dcc32144d.png"></span>Two person Ubuntu-related dialogue corpus</a>.</p>
 
 <p>The newly released pre-trained version has 345 million parameters, compared to the 117M parameter version so one would expect significantly better results. Note, this is still significantly smaller than the 1.5B version they’ve shown off. OpenAI are, however, releasing the aforementioned 1.5B version along with a 762M version to partner organizations along with plans to release those to the public in the future, too.</p>
 
-<p>Although it will be interesting to play around with those much bigger GPT-2 versions, they might not even be relevant by the time they are released - training on the same data with the same amount of compute one can already most likely build an even better model using recent advances e.g. even just with better transformers like OpenAI’s <a href="https://openai.com/blog/sparse-transformer/">Sparse Transformer</a> or Google AI’s <a href="https://ai.googleblog.com/2019/01/transformer-xl-unleashing-potential-of.html"><span><img src="/static/previews/47e2805e39768ef6.png"></span>Transofmer-XL</a> both of which improve on GPT-2’s current architecture.</p>
+<p>Although it will be interesting to play around with those much bigger GPT-2 versions, they might not even be relevant by the time they are released - training on the same data with the same amount of compute one can already most likely build an even better model using recent advances e.g. even just with better transformers like OpenAI’s <a href="https://openai.com/blog/sparse-transformer/">Sparse Transformer</a> or Google AI’s <a href="https://ai.googleblog.com/2019/01/transformer-xl-unleashing-potential-of.html"><span><img src="/static/previews/47e2805e39768ef6.png"></span><span><img src="/static/previews/47e2805e39768ef6.png"></span>Transofmer-XL</a> both of which improve on GPT-2’s current architecture.</p>
 
-<p>I won’t go into detail describing the Colab with Facebook data, as it is almost the same as the one used with the 117M version which I describe <a href="/blog/gpt-finetune/">here</a>. We are again using <a href="https://github.com/nshepperd/gpt-2"><span><img src="/static/previews/ad77b554380cd13c.png"></span>nsheppered’s GPT training code</a>, this time with gradient checkpointing to be able to fit the larger model in memory.</p>
+<p>I won’t go into detail describing the Colab with Facebook data, as it is almost the same as the one used with the 117M version which I describe <a href="/blog/gpt-finetune/">here</a>. We are again using <a href="https://github.com/nshepperd/gpt-2"><span><img src="/static/previews/ad77b554380cd13c.png"></span><span><img src="/static/previews/ad77b554380cd13c.png"></span>nsheppered’s GPT training code</a>, this time with gradient checkpointing to be able to fit the larger model in memory.</p>
 
-<p>You can follow in the new GPT-2-345M collab FB data <a href="https://colab.research.google.com/drive/1EhZG2_AQLeDvW2s841d502FydMn1vgmK"><span><img src="/static/previews/5fab66d777ed07ac.png"></span>here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
+<p>You can follow in the new GPT-2-345M collab FB data <a href="https://colab.research.google.com/drive/1EhZG2_AQLeDvW2s841d502FydMn1vgmK"><span><img src="/static/previews/5fab66d777ed07ac.png"></span><span><img src="/static/previews/5fab66d777ed07ac.png"></span>here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
 
 <p><strong><a href="#facebook-examples">Generated Facebook Messenger Dialogue Samples</a></strong></p>
 
-<p>There is also the GPT-2-345M ubuntu data (including preprossesing)  <a href="https://colab.research.google.com/drive/161JjdAyqckSBLD45N9WZzFI21rUYk2ns"><span><img src="/static/previews/a1650fd6ac675c71.png"></span>here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
+<p>There is also the GPT-2-345M ubuntu data (including preprossesing)  <a href="https://colab.research.google.com/drive/161JjdAyqckSBLD45N9WZzFI21rUYk2ns"><span><img src="/static/previews/a1650fd6ac675c71.png"></span><span><img src="/static/previews/a1650fd6ac675c71.png"></span>here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
 
 <p><strong><a href="#ubuntu-examples">Generated Ubuntu Dialogue Samples</a></strong></p>
 
 <h2 id="results">Results</h2>
 
-<p>First of, The results are visibly better. Even without fine-tuning 345M produces visibly (but not overwhelmingly so) better results than 117M, and preliminary outputs from <a href="https://www.gwern.net/GPT-2"><span><img src="/static/previews/8ced1500e931f794.png"></span>fine-tuning it on poetry</a> are reportedly even more promising. It is hard to judge how much better but for example, I couldn’t get the loss on my small 14M facebook messages dataset to go consistently bellow <em>2.10</em> with 117M, while with 345M (and admittedly a bit more training) I got it down to <em>1.85</em>.</p>
+<p>First of, The results are visibly better. Even without fine-tuning 345M produces visibly (but not overwhelmingly so) better results than 117M, and preliminary outputs from <a href="https://www.gwern.net/GPT-2"><span><img src="/static/previews/8ced1500e931f794.png"></span><span><img src="/static/previews/8ced1500e931f794.png"></span>fine-tuning it on poetry</a> are reportedly even more promising. It is hard to judge how much better but for example, I couldn’t get the loss on my small 14M facebook messages dataset to go consistently bellow <em>2.10</em> with 117M, while with 345M (and admittedly a bit more training) I got it down to <em>1.85</em>.</p>
 
 <h3 id="facebook">Facebook</h3>
 
