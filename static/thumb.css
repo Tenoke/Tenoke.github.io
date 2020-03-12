@@ -14,10 +14,12 @@ visibility: hidden;
 a span img{ 
 position: fixed; /* or absolute */
 right: 0.5%;
-bottom: 0.5%;
+bottom: 0.75%;
 width:35em;
 height:21em;
 max-width: 99%;
+border-radius: 8px;
+filter: drop-shadow(2px 2.5px 3px #424242);
 }
 
 
