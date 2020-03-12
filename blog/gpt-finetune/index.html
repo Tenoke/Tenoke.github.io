@@ -9,17 +9,17 @@
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations." />
 <meta property="og:description" content="One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations." />
-<link rel="canonical" href="http://localhost:4000/blog/gpt-finetune/" />
-<meta property="og:url" content="http://localhost:4000/blog/gpt-finetune/" />
+<link rel="canonical" href="https://svilentodorov.xyz//blog/gpt-finetune/" />
+<meta property="og:url" content="https://svilentodorov.xyz//blog/gpt-finetune/" />
 <meta property="og:site_name" content="Svilen Todorov" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-03-12T00:00:00+01:00" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"http://localhost:4000/blog/gpt-finetune/","headline":"Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger","dateModified":"2019-03-12T00:00:00+01:00","datePublished":"2019-03-12T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/blog/gpt-finetune/"},"description":"One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.","@context":"https://schema.org"}</script>
+{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/gpt-finetune/","headline":"Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger","dateModified":"2019-03-12T00:00:00+01:00","datePublished":"2019-03-12T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/gpt-finetune/"},"description":"One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css">
   <link rel="stylesheet" href="/static/thumb.css">
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Svilen Todorov" /></head>
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /></head>
 <body><header class="site-header" role="banner">
 
   <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
@@ -33,10 +33,10 @@
         </label>
 
         <div class="trigger">
-            <a class="page-link" href="/rps"><span><img src="/static/previews/b912c32e013898b7.png"></span><span><img src="/static/previews/b912c32e013898b7.png"></span>RPS Demo</a>
-            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
-            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
-<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
+            <a class="page-link" href="/rps"><span><img src="/static/previews/b912c32e013898b7.png"></span>RPS Demo</a>
+            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
+            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
+<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
         </div>
       </nav></div>
 </header>
@@ -56,13 +56,13 @@
   <div class="post-content e-content" itemprop="articleBody">
     <p>One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.</p>
 
-<p>In February 2019 OpenAI released <a href="https://blog.openai.com/better-language-models/"><span><img src="/static/previews/be1b16beedf85267.png"></span><span><img src="/static/previews/be1b16beedf85267.png"></span>information on their new state of the art language model</a> which created a lot of buzz within the community. While few disagree the results they included are better than anything we’ve seen before (even if mainly because they made a bigger model combining recent advances), many were peeved that OpenAI only released a small pre-trained version of their model rather than the full one they generated examples with. Nonetheless, the small model is also very good, and due to nshepperd’s addition to their code, we can easily fine-tune it on our own data to easily generate (near-)state of the art results specific to whatever we want.</p>
+<p>In February 2019 OpenAI released <a href="https://blog.openai.com/better-language-models/"><span><img src="/static/previews/be1b16beedf85267.png"></span>information on their new state of the art language model</a> which created a lot of buzz within the community. While few disagree the results they included are better than anything we’ve seen before (even if mainly because they made a bigger model combining recent advances), many were peeved that OpenAI only released a small pre-trained version of their model rather than the full one they generated examples with. Nonetheless, the small model is also very good, and due to nshepperd’s addition to their code, we can easily fine-tune it on our own data to easily generate (near-)state of the art results specific to whatever we want.</p>
 
 <p>Since then people have been experimenting with the model, including some like the aforementioned nsheppered adding simple scripts allowing us to fine-tune the model on our data. In this post, I am going to describe how to use easily available tools like those scripts, Google Colab and Facebook’s Data Export option in order to create borderline realistic conversation snippets.</p>
 
 <p>If you don’t have enough data on facebook, you should be able to easily export your conversation data from pretty much any other service and train on that. Better yet, you can combine data from different sources - as usual with machine learning, the more data you have the better.</p>
 
-<p>You can follow in the colab <a href="https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP"><span><img src="/static/previews/b49faa0053404b53.png"></span><span><img src="/static/previews/b49faa0053404b53.png"></span>here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
+<p>You can follow in the colab <a href="https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP"><span><img src="/static/previews/b49faa0053404b53.png"></span>here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
 
 <h2 id="code">Code</h2>
 
@@ -74,7 +74,7 @@ import random
 import re
 </code></pre></div></div>
 
-<p>Then we clone <a href="https://github.com/Tenoke/gpt-2"><span><img src="/static/previews/472462954bd1d4ac.png"></span><span><img src="/static/previews/472462954bd1d4ac.png"></span>my fork</a> of <a href="https://github.com/nshepperd/gpt-2"><span><img src="/static/previews/ad77b554380cd13c.png"></span><span><img src="/static/previews/ad77b554380cd13c.png"></span>nsheppered’s GPT</a> finetuning repo - I’ve only made some small changes to it - mainly adding a couple of extra command line options for changing things like the learning rate and adding a stopping point. We also cd into it, and install the requirements and download the model.</p>
+<p>Then we clone <a href="https://github.com/Tenoke/gpt-2"><span><img src="/static/previews/472462954bd1d4ac.png"></span>my fork</a> of <a href="https://github.com/nshepperd/gpt-2"><span><img src="/static/previews/ad77b554380cd13c.png"></span>nsheppered’s GPT</a> finetuning repo - I’ve only made some small changes to it - mainly adding a couple of extra command line options for changing things like the learning rate and adding a stopping point. We also cd into it, and install the requirements and download the model.</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!git clone https://github.com/Tenoke/gpt-2.git
 cd gpt-2
 !pip3 install -r requirements.txt
@@ -604,7 +604,7 @@ by running</p>
           <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
       </div>
 
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
 </div>
 
       <div class="footer-col footer-col-3">
