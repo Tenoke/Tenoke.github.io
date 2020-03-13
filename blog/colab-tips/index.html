@@ -45,10 +45,10 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
         </label>
 
         <div class="trigger">
-            <a class="page-link" href="/rps">RPS Demo</a>
-            <a class="page-link" href="/blog">Blog</a>
-            <a class="page-link" href="/about">About</a>
-<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/rps/">RPS</a>-->
+            <a class="page-link" href="/rps"><span><img src="/static/previews/b912c32e013898b7.png"></span>RPS Demo</a>
+            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
+            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
+<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
         </div>
       </nav></div>
 </header>
@@ -66,11 +66,11 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p><a href="https://colab.research.google.com/">Colab</a> is one of my favourite machine learning tools and quite possibly the most useful online-based tool for democratizing Machine Learning currently in existence. It is used by many to share research, working models, ideas. It is a reproducible environment to present GitHub issues, a usable machine with a powerful GPU or TPU which many won’t have access to otherwise, and more. Colab is extremely useful for novices who are just getting started, allowing them to quickly make or copy something working ᴀɴᴅ it is convenient for seasoned practitioners who want to share their work.  And it’s all free.</p>
+    <p><a href="https://colab.research.google.com/"><span><img src="/static/previews/0e02299d261ee3d5.png"></span>Colab</a> is one of my favourite machine learning tools and quite possibly the most useful online-based tool for democratizing Machine Learning currently in existence. It is used by many to share research, working models, ideas. It is a reproducible environment to present GitHub issues, a usable machine with a powerful GPU or TPU which many won’t have access to otherwise, and more. Colab is extremely useful for novices who are just getting started, allowing them to quickly make or copy something working ᴀɴᴅ it is convenient for seasoned practitioners who want to share their work.  And it’s all free.</p>
 
 <h5 id="the-key-advice-in-this-post-is-all-bolded-for-easy-skimming"><strong>The key advice in this post is all bolded for easy skimming.</strong></h5>
 
-<p>There are alternatives of course. <a href="https://www.kaggle.com/kernels">Kaggle Kernels</a> being perhaps the most popular. If you don’t need a GPU or are willing to pay then <a href="https://cocalc.com/app">GoCalc</a>, <a href="https://notebooks.azure.com/">Azure Notebooks</a>, <a href="https://datalore.io/">Datalore</a> or <a href="https://docs.floydhub.com/guides/workspace/">FloydHub Workspaces</a> might be viable options. That’s not even all of the free services out there, but as far as I know, none of the others give you access to a GPU or TPU out of the box which is so often required in Machine Learning.</p>
+<p>There are alternatives of course. <a href="https://www.kaggle.com/kernels"><span><img src="/static/previews/68a72930cb719887.png"></span>Kaggle Kernels</a> being perhaps the most popular. If you don’t need a GPU or are willing to pay then <a href="https://cocalc.com/app"><span><img src="/static/previews/69d5e0f6401ae123.png"></span>GoCalc</a>, <a href="https://notebooks.azure.com/"><span><img src="/static/previews/727cdd115089c48d.png"></span>Azure Notebooks</a>, <a href="https://datalore.io/"><span><img src="/static/previews/4c05b31ca698b874.png"></span>Datalore</a> or <a href="https://docs.floydhub.com/guides/workspace/"><span><img src="/static/previews/ea718928f341363a.png"></span>FloydHub Workspaces</a> might be viable options. That’s not even all of the free services out there, but as far as I know, none of the others give you access to a GPU or TPU out of the box which is so often required in Machine Learning.</p>
 
 <p>Nonetheless, at least for me, Colab has been the most useful out of those despite some pain points. This post is about addressing those pain points first, and some general Colab tips I’ve benefited from second.</p>
 
@@ -86,7 +86,7 @@ drive.mount('/content/drive')
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>%cd /content/drive/My\ Drive/
 </code></pre></div></div>
 
-<p>I’d recommend to <b>just work straight from Drive in most cases</b> as then your setup time is faster and you likely won’t lose as much if your instance times out. Of course, in that case, you might run out of Drive storage space but Drive (or Google One, which is how it’s called when you pay for it) has pretty <a href="https://one.google.com/faq/plans-pricing">cheap plans</a> to extend the space. I personally use the 2TB plan for €9.99 / month but there are even cheaper ones. You can even share a plan between up to 5 people. On the other hand <b> if you really need fast reads and writes above all else copy the data from Drive to the Colab VM instead </b>.</p>
+<p>I’d recommend to <b>just work straight from Drive in most cases</b> as then your setup time is faster and you likely won’t lose as much if your instance times out. Of course, in that case, you might run out of Drive storage space but Drive (or Google One, which is how it’s called when you pay for it) has pretty <a href="https://one.google.com/faq/plans-pricing"><span><img src="/static/previews/cf4fcd122b728c93.png"></span>cheap plans</a> to extend the space. I personally use the 2TB plan for €9.99 / month but there are even cheaper ones. You can even share a plan between up to 5 people. On the other hand <b> if you really need fast reads and writes above all else copy the data from Drive to the Colab VM instead </b>.</p>
 
 <p><em>If you pay for Google One, you also have access to that most mythical of creatures - Google Support, but they are rarely helpful, and at least in regards to the hidden quota issue none of them seem able to understand what the problem is, let alone help. My advice is not to bother.</em></p>
 
@@ -110,7 +110,7 @@ drive.mount('/content/drive')
 
 <h3 id="runtimes">Runtimes</h3>
 
-<p>Sometimes you just have to run something continuously and in those cases, I’d recommend to <b> always use the appropriate Runtime </b>. Use CPU (or CPU + high memory runtime) for preprocessing, save to Drive and only use the TPU/GPU runtimes for actual work. Furthermore, Google seem a lot happier with people using TPUs - in fact, they give access to <a href="https://www.tensorflow.org/tfrc">a fair amount of them somewhat easily to researchers</a> - so if you don’t have a preference for what accelerator to focus on, I’d recommend using TPUs.</p>
+<p>Sometimes you just have to run something continuously and in those cases, I’d recommend to <b> always use the appropriate Runtime </b>. Use CPU (or CPU + high memory runtime) for preprocessing, save to Drive and only use the TPU/GPU runtimes for actual work. Furthermore, Google seem a lot happier with people using TPUs - in fact, they give access to <a href="https://www.tensorflow.org/tfrc"><span><img src="/static/previews/6035faf6e5a9a32c.png"></span>a fair amount of them somewhat easily to researchers</a> - so if you don’t have a preference for what accelerator to focus on, I’d recommend using TPUs.</p>
 
 <p>You can also cycle through GPU runtimes to get e.g. a P100 by terminating the instance and starting it again, but it’s not too reliable and is likely something Google isn’t too fond of. <b>To check your current GPU just run <code class="highlighter-rouge">!nvidia-smi</code>.</b></p>
 
@@ -154,7 +154,7 @@ files.download(result)
           <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
       </div>
 
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
 </div>
 
       <div class="footer-col footer-col-3">
