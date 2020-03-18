@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Training Google’s Reformer - takeaways, code, and weights | Svilen Todorov</title>
+<meta name="generator" content="Jekyll v3.8.6" />
+<meta property="og:title" content="Training Google’s Reformer - takeaways, code, and weights" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="A lot of progress has been made in training large NLP models in recent years, and after finetuning GPT2-1.5b I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s Reformer paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens." />
+<meta property="og:description" content="A lot of progress has been made in training large NLP models in recent years, and after finetuning GPT2-1.5b I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s Reformer paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens." />
+<link rel="canonical" href="https://svilentodorov.xyz//blog/reformer-99m/" />
+<meta property="og:url" content="https://svilentodorov.xyz//blog/reformer-99m/" />
+<meta property="og:site_name" content="Svilen Todorov" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-03-18T00:00:00+01:00" />
+<script type="application/ld+json">
+{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/reformer-99m/","headline":"Training Google’s Reformer - takeaways, code, and weights","dateModified":"2020-03-18T00:00:00+01:00","datePublished":"2020-03-18T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/reformer-99m/"},"description":"A lot of progress has been made in training large NLP models in recent years, and after finetuning GPT2-1.5b I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s Reformer paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens.","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/static/thumb.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /><script>
+if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-139882809-1', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+  
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
+            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
+<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
+        </div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+  <center><h2 class="post-title p-name" itemprop="name headline">Training Google&#39;s Reformer - takeaways, code, and weights</h1> 
+  <h2 class="post-subtitle p-name" itemprop="name headline"></h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-03-18T00:00:00+01:00" itemprop="datePublished">Mar 18, 2020
+      </time></p>
+    </center>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>A lot of progress has been made in training large NLP models in recent years, and after <a href="/blog/gpt-15b-chat-finetune/"><span><img src="/static/previews/8de9e9307b767b32.png"></span>finetuning GPT2-1.5b</a> I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s <a href="https://ai.googleblog.com/2020/01/reformer-efficient-transformer.html"><span><img src="/static/previews/fa385f364c7d4d8f.png"></span><span><img src="/static/previews/fa385f364c7d4d8f.png"></span>Reformer</a> paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens.</p>
+
+<h3 id="reformer">Reformer</h3>
+
+<p>The two main tricks used by the Reformer are reversible residual layers and Locality-Sensitive-Hashing.</p>
+
+<p>Reversible layers lower memory consumption by allowing us to recalculate layer inputs during backprop based on the already computed later layers instead of keeping all of it in memory. It provides similar advantages to <a href="https://github.com/cybertronai/gradient-checkpointing"><span><img src="/static/previews/21fcdf1d4bb82811.png"></span>memory checkpointing</a>, except in this case the layers are designed to specifically capture the layer-to-layer changes allowing us to recompute more efficiently.</p>
+
+<p>More importantly for my purposes, it also introduces Locality-Sensitive-Hashing (LSH), which allows us to approximately compute attention much more cheaply and thus work with much, much larger context. In short, LSH maps similar vectors together rather than working with all possible pairs of vectors (which is what makes attention so expensive). In the cases where we have many of the same/similar tokens, a lot of them will end up with the same hash so they get chunked and then attention is applied in parallel on those much smaller chunks.</p>
+
+<p>If you are interested in the specific check out <a href="https://github.com/google/trax/blob/master/trax/models/reformer/reformer.py"><span><img src="/static/previews/e4121b874bc8480b.png"></span>their code</a>, <a href="https://arxiv.org/abs/2001.04451"><span><img src="/static/previews/db62100d4f40075e.png"></span>paper</a> or <a href="https://ai.googleblog.com/2020/01/reformer-efficient-transformer.html"><span><img src="/static/previews/fa385f364c7d4d8f.png"></span><span><img src="/static/previews/fa385f364c7d4d8f.png"></span>blog post</a></p>
+
+<h3 id="training">Training</h3>
+
+<p>Google Research released an implementation of their Reformer model as part of the <a href="https://github.com/google/trax"><span><img src="/static/previews/340c0d7f3a2e6f89.png"></span>trax library</a>, which is easy to use. Given my interest in NLP models with larger contexts, I decided to experiment with it and pretrain the largest model you can fit on a Colab TPU - with the idea that this way others can take it and finetune it on their tasks in cases where large context is important.</p>
+
+<p><strong>Here is my related <a href="https://github.com/Tenoke/trax-reformer/"><span><img src="/static/previews/0759a1d1414cf9bc.png"></span>repo</a>, <a href="https://mega.nz/#!SR9WySCC!K2sdePWHDq2QiHlom8ZMLgKeBCcjQxsBToxl9NpNhpg"><span><img src="/static/previews/ccaa16baace7d62d.png"></span>link to the weights</a> and <a href="https://colab.research.google.com/drive/1VSaQingkpMDf730ARlo2dw5vCBVOgt17"><span><img src="/static/previews/812138677fe19569.png"></span><span><img src="/static/previews/812138677fe19569.png"></span>Colab</a> link</strong></p>
+
+<p>First I used a small amount of the data to play with Reformer. I started with their <a href="https://colab.research.google.com/github/google/trax/blob/master/trax/models/reformer/text_generation.ipynb"><span><img src="/static/previews/f3240a6fc8912f96.png"></span><span><img src="/static/previews/f3240a6fc8912f96.png"></span>code for training on Crime and Punishment</a>, however, I just couldn’t get it to go much beyond .3 accuracy no matter how much data I fed it. It seems like the parameters used there were mostly chosen for having a huge context but the model couldn’t learn much. After a lot of experimenting, I ended up with parameters closer to their <a href="https://github.com/google/trax/blob/master/trax/configs/reformer_enwik8.gin"><span><img src="/static/previews/091ba6a7b801768b.png"></span>enwiki8 training run</a>, I ran about 50 trials with small adjustments and chose the version of the parameters where the loss was going down quickest. You can see the final values I’ve chosen in the <a href="https://github.com/Tenoke/trax-reformer/blob/master/configs.py"><span><img src="/static/previews/89c25b9eb3cd2373.png"></span>repo</a>. <strong>The overview is that we have ~99m parameters (compared to the small gpt with 117m), context window of 65536, 0.2 dropout, 12 layers and a vocabulary of 256</strong></p>
+
+<p>After that, I decided to train it on all of Wikipedia, which I downloaded and preprocessed to make it easier and faster to use with Colab and Drive. I downloaded the <a href="https://dumps.wikimedia.org/backup-index.html"><span><img src="/static/previews/ced3deeb65763989.png"></span>most recent Wikipedia dump</a> and processed it into JSON while excluding all articles under 1000 characters - we are training for large contexts, so including tiny articles would be counter-productive. Then I split the big JSON file into smaller files of 5000 articles each - because Drive can lock down your file if it’s too big and you access it too much. <a href="https://colab.research.google.com/drive/15WCdIYju3A4UOY1-JGt7NTlw0jMLJYXZ"><span><img src="/static/previews/4c048ac40705c7eb.png"></span>Here</a> is the Colab for doing the above.</p>
+
+<p>Next, I wanted to pre-tokenize all my data so I can load it to my model quickly rather than doing it on the fly. One thing currently not added to the Reformer (but is on the list) is handling bigger vocab sizes, like the ~50k GPT2 vocabulary. Given that our context is going to be huge, and that the vocabulary size that enwiki8 config uses is 256 anyway, I decided on a character-level ByteLevelBPE tokenizer from <a href="https://github.com/huggingface/tokenizers"><span><img src="/static/previews/724d1d4672321f3e.png"></span>huggingface’s tokenizers</a>. I regretted it a bit, as there is little documentation in the library, and there are weird things in it like being unable to easily add extra tokens, or save the tokenizer - it took me a while to realize that saving after adding extra tokens does nothing, as they just save ‘the model’ as you’ve trained it, so I had to manually edit the vocabulary I pass to it. <a href="https://colab.research.google.com/drive/1letuN1YbhI8cxJIL059Bp7J6ga_kXkeP"><span><img src="/static/previews/d4963fb01b55f5d1.png"></span>Here</a> is the Colab for tokenizing and saving all the preprocessed data. Again - we are tokenizing in advance instead of on the fly to speed up training.</p>
+
+<p>I wanted to take advantage of the large context so my function for feeding data to the model specifically always loads full articles and adds padding up to max the context length. The data is all tokenized and ready, so we just load preprocessed files at random and pick random samples from them.</p>
+
+<p>After all that I trained it until the loss wasn’t going down for a while so I stopped a little after 125k steps. The accuracy at that point was a little over 0.75.</p>
+
+<p>Here is how an example article from the dataset looks like:</p>
+
+<details>
+<summary>
+<i>Example Training Article <small>(click to expand)</small></i>
+</summary>
+<br />
+{"title": "Bill Bayliss", "section_titles": ["Introduction", "References"], "section_texts": ["'''William Bayliss''' (19 December 1886 \u2013 12 February 1963) was a British trade unionist.
+<br />
+<br />
+Born in Leicestershire, Bayliss left school at the age of twelve to work at a colliery.  He joined the Leicestershire Miners' Association, but after becoming involved in industrial action, he was sacked and, a year later, moved to Nottinghamshire to find work.  There, he became active in the Nottinghamshire Miners' Association, and also in the Labour Party.
+<br />
+<br />
+Bayliss became his union branch delegate in 1915, and served a year as vice-president of the union in 1927, and a year as president in 1929.  In 1932, he became the union's full-time financial secretary.  In this role he worked with Herbert Booth to promote reunification with the rival Nottinghamshire Miners' Industrial Union, which was achieved in 1937, whereupon he became an agent for the merged Nottinghamshire Miners' Federated Union (NMFU).
+<br />
+In 1943, Bayliss was chosen as one of the Trades Union Congress' two representatives to the American Federation of Labour.
+<br />
+Bayliss was elected to Nottinghamshire County Council, becoming an alderman, and serving as its chairman from 1945.  In 1946, he was elected as President of the Nottinghamshire Area of the National Union of Mineworkers, successor of the NMFU; he served until 1952, when he retired and joined the National Coal Board.
+<br />
+", "
+<br />
+"]}
+
+</details>
+
+<p><br /></p>
+
+<h3 id="sampling">Sampling</h3>
+
+<p>I got okay samples from it when they were less than a few thousand tokens long but if I tried to get a very long one it often either turned repetitive or turned into gibberish after a while. Part of it was because in the training data - ‘}’ denotes the end of a sample and it hasn’t seen anything after, so after it outputs that it just doesn’t know where to go, which is reasonable. However, part of it was just that it is easier to enter into repetitive sequences in longer samples as it has more options to do so.</p>
+
+<p>For that reason I experimented with adding top_k, top_p, temperature, using exp2 instead of exp on the logits so they’ll be closer together, and a few random things including a Meena-inspired approach of generating multiple samples at each step and using the probabilities of the best one (also multiplying multiple samples’ probabilities). I’ve included some of the more useful ones in the sampling function in the <a href="https://github.com/Tenoke/trax-reformer/blob/master/sample.py"><span><img src="/static/previews/c210652099bb2e0f.png"></span>repo</a>. 
+After adding sampling options, I generated 8 samples for various options (279 in total after excluding all options which were more obviously subpar) and wrote some testing code to show me one randomly and ask me to rate it. This was very tedious and I wish I had set more rigorous grading rules, as I did the grading over a few days and ended up not being as consistent as I would have liked. I’ve included the ratings of the settings I tested <a href="https://github.com/Tenoke/trax-reformer/blob/master/rating-args.dict"><span><img src="/static/previews/7f46ae4d72a82ee3.png"></span>here</a>.</p>
+
+<p>Here are various samples at different settings:</p>
+
+<details>
+<summary>
+<i>Example 1 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Best Possible Choice", "2000s", "2001s", "2002s", "2003s", "2004s", "2005s", "2006s", "2007s", "2008s", "2009s", "2010s", "2011s", "2012s", "2013s", "2014s", "2015 "2016", "2017 "1919", "See also", "References"], "section_texts": ["
+<br />
+<br />The '''Best Possible Choice of Discussion''' is a public biology focused on personal Strategy at St. Gambridge University in San Diego, California that encompassed students to the Greenwich Church in Melbourne).
+<br />
+<br />This is a third choice on a discussion in the former Greenwich church, however, it is noted for its original way to be Ethnographic and the Greenwich known as Greenwich MacLeod, its lineage. The biological analysis of Greenwich, the United States and Ottawa choices translated into Melbourne.
+<br />", "
+<br />As of July 1, 1997, the choice has a plantation service over the dozen St Gambridge Battle in Discussion, Melbourne, Perennial Bennett, Illinois, in addition to changes performances in Strategy, tax appearances, and cultivation. It is featured in several post-appearance works on cultivation choruses, including ''The Coventry-Commercial Voices'' (1969), ''The European Duke of Blood'' (2001), ''Jesus Highlighting'' (2005), ''A Goal of Blood'' (2009), ''The Choice'' (2010), ''Voice of Blood'' (2011), ''Large Glaze'' (2011), and the ''Journey'' (2012).
+<br />
+<br />The choice won their first First Appearance against Strategy at Blood's Third Appearance in 2012 and finally received the Cup Awards in 2007.  This public draws works from the Best Possible Choice to speak Live Arts and Best Speak Actor for the Year ''Voice'', and Co &amp; Bavarian Prize. In 2014, the choice was opened to 2,500\u00a0boys (75%)
+<br />", "
+<br />In August 2014, Best Possible Choice inked the comedy-first as a sales offense that would preserve its national appearances.
+<br />Religious affection
+<br />
+<br />===Choice and Choice===
+<br />The choice usually took place at the Football Hall of Fame in New York since 2000. The choice was sequestered by their position on June 30, 2003.
+<br />", "
+<br />
+<br />Choice was founded in South Korea, and between 1996 and 2001 (with Alberto Chunter's areas being cast on Melbourne).
+<br />
+<br />===Mini-videos===
+<br /> Journey together with others in Melbourne
+<br />The choice was a recipient, and played on the Mini-video of the Year ''Voice'' (1996), with Deine Harrison of the Episcopal Church, and is the youngest part of the Choice and Choice position at the Choice Mini-video's parish.
+<br />
+<br />===Competitive show and performance in Finland===
+<br />In March 2012, the first assembly versus the second assembly, ''Finternational Career''. On April 19, 2012, the NPS public set to collaborate for the History of Western St. Gambridge's, bonus transfer. The exposure of one sense corresponds to the department at the Football Hall. When Football Hall is called the ninth-legged F.A.N. at Blood's Third Appearance and winners his career in the end of the 2013\u201314 season, the choice was in the contest.
+<br />
+<br />==''Zeller North''===
+<br />In January 2014, Ola Schmott. The choice would become his last successful and is also won by Christopher Schneider. On December 6, 2014, the choice finished 8th, announcing that it would not replace the brand.
+<br />
+<br />===Crew Diagnostics===
+<br />The Crew Diagnostics included Crew Diagnostics, Bass Young and Drummond Diagnostics.
+<br />
+<br />The final session of Crew Diagnostics
+<br />", "'''First Appearance Choice in Eastern St. Gambridge''', was released in 1996. The second assembly was dealer in a Ninth English football competition, with Mennonite Scott Chalce.  Sold in 2005, the Choice had a row with 11.5%. In the Melbourne Football League, the choice became a record of 120 or 18.4% of the vote. Mennonite Scott Chalce repeatedly chosen the choice\u2019s primary industry, but short of clinics, flagsellers did not improve the select potential on the basis of Blood's third Melbourne race there.
+<br />
+<br />===Infrastructure===
+<br />In July 2015 \u00a7\u00a3240,000, Fontier Dr Boris, the choice was a friend of Robert Rogan and Dave Nicholson.
+<br />
+<br />On February 17, 2016, the Ola Liga of the Art of Fontier's Choice and the following of Competing Knights on December 37. 
+<br />", "
+<br />
+<br />Spencer Fault hosted Rufous Hosts in the fall of 2018 and they made his own speeds as greatest choice for far-voice football players in Alberto.
+<br />", "'''History of Western St. Gambridge''', is a Choice of the State All-Star public consequence on August 12, 2016 (U.S. Army) and is the first former administrator of countries to hold the Football Series five years later, an original Israel football team that came out with Melbourne at both underground. This time it was a popular veberation.
+<br />", "
+<br />===Competitive show and choice===
+<br />In September 2013, the preceding choice announced nearly $100,000 to . 
+<br />
+<br />In the early 2016 Deiner Harris announced that it would be called the Football Choice. On May 27, 2017, the choice was announced. It would be called the Choice Mini-video of the Year (Player of International Agreements) and that the Choice Mini-video winners were announced that they had recorded nine boys, they were announced that the Choice be found. The Choice Mini-video was funded on June 30, 2015 by the Royal Magic. It is one of first segments to play a permanent role in the Army.
+<br />
+<br />In its Knights of Western St. Gambridge played for Live Arts. In January 2019, ten teams from Lantern Army were ranked to the ''Hotspot'' in the future. The Choice mini-video was ranked as 15th in the 2015 NCAA Division I Movement Awards, but Live Arts took place in \u00a7CAA Tour d Social Team at Glumbo County, California, in February.  At the end of 2018 the choice returned to the Choice and Choice, but Live Arts have converted just 13,000 years proved that she went on to drop in the future, a.k.a. City in Boston. Rufous Hosts has moved from Brilliant as he's the second-governor the Choice Evangelical Football League, where she and her husband, Rufous Hosts. When Rufous winning another an ASL that campaigned for the Year, she said \"It was going touching throughout soccer in Melbourne, where burghed into a museum in Manhattan. It was said that she \"repeated the buenos Publishers and whose book in the museum's halls about the architecture of the scotch and more future irregular ability to spread to them on a new, installation, multiple grape shock lines.\"
+<br />Recording of the 2019 Western St. Gambridges, although speaking at the U.S. Army won the medal of the season.
+<br />
+<br />The artist received more than 750 unanimous players, and they became appointed One Football Conference (OFC), which included Conference Football League Football Conference (DFLFC), for future research international monitoring football teams. When Nicholson used the DFLFC as a public score, proved to be sponsored by DFLFC finishers as going to any province.
+<br />
+<br />===College career===
+<br />The College career was opened on May 6, 2016, three weeks later in Shootout contesting Conference State All-Star End for managing Delaware National Team Graphic and the Choice Mini-video.
+<br />
+<br />Alchemy was launched in 2009, where Best Actor at Paris Football League, a slowly engaged actress, was stated in activities until choosing to acquire U.S. Army parties.
+<br />
+<br />Although they were translated into the U.S. Army, the choice was entirely repeated in APR before including the \"Coventry Choice\".
+<br />", "===Crew Diagnostics===
+<br />In January 2015, it was announced that the following of the choice's hall, Alberto Chunter, died on April 1, 2016. The last one segment followed the weekend ASL officer, Tom Giglotto, in which William Guey of Jesus Hosts was troined in a magnificent actress.
+<br />
+<br />The choice was adnated for Rufous Hosts which purchased the Melbourne Football League to stop the Choice's Office Series B. Almost received her B.D. directed by Main Crip Brown. This was managed by Robert Rogers's first book took place on October 3, 2016, in Hillsboro Texas. In 2017, she presented the ''BattleGas All-Weekly'' textbook.
+<br />
+<br />In October 2018, Publishers' mother, Rufous Hosts presented the Choice Gas All-Weekly's mother
+<br />
+</details>
+
+<details>
+<summary>
+<i>Example 2 <small>(click to expand)</small></i>
+</summary>
+<br />
+<br />{"title": "Best Possible Choice", "External links"], "section_texts": ["'''Best Possible Choice''' was an English-language possible choice figure which opened on 9 September entered into France, where it was part of a treaty of inheritance; leaning that she would keep the subsequent sciences possessively on those who take over a topography of the figure.
+<br />
+<br />In wealthy, Best Possible Choice remained built for its urban disusing personnel, taking them away off howse they go off her. Aviage decisions happened on other Confederate Articles, Official Enterprises and the Paul Buildering Centre, remains praised until authority through \"airdate the modern-day jazz family\" extremely. Official English published release, ''What Goes to Weather'', found in positive ''How to Make Goaltender: Late Without You Are not Prisoners'', after Red &amp; Wilson spends most of its ghost ones on Best Possible Choice.
+<br />", "
+<br />* Alan, William and other families
+<br />* Feyland, constituent comic books
+<br />* Great Constituency
+<br />* Kevin Jackson
+<br />* Ikey, Mains, Boulevard, New York, Massachusetts
+<br />* Glorian, Onford
+<br />", "
+<br />", "* What Goes to Weather, away of Christmas Tane, of Youtube Possession
+<br />* Macmillan Whatsoe, Baptiste Brussels for Los Angeles dynasty
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 3 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Best Possible Choice", "References", "External links"], "section_texts": ["
+<br />
+<br />'''Best Selling One''' (; born 15 February 1998), better known in New Zealand, birth, chemist, geologist, and former chemist and country series. He later produced another selling known on current warship and instrument, MWC, with a new identity, within a fellow instruments Joy Kushmore, Matt Aswar and secures roles in an an-holiman's high ransoms system. 
+<br />", "
+<br />Best Possible Choice Instrumental Practice
+<br />
+<br />Best Issue Choice (formerly known) style
+<br />The style, one of several adapted choice service providers, hitherto provides shutting down the service to a new announcement. The addition was used in purposes of relevant usage. It would thus require an individual that became the main aqueduct of the series5. The combined work announced that Geologists took place at Tigers University and would then attend Corkup College, KO Coast Department from Bynamarkis, Georgia (now First Service). These would New Zealand also provide ethnological and marketing.
+<br />
+<br />In 2007, a NYCDE publisher opened many primary companies, hitSmoke, MA\u2019s Additional Organization. It was adided in 2008, with many Identities, as a working working corp company in Stanford, Illinois (UK) who also published several other choices as well. 10 producers hosted and posted molecules for the ''Water Years'' Animation with the UK Corporation of Honors.
+<br />", "All in his honor appeared on the ''Radio 2 Theme'' Series, showing the work for Artist of the Museum's Expeditionary Organization. However, it finally penalized choice to control the series CFA in 2009.
+<br />
+<br />In 2011, lost of the Artist in which he became able to recognize that news-climbing controlling Stevens' Jaga system, which attracts style of students attending Aswar e Raven. Best Artist also requires Artists and Metal Summer 2014.
+<br />
+<br />In ''The Home Series'', Best Possible Choice Instrumental Practice was released onwards on 19 April early October 2016 and won this TV challenge to create several warning features: ''Among the Stars About the Doesn't Radio/TV''.
+<br />Physically, by Director Don Landel, announced that they would be replaced by ''The Home Series'', which trailed they would become highly prolific and lost in and stationed on their home series's ''Vibe Moulin'', but it also reorganized ''Vibe Moulin'' by Attila Crow. The company's approach is based he more followed by Israel and Corkup and represented his investigations to the best possible choice. This called the department \"in documentary Choice to hand it, damage for Choice offering everything in museums of an Expeditionary Organization to museums with a provider in Illinois Maritime Authority\". New Zealand examines Corkup mainly a staff on a further choice using a government image of the Greater Kings.
+<br />
+<br />After the winning Stevens' Jaga month, Jimmy Elliott subsequently published an IDE fellowship about the public industry during conflict with Lawrence Holmstead, Louis Xavier Brunham and Lwarten Holmstead, a postmodern dispute, Nazi Germany's own own which had been except for the Piano Strategy Society of Amsterdam that was purchased by their dodger's last tour of New Zealand along with the elternate supporters of the Amsterdam family.
+<br />
+<br />After the war, Best Sellings One has unaltered success warnings that create expeditionaries from independence. One supporter of his doctoral career, the alternate from the family, replaces Brunham Sandra included Caledonia politicians during the 2015-06 World Headquarters. Museum also listed His Headquarters has held that more of famous artist, than Latin, Matt Aswar, and portraits. 
+<br />
+<br />It would help be adapted for his official chorus ''Vholtk'' in the Metro Lions. In 2008, ''Quality Safe'' later presented a complete news and named ''Sa're\u00df \u00c8re Solm'' in Austria, which would have a hit-size short time and come to sex gifts called Choice. 
+<br />
+<br />In 2008, they would play the self-published book, ''Life Software'', steadily made ''The Restoration Man''.
+<br />
+<br />In 2011, CEO Richardson appointed Geologist as popular as the missile force of his New Zealand  missile choice rather than zinc, bringing in the fact that the NYCDe basic activity or focus on consumptive home series filled with Aswar.
+<br />
+<br />Best director or director of the series is Defo Falson, the second book's New Zealand highly big audience, First edition of ''Best and Highly Illustrated Sequels of Variations''.
+<br />
+<br />As a Paul Dacpary, Carl Arkeline, tying how the controversiality was registered as a disjoining occupation in 2013 and registering Joy Kushmore in New Zealand who is universal with Joy.
+<br />", "
+<br />", "* 
+<br />*  VGBrooklist History Website
+<br />*  AWC Award 2019
+<br />
+<br />"]}
+</details>
+<details>
+<summary>
+<i>Example 4 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Best Possible Choice", "US involvement)", "References", "External links"], "section_texts": ["Best involvement
+<br />The '''Best Possible Choice''' was an unusual post which started in September 2002. It peaked at number 23 on the ''Billboard'' Hot 100 on \"The Best Possible debut and the Reality-Free Offensive.\" It was formed in March 2003 by a Best Possible Choice nominated for the Best Possible Choice of the Year in May 2003. The bonus fit on both fits was extended across Europe and October 2005.
+<br />", "Best Possible Choice used an act for public and a weekly magazine. By April 1994 the Best Possible Choice had to be previously involved. The bonus was nominated for a \"Popular Clinical Awarded First Bonus\", and for which it had a perceived \"star form of a Best Possible Choice features the opportunity to solve milks and life by awareness.\" The bonus was delayed on May 24, 2005 and showed a total of twelve choice on March 29.
+<br />
+<br />After completing bonus Best Possible Choice Best Possible Choice Board and signed a first possible choice best possible power in the Pact Jubilee after 11 years of junior team Norwich Howe joining the Choice for a transfer to October 2005. At the Best Possible choice, a Jubilee affiliates were supermarried by Best Possible Choice, with Alex Maw due to a Best Possible Choice, had been delayed in the semi-primary attitude. They were watched by Johnson Xavier on August 24, though he was exploited from the Choice in June 2007 during the campaign. The test was not only opus in the Best and had a loss of the choice before the test was exploited from the Best Possible Choice, where Turkey was replaced by a no reason for possible choice. Best Bonus TV and Crime Day was assigned into Best Possible Choice.
+<br />", "1992, OS Louis Hart was promoted by Mike Oscar who was awarded \"Leaving the Best Possible Choice\" for his work on the day. He became the Reality-Free Offensive of the Pact Jubilee in 2009.
+<br />", "* Norwich Howe \u2013 vocals, guitar
+<br />* Best Actress \u2013 vocals, bass, backing vocals (in the US)
+<br />* NCAA Main Film Festival \u2013 vocals
+<br />* Deburst Crime Day IPC-Festival \u2013 (bass guitar)
+<br />* October 29, 2005 by Mike Oscar and Norwich Howe \u2013 guitar
+<br />* January 20, 2005 by Mike Oscar and Al Jackson / Grand Regional Film Festival \u2013 guitar
+<br />* January 29, 2005 by Bob Beckett &amp; Grand Regional Film Festival \u2013 guitar
+<br />* January 29, 2005 by Feibergio Val and Francisco Stevenson &amp; Strucco Geoffrey Jr. \u2013 guitar
+<br />* February 29, 2005 by Laurence Griffith, Best Possible Choice
+<br />* January 30, 2005 by Rich Marie &amp; Leonid Fegg, Jr. ''The Complete Event'', the winner of the choice
+<br />", "Grand Regional Film Festival was doing analytically released on October 29, 2004.  Obviously, the audience of the high school exhibit in 2011.
+<br />
+<br />At the CD, the bonus was hosted by Norwich Howe's area as possible. At the CD, the choice also adopted category for each possible.
+<br />
+<br />Between 2011 and 2010, the choice's guitar was presented at the 2008 Orlando Dt. Toronto Stadium in Oscar.
+<br />", "
+<br />===CEOs===
+<br />* Kenya Rockefeller &amp; VIII.
+<br />* Lille Flapper: Lord Theatre, Milwaukee Senator
+<br />
+<br />===Videos===
+<br />* Ashman K a son, William Lee Ingalon, Jr. \"Some Time Today Who Must too\" (with a character in ''The Best Possible Choice''). The film received a video of video of videos, directed by L.D. McCartney, D.S. Ficker and Klaus A. Wood, and Michael Garred, one of the best Possible Choice for the Year.
+<br />
+<br />When Garred was controversial, Best Film adapted the photograph of Best Possible. The next year TV, which moved to Louis Hart, and received a previously worked role of choice awards for invitation of his stereotype before he met Demi Film and Best Film Award for Feature's Performance for the Year in the same film. He displayed a narrative folk music style, in Smithsonian and he also performed the photograph of the Best Era, which controversially caused the demi Film Festival.
+<br />
+<br />===Album hits===
+<br />* ''The Bonus War Hour: The Theatrical Scenes and Sound Stories'' (2003): ''A Media of One Way in the Shadows'' (2001); ''The Courtier Achievement Truth'' (2001); ''The Oblast Possible'' (2001); ''Tomorrow Camp'' (2004); ''Lady of Key War'' (2009); ''Motherkelp I'' (2009); ''Solos Armor'' (2012); ''Laudies and Things Idol'' (2014); ''Solos Armor'' (2015); ''Warning Inn'' (2016); ''Future'' (with); ''Soul Next Last Mother Joy'' (2017); ''You Think I'' (2018); ''Garrett Harriet Songs'' (2019); ''Concert Richard Garrigan'' (2019); ''The Concert Richard Garrigan'' (2017); ''A Lovely Kind of Dawn'' (2021); ''Concert Richard Garrigan'' (2021); ''Silver Jerry Ladren Flint'' (2021); ''Soul Next Last Mother in Soul'' (2022); ''Blood Roads/Cites Saw'' (UK); ''The Footscience Jerky'' (2022); ''The Vail'' (2023); ''A Bustle Canlock'' (2024); ''Cosmic Truth'' (2026); ''What Foot Gives You to Be a Science Fiction Fiction'' (2026); ''People from the Great Child'' (2027); ''His Home Man'' (2016); ''Bad Among Its Witness'' (2017); ''Director of Music'' (2017). She has no hits, including his friend Morris Francti (posthumously) and on the same comedians (Produced by Michael Lawrence and Linda Hoffman).
+<br />* Kenneth S. Presley, Jr. (painted by Anthony Desla.) (54450)
+<br />* Ray S. Wood, Jr. (painted by Julie Reeve) (533229)
+<br />* Tom Hill, Jr. (painted by Jamie Bosas) (82624 and 15520). \"It is The American Hero of the Hero, His Legation, In Best Actor of The Actor, 500 AMS Milks \u2013 (ANT BCO).\"
+<br />* Vicky Warren, Jr. (painted by Best Supporting Actress, 51375).
+<br />
+<br />===March===
+<br />* Mike Oscar directed by Grand Regional Film Festival \u2013 (Marty Solvogni) and produced by Jerry Judiciary in a World Film Festival from 2002, unlike he was signed by Best Supporting Actress
+<br />* Miccabi Rickleton Wye and Irish Rangers, who presented Best Possible Choice
+<br />* Kim Young, Jr. (painted by Richard Garrigan)
+<br />* Nick E. Sullivan, Tim and Therapist (co-writer) and executive additional producer and Sleepy Mermaid (the primary producer and co-writer)
+<br />* Study of the Demi Film Festival (1982), Wundergoing University
+<br />", "There was an Official Film Awards as he trying to his first official film about the film to start the short film ''Mike Oscar Mike'' in 2001.
+<br />", "
+<br />", "*
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 5 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Best Possible Choice", "Tenth-best Choice in Design", "References", "Bibliography", "External links"], "section_texts": ["
+<br />
+<br />
+<br />'''\"D'East\" is a based art by Kinetic Sanskrit for the photographers of the Na Handbone. The subject was reissued in its explosion which Michael De Olympic teemed not by Raymond Spirit.
+<br />The based includes the community \"produced and,\" this sequel, attributed to John Pleming be, decided.
+<br />
+<br />The ancient site included traditionally, particularly the Dandynamik cycle, dubbed Ex Layoh Henrembrig, the group's historic conflict will manage. The twentieth-century Best Possible Choice in Design has previously been very assigned, a pwotoken media since February 2005 when Dandy Spirit had served as a trial nephew.
+<br />
+<br />Best Possible Choice has been as of December 2014, but it has continued to extend in dozen violence: \"When Firsterior Nowhere\", \"DWN\", \"Best Possible Choice\",\"The Designer's Bend,\" the TKX44's stained horror mini-building, despite offices, and stacked mined space industry. J\u00f3dsfar Robson wrote \"The bend's dark-breathing poisoning articles alias that went on to while this was further originally, possibly party messaging. Ketchens and him/sioux-Prayered Layoh Mona\", didn't quickly receive several other FLFT.", "Best Possible Choice made on on-the-plantation by him the Platform's Girl, Designer of Horror Mona, fianc\u00e9e Trompelis, first producer of Coffman's ''Best Actress''.
+<br />", "
+<br />An influenced modern day, Dandy Fobie-Garrison (parts of Eskimo-Lucisne) opened the Michael De Olympics naval appearance in ''Bank of Monkeys'', striving on phase being used in sound downloading artists in over 50 companies over 35 country competitors. With this record, the gorge weekend for sound conflicts drug while leading off-sixth times, Dandy later changed to James Barrow. Striving out, his business contributed to these working appearances and join Westlake's assent twice, focusing on an experience and stated in justiciary.The two, James Gregory, Syndicate Neighbour (with Jeffrey Robinson) gained Michael De Olympics participation in over several English ideology.
+<br />", "Located alongside John Denver, the based famrous stained horror for his team showed, although it began on 1 July 1994 when a museum, tomatoes and pigmental flightsteps paths in the violonce thereafter. The based fi.gov stated, this sequel gave showers to Taylor Merlbrook inhibitions. This stated that his MCTs in Taylor, such as weapons, example Tates, were designed as a current newspaper, filming at rivalry invasions for his lower number of Isles and James Patterson. A conviction for the Science Play, bor Conftiguous Play struggle from Hollywood's Ladwy Str\u00f6mer, business conflicts hosped until his own mini-building, later dissidentially its first way, Accordiita Philosophia.
+<br />
+<br />In the following year, introducing the creation of three newspaper, dominated any team by which an information highlighted by women got a low special creation of cremen. Best English type of writer Michael Duncan, Bennie Rormi, Best Emerald, and Michel Matthews were already classified, such as weapons, a spybe or poor spin, was trucks because of Westlake's Prayer. Mindi's Presence of Beyond, Ronke Balmond Construction and Emmily Milne, Daniel Erb, Delas Banks and Dudulph Bla\u2019s GDFs designed and new data by Edward Doimylt. For many years, Best Edge Group created a 20-ticket run, also has 500 brakes.
+<br />
+<br />A number all-flight \"DEYATH\" took place at Gracepool's New York City in 2007. In the course of this game he poeted a riding, and continued to say that Gracepool has blamed the formulation of Best Artist. Gracepool was declared to become one of the best artists. Before returning, Best Artist wrote a number of works with Coffmann the Possible Choice art as part of the \"Wormington Bomb\" franticled the off-sixteen geographers who had later been later included in \"Tunes' Causes\" in his 1995 \"Adu\" Amazon, both printers director Donald Brunsins and executive producers creator director Behanaire Lewis, virginia pioneer Saria Cappling for Garon Gun and new special themes. Carpentier Teas expired Gracepool's respective stints which later put \"a bare remarkable hypoxy in the Democratic Lawn budget.\"
+<br />
+<br />", "Neighbour changed its concept for the first time. Shortly until the period Neighbour sympathetics with help freee Holiday: the depceived contour of the policies of this statistical social miseries was asked by commemorating Lillow Ramshid as his Lord Co. Tank system; these were all accredited, ministered, levels, diplomats, excursions, and commemorations. Recordings his MPP traditions are with nursing two-pounded maestros, making first overaccommodation to creating an 80 Beyond cycle. Dandy Fobie-Garrison pioneered this time on one time hidache. This cottage citemen also spent everything or rising when trust wrote that girls are accepted. The others die an old vicious off-sixteen-man whose yeast of creating drip outmutter. A man calling the \"African-American\" idylline connection to success, as the low-grandmother site with electrical and indices. Construction of a pAF was heroes, tanking for tricks, spiritual dress candidates, peace, rocks, and gradees.  Best Artist missed the base, symbolicfishing, labourage, hikers, and culture at Barbados.
+<br />", "At the 2002 Universal Opera Social Service, Desfertory\u2019s citizenship is ruled. Festival of the 2004 Universal Megs of Hollywood pioneers started leadership service professional.
+<br />", "''Almost important in social miseries'' articles carried out including: \"Fact so Burrow celebrates the disease of local exorcism in the cycle, and leads follow, or we can't develop local their autonomical respects.\"
+<br />", "
+<br />
+<br />*
+<br />*\"The federal This Is the Best\" (1984)
+<br />*
+<br />
+<br />
+<br />", "
+<br />", "*  Best Choice Nations Video Film Company, Official Website
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 6 <small>(click to expand)</small></i>
+</summary>
+<br />"title": "Best Possible Choice", "References"], "section_texts": ["
+<br />
+<br />'''Best Possible Choice''' was a Turkish choice specializing in the \"Best Possible Choice\" for the choice and \"Best Supporting Possible Choice\" specializing in the first time. The possibility of the possible choice would reveal to a choice that would be held on the Best Possible Choice to win the Best Possible Choice.
+<br />", "The choice's first week was held at Warner Arena, a style game from 1931 to 1942 and would receive a regular award from the University of South Carolina in 1952. It also received a Gold Star Award from the University of Pennsylvania in 1956. The first World War I series began doing work in August 1967.
+<br />
+<br />The Harvard Prize was given its own way in 1972. The award was one of the first female and received a positive recognition from the Old Hospital of London for hundreds of years, the Parish of London for hundreds of years. The World War II began his position as an award, the first World War II began his way in 1979.
+<br />
+<br />After South Africa he was on the Council of the World War II (1982-1989) and became a position of officers in 1989. He was elected a fellow of the World War II in 1988.
+<br />
+<br />In 1988, Turkish choice received a fellow of the World War II began his career with a consumer local constituency. Instead, he changed the national term to \"George II\" in 1989. The second female international choice for the Gold Star Award was biographed by the Ministry of Culture in 1990.
+<br />
+<br />The choice chose a skill and also trained for the Possible Choice in May 1995, and directed by Dean College. In 2002, the cover of the Gold Star Award of the Year was in a cover of the Year International Slip Award.
+<br />
+<br />In 1986 the Council of the World War II began in the European Choice Award.
+<br />", "
+<br />
+<br />", "* List of possible choice specializing in the World War I
+<br />* List of receiving World War II began in 1990
+<br />* Best Possible Choice specializing in the World War II
+<br />", "
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 7 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Best Possible Choice", "Awards/Performances and nominations", "See also", "References", "External links"], "section_texts": ["
+<br />
+<br />In 2004, the choirmat scientist Richard C. Friedman was named by the American Corporate Merchant Government of Popular Communications, which remains unclear.   The choirmat is named by Richard C. Friedman, one of the most prominently patronaged authors in the UK.  This choirmat scientist starts with its original achievement as president it was Austin, Moreton, Massachusetts and Norfolk.
+<br />", "Conduct boats and scales are able to move from their stress as well as to censorship calls.  There was a statement that there had been no anti-age civilian evaluations.  This award of this choirmat was the first evaluation of the Choice Co-operative Program in 1993, and opened the collaboration within 150 million years old, including Chairman of the Cr and Mercade Federal Electronic Company.  The co-operative adaptation of Caroline Boot saw the most famous award of the co-operative program, and shared the most famous Caroline Boot choice in the separate complex at the 2004 Census of Popular Communications.  The company was crucial, flutely and independently, with a registered pub in the first period of 2006, has risen to be publicly designated Cologne.
+<br />
+<br />A recent scientist was also in the United Kingdom as a fully explosive and merchant science, as well as appeared of the first sixth at the choirmat, including trials and alumnus as well as a management of the persons' coaches sending cells over social power.
+<br />
+<br />The trial involves the former management of the choirmat. The choirmat's traditional staff, investments, instrumental training, and are created with public photo training and refusal to plan a child-word role in trial involved in an agencies' four-man form only.
+<br />", "
+<br />Cook County was the first choir to celebrate the politically cleared semi-economic antagonist of a media explosive bond.  Secrettibly, the boat of maintains a pregnancy collection.  In 2009, Cook\u2019s editor was Jackie Lorey, with the late seven choirmat.
+<br />
+<br />Cook helped media training of the complex's register on the field and analyst stationed the emotion of matters involved in patrol photography.  Cook cheaply encompasses significant choirmats with the area of material to exploit centenary strategies, patrols in practice, industrial information and media, and mixes all five mobile control.
+<br />
+<br />In 2008, the choirmat restored the choir, but similarly by the scientific rural choirmats.
+<br />
+<br />A predecessor, Cameron Marshal, is credited with predecessors such as the UK City Air Safe Club, the Centenary Mailbaum Mailbaum Council and the New Company. 
+<br />
+<br />Cook choirmat is predecessor and the primary fund for his work has applied to a safe relevance in the choirmat.
+<br />", "
+<br />In September 2006 all of the federal scientific registered choirmats have been published with the Norfolk Publishing Collection.
+<br />", "* List of choral significant contractors/distributors of the choirmat (including callsigns in the Norfolk City Centre at Stanford University)
+<br />* Choirmat CD-CD-CD CD-CD CD, choral significance orphanage, and choral significance orphanage, temperamental program, the flagship on temperamental collection, the false figure, archipelago technology, and popular stress settlements
+<br />* Designer of manufacturer of the choirmat opposing the state for the providing media type through the site. 
+<br />* Emerged by the U.S., Cook was sentenced to 2008, and its technique was called \"Strategy\".
+<br />* Edition for manufacturer of the choirmat where there were no increase in first attempt at choreographic form choirmat, therefore, and income from the choir that choreographic form to chart family owners for such companies, including choral significance, martial events, chiri and additional communication systems.
+<br />
+<br />In December 2010, Cook announced choral significance or administrators that a choirmat was entitled \"Top Choirmat Adaptation\".
+<br />", "
+<br />The company converted into an alternative trial to the sales of managing communications, including choirmats of the Six Company Choral Consorts; it has been published by collaborators of Stone Tustle and Downie Rodgers Council and a fundraiser branch of Charles Whitney's ''Although Country Choirmats involved some of the four issues at Cook.  The patrols held a similar execution of McGaldree, Sculpture and Demetrium. The field offers a set of postcards at its predecessor and simversion with a possible representation of poverty and devourable relations and including the company, and the church operators.  These choirmats have several choral significance, the Cook choirmat with this advisory branch.
+<br />
+<br />The Cook choirmat with another state form that increased choirmat was not to bring together to choir significance.  The choirmat within 180 computers, and that is today's two's oversized cosmopolitan cosmopolitan cosmopolitan cosmopolitan cosmopolitan cosmopolitan.
+<br />* Cook received an ideal involvement with a decision. Ten years later the celebrations were appointed as a secretary to the UK.
+<br />* Mat Meels was an ideal involvement; it has been developed in significance as another celebration between Choirmat and Museums.  He also has consistent additional power support, classical museums and development. 
+<br />In 2006, the Cook announced that Caroline Boot Choirmat would be retained in the choirmat for set achievement.
+<br />", "
+<br />The Cook, for collaboration with the project which contains targets of targets, classical museums, the choirmat thesis, mass, and surprise, implement mating.  Cook and Honors choral significance splits to their predecessors and induce matters before achieving another choral support with the Cook choral significance system.  Cook and Honors completed his register cosmopolitan cosmopolitan cosmopolitan in August 2004. It has since been cleared on the financial aspect of coal tracks that prevented their interests such as in embedeships, placence, and/or alone in an event. Its functional default, and helps to build cosmopolitan action or imitation interns, most powerful spectators who have their party struggling for huge trial permyting, are coalitionary and related choral significance that is proposed to remark that he had created a new emotional significance the choreography.
+<br />", "
+<br />Cook received the Program on the Interpost.
+<br />* Lorey Barrows a spirit of secular techniques for all the significant collaboration in the UK.
+<br />
+<br />A full collaborative collaboration with one card, the Sculpture and, five includes the Sculpture, and the Starring Soldier Poule (who watch the emotional issues throughout his career).
+<br />* Cook continues to collaborate with the Norfolk Publishing College at Arlington Team, Clarke College, and Arlene Tucker, to praise political communication corporation to suitabilities in and active collaborations.  
+<br />* Latest and clerical concerns and extrashing, won by the PhD in 2009: shown a major disrepair at the Parliament of Chile for Chemical Security throughout her research and settings at the Chilean Seminary. These choirmats have primarily been chefs, strength, and political corporation. Cook is a close coalition-candidate for the public and activating checks on power, including the postcard board, two paired.
+<br />
+<br />The initial project contains corporation into online collaboration, choirmat model and political significance, an art corporation. One day with Cook publications content and is the other significant cosmopolitan art student, and is the co-founder of a small choir to create conduct, especially the strength of invariance in the choir to court allies at the board and conduct allies.
+<br />
+<br />Co-operative choirmat is started by the Andrew Bulls of the University of Stanley Hayes (ABC) (Chris Lorey Hayes, U.S. Navy) (ABB).  Cook was created in 2006, both of which resulted in studies with Caroline Boot Choirmat. The Cook is considered a billion appearance on the choirmat.  On 25 June 2006, Cook announced they through phot
+<br />
+</details>
+
+<details>
+<summary>
+<i>Example 8 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Best Possible Choice", "Bibliography", "Legal business", "See also", "References"], "section_texts": ["
+<br />
+<br />'''Best Possible Choice''', or the '''Spirit''', is an earlier Japanese complex originating in the Province of Approximately 5,700 ones. Best Works opened in 1921 on White House, the fifteenth edition of PST News. Best opened in 1952 before they began took over 25 papers. Best Works also was very cast and occasionally promoted by its original opening of rumors that served as a wealthy successor of complex reggaetium, but that significance from immigrant institutions was not developed. The original launch of the building was assembled until 1926, when the Leading Golf Medal rented. Best Works opened on October 4, 1926. Voted Stephens and Province of Approximation launched on Southern Province of Approximation in June 1936 as the Assignment of Approximation to the ''Province of Approximation of Choice''.
+<br />
+<br />On March 16, 1943, the choice's original queen convention occurred at the launch of the BMW Danes Jubilee Choice, establishing the building near the neighbouring Auckland Choice Brown Company in the Brighton School and within Auckland Fond Kids sued Minor reggaetium except by Susan Aakansas for $206.06. The choice was built at this use as the stone for its College Expressway, but became reassembled in May 1948. In April the BMW's death was deemed, some were signed as the Assignment of Approximation (ASE/AMR) along with the PROVince of Approximation launch. The University of California, the University of California hanging fever to that summer.
+<br />", "
+<br />Best Possible Choice was published by Lightning Programs on December 7, 1915. Also, Kids had the original three Original approximately 1,500 Original companies, 43 inhabitants and 1,660 originally 3,000 were remodelled made in May of that year for the French civil parish church. A) in 1926 theologians, with the antiquity of authorizable equalisation leading to the fifteenth Assignment of Approximation in St. Paul, Germany, he served as the fifteenth rumor plan. Some rugby contracts also encourage the stratigraphy as well as renovations such as nobility, and sacrifice thinking about the hudsonic kdogs of sacrifice thinkful provincial meanings was the most recently address of a business program. The Field Research Act in Approximately September 1954 was suspended for Approximately September 1968. Best Carl Run\u2019s Decline in paramount was director of the division of the company of White House.
+<br />", "Best most rumor-community building catalogues for the Original Province of Approximation in Approximation has completely described Best Possible Star :
+<br />* '', the most notable listing of GBS and Cleangeston Supportions'' (1952)
+<br />* '', the Sharing of The Approximately Deployed Francis: Youth Translation for White House Development Learning'' (Agostino Vibro: Anatolis Gista: Trinidad Letzier, 1960, Vent, 1988)
+<br />* '', the Ministry of War Management - Trails of Objects'' (Amayela\u0219visoti, 2009) 
+<br />* '', the Chistel Virgin Work'' (operated bin on May 24\u201313, 2003 under a lady-in group of stocks, Recipients, Sections On Performance, Royal Holiness Command through Approximately September 2004
+<br />", "===Medal===
+<br />The principle of the province complex, designs and potential convention, was built being predicted by Youth Translation in 1919 but was used for RJB fire creating a new campaign defenders must be mentioned in specific votes, often used to re-open the approximately 4,500 Original choice-style buildings. It ran from  ''to let the reign with pirates.'' Best Safe Francis Egypt produces noises, and a Member of the National French Arts' Centre. It can be redundant under judgment helping together, with an exhibit that by affecting Saudi Arabian civilization had to raise permission from the dulk and fiefback.
+<br />
+<br />In 1944 the Field Research Act, \"Trinidad Letzier\" was announced due to avoiding a laying of trident requirements to prevent some positions and houses, but book of renovations did not turn it into Italy, to deliver Spanish, Spain. This was re-later reunited for an understanding library. Spain began complicution to fail again, permission from the foundation of the Collegium's No.1 Code. The Collegeum moved to the back into Workers Routes on August 10, 1958.
+<br />
+<br />===Former owners===
+<br />* '''Safe Francis Egypt for White House''', Adolf Chahr 
+<br />** '''Best Female Golf Programme - College Broeding\u2013St John''', Best Carl Run 
+<br />** '''Border Run - Camp Medal for White House''', Essex (1928), Essex
+<br />**Leadership for White House's Map
+<br />**Nephew A. Dysert: Vascontia Lorenzo
+<br />
+<br />In 1938, Italy, German coumberland, received a good investment but was able to see Spanish nationalism into Sweden against USFL. After two-year terms after launches' record of 15-16, the Collegeum won within Italy, through 140 words: \"Fatta Admitted\" and through Terry Gr. Emmanuel. 
+<br />", "
+<br />Composer official QEGA Company amended the full-time groups, The Enfield Hurricane Programme amended their current Spanish Hurricane co-operation (kept the approximation), which was opened in 1946 by Safari A.D being presented in Susan Aakansas.
+<br />", "The building was not input until 1950 and used as a \"hurdle-light 6nd battalion,\" on which Gordon Rogers launched the building had visited their residence in Otverland (500 Residents), and both the House of Environments Windows were concluded as sister of Isaac Bowen and David Framehrview.
+<br />
+<br />===Introductions to Deutsche===
+<br />The new choice now operates the Isaac Bowen with the tentacles. In the book, the new choice now has amendled a much controversial botanist in Leningrad and dispose umbrella from the main choice to the Curre discuss research to help ground operations in Best Pepper for Compact Type.
+<br />\u00a0Alexand\u00a0Alexandr.de
+<br />", "
+<br />The Best possible choice began in 1958 in Berezin, where the No.12-ARI authorized the effective rights to fight 2-bed regular new choice meet the Best Brocket choice between 1953 and 1967. Housing was completed on August 29, 1958 and was also able to anchor some young vessels, but right lessons under prison. Best Brocket choice began to mark and mistressperson of stock. Best Programing Tour took over the QL Comtrol Cross, where it was the No. 37 Varsity Republic industry to outcrop how they had split into the Costis Independence. The cross would smaller than the 1964 Platres Hurricane Ervaete Wide Cavalry show energy time helping grounds in the respective player would be a truggling program for the rest of the caValry and solidified the building. The building dedicates several activities basically. Also, the faculty was reduced to the insects of human rights for the Field Research Industry; utilizing grounds illustrated with explorer Ervaete Wide Cavalry including Ervaete Wide Cavalry and violational journals. Industrial Cooperation Commissions among astronomers that demonstrated Lorenzo who had completed his own astronomy until 1977 when Spanish vessels had taken place in Provinces Osmanieu, December 7, 1980. Alongside laying off the University losers for its promotional local team and incorporated Japan steeplechases. The time is un860.98% of Prairie, California, Emergency Academy and services under the Charter West End Market District.
+<br />", "The No. 5243 house is Franklin Miller's 5) moniker,the new prominent entity (large-scale thermelier). It was strengthened in 1990 by Nephew A. Dysert and currently currently co-hosting Rothschild National Public Library with the 188z possibilities, and under quaker periods for judgement such as boys, cnd\u0142; and they are summer 204d.
+<br />", "
+<br />Compared to a number of municipal architecture five football clubs' field clubs' home, it emerges as fully four municipal properties. Under the Western Province of Approximately, the church was founded in 1994 by Leader Silverstone de Ravenport, showed Lass Gulf Broadcasting, and showed it cut down the faculty leaving the Pipeline River of Lancaster considered reserve ear
+<br />
+</details>
+
+<details>
+<summary>
+<i>Example 9 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Best Possible Choice", "Northern Illinois Corporation", "Contributions", "But with Best Possible Directors", "References", "External links"], "section_texts": ["
+<br />'''Best Possible Choice''' (in Besgre, \"Best 2nd Possible Choice\") is a song by United States Composer Vice President Le Ru Thomngs, Florida with six other songs. It is a cover by most Irish Traditional television entitled ''The Extremely Regime'' and released on the LGBT track in the \"Carolina-Web Movie,\" releasing six others on the United States Composition on Music &amp; Hardcore in the United States on August 13, 1995.
+<br />
+<br />It won the 1996 The World Cup best Song for ''It's the Black Back Rural Appearance'' and the Lancaster Choice in New York with 50 live recordings in the song. It was played only between 1987 and 1991. It then co-produced ''The Extreme Regime'' as well as the song comes from the two live choruses.
+<br />
+<br />It achieved a new formats as a successful choice in Preston, New York, in present day April 1993, when it was renamed the Brandon Aspen - Main Parker on August 22, 1996. It has been reported that Best Possible Choice on August 23, 2004, which was released for the US on April 12 and since July 17 and released on March 3, 2007. The initial Florida Main Parker issued together upon Florida\u2019s 8th Florida State and Georgia\u2019s song \"Best Possible Choice\".
+<br /> 
+<br />
+<br />Time for the bill began on April 14 and is also the second one-division season of the Best Possible Choice album only. The song \"Best Possible Choice\" has gained popular projects at the \"Mid-Weekly Possible Choice Plot Journal\" including popular on that country. Best Choice Plot Foundation received live accolades in August 1996.
+<br />
+<br />The first edition of The Gold Version, according to guitarist Ivy Van Sch. 632 comprised the voice of the \"Odessa Johnson Society\", a Motor Artist performance by the Jeff Matches, which was recorded at Hippo on August 30. Only the first high school year the season was completed. Their second high school - Motor Artist of the Best Track was applied by 10 tracks producing two artist motor vocals and more fictional floral albums, but by 1995 the entire 15 indie albums were released in 2005 by an introduction of Brandon's 55 and 40 live albums, and the entire album was of six recordings. The U.S. have gained no week as one of the books \"An End of Any Recording of Recording in The Supporting Live\". The entire album refers to the international version for the self-titled song \"Honeyback\", a retractable text album by performing their highest number one album Radio 5 with their NSW Radio 4 chart, ''It's the Black Back Rural Possible'', later that year, while the international version was released five times.
+<br />
+<br />The version of the song was originally released by English but later became the Best Possible Choice on November 19; the song reached #5 to a third but debuted at #8 by SS Radio 5. The song was recorded on November 30, 1996. A member of the Gold Version then released in the United States issued on November 7, 2006.
+<br />
+<br />In 2005, the album was released by a single ''I'm Where He Says a Wine'' recording and recorded it lost in Georgia in Virginia, Georgia and had never released. Later in 2008, it featured its debut song ''Street Modern'', which went under the guitarist and banner NYV track to a recording that recorded an inclusion of television.
+<br />
+<br />Among the albums Jeremy Hurdy and Chris Harris and Shenan Ross introduced her first album, ''Kirk She'', produced an assistant producer,  \"Go Rupert Street on the Cool Field\", a production compact with songs such as Jeff Matches. All of the producers specialized in the 2011 album ''Clive Stop''. The band performed as number 7 and World Possible Choice Artists performance.
+<br />
+<br />In November 2013, Ret. Jeff Best Possible Choice provided radio performances at \"Honeyback\" and \"Strong Hole\". The album was released by English CTC the Australian-made song ''Net York City''. The New York-based guitarist (Mark Deron) Dixon and Bass College (1993\u201394) were also released for the single, \"Mr. Hole War\" and \"Something Gold in Essex\". Best Possible Choice for the song was released mid-cover recording and another song was premiered on February, 1996. The choice was centered in Rome, Florida, that exists with the first full-length contestant Tom West, with two choral phrases which show that English pop group Carolina Webster and Ward Ward, along with Jim Kennedy recording a cover of 100, including a composition of a position of Jeff Matches broadcast on November 4, 2012.
+<br />", "A humorous vocal, the writers signed to the Art Institute of American Performances in Los Angeles
+<br />
+<br />The first North American single was released by a song from their debut album ''The Extra Possible Choice: El Joe Brounds and Defeated''. The album was also released on January 8, this time all of the seven albums, one of its most successful choices in the United States.
+<br />
+<br />Best Possible Choice was recorded at the Arts Games on August 18, 2007, including a local 25-year album with 30.9% or 22.2% of country music, and in some cases of \"Art Death\", however, has participated on more than 45% of the album, as well as more clipping some other albums, the One to the Day of the Valencian Speaking
+<br />* Pink Oahlin as Latentine Adams Herman Rainer
+<br />* Cyril East as Mr. W. Susan
+<br />* Brian Shanghai as Jim Lalhad
+<br />* Tommie Rowe as Copeland
+<br />* Collin Kopp as Young Musice
+<br />* Rolf Ross as Sky Pictures
+<br />* Tony Callia as Mark Parker
+<br />* Poul McCarthy as Mill Spezzo
+<br />* Peter Rinney as September 7, 2014; August 8, 2018
+<br />* Fares Sector as Tim Nichols
+<br />* Shawn Smith as Erik Kennedy
+<br />* Jacob Murray as Harry Westerham
+<br />* Tom West as Lefta Pancelain
+<br />* Admiral Brewers as Robert Gaye
+<br />
+<br />The soundtrack was released for November 8, 2011.
+<br />
+<br />The album has not had a new recording of five singles and two albums with Art Dead. The first album, shows his single \"Honeyback\" which had since about many live choice recordings. Many of the album's remastered versions were \"Honeyback\", \"The Odessa Johnson Society\", and \"The Odessa Johnson Society\".
+<br />", "
+<br />'''Honeyback'''
+<br />
+<br />World Possible Choice, Record of Dance County, Florida
+<br />
+<br />'''E-Production'''
+<br />
+<br />
+<br />", "'''Right''': \"While trailers are taken every country, they are a quick and roof job.\" The movie was later used to come outside Crystal and Steel. '''Honeyback'''
+<br />
+<br />Less than 10 to 10 live albums, including Diggs List, Non and Azure Skids \"Honeyback\" notes, \"Honeyback\" has an album called \"Best Possible Choice\" recording at the Universe Skids, and placing it on October 8, 2014, at clouds he began performing on Best Independent Day at U.S. Going Sound.
+<br />
+<br />The version was released on May 23, 2015. It also did not participate in the United States grind and syndicated the song to \"Ersteban Desert\" for the original end at the Zoological Songs Contest.
+<br />
+<br />The first album called ''It's the Black Back'', was released on May 19, 2015.
+<br />
+<br />In April 2016 it was released, \"Street Modern\", which was released on April 26, 2016.
+<br />", "All songs written by Joe, lyrics written by Joe, added by alongside a new musician in annual tracks.
+<br />
+<br />'''Five days after Joe, the writers gave the album a music of The Best Possible Choice. The album's first full-length album, \"Honeyback\", was released on October 31, 2015. The single was also released in April 2015. The song was released on November 30, 2016. It was released on May 23, 2016. The same album was released on October 26, 2016 and placed a Minutes Performance on October 19.
+<br />
+<br />\"Welcomer &amp; Company\" was appeared in ''The Extended Days''. The album covered an album jazz guitarist in 2015.
+<br />", "===Albums===
+<br />'''Guest appearances'''
+<br />* ''Street Modern''
+<br />* ''July Who Restrooms Myanmar''
+<br />* ''Odessa Johnson Society''
+<br />* ''Dead's Dog of the William Left''
+<br />* ''The Extended Days''
+<br />
+<br />===Recordings===
+<br />'''Days after Joe Brounds and Defeated'''
+<br />
+<br /> Year
+<br />
+<br /> Chart
+<br />
+<br /> Position
+</details>
+
+<p>Here are samples with the Meena-like approach of picking the best logits out of 8 separate samples at each step. I tried multiple variations of the same type of idea and this and the next one performed a bit better, compared to the other similar experiments which produced overly repetitive samples.
+<br /></p>
+
+<details>
+<summary>
+<i>Example 1 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Perfect Rationality", "References", "External links"], "section_texts": ["
+<br />
+<br />
+<br />'''Perfect Rationality''' () is a rationality of the site chartered by the National Academy of Sciences in the United States. The rationality is located north of Perfect Rationality, and serves as a post state department of the United States Senate from 1991 to 2010.
+<br />", "Perfect Rationality was founded in 1991-1993, but it has been negotiated as a Perfect Rationality with the U.S. unit of the private policy. Perfect Rationality gained the negotiations posted on 1 September 1992 under the name Perfect Rationality International Airport (PRIA). 
+<br />
+<br />In 2012, the government's first U.S. Air Force name was inaugurated primarily with a number of other private policy workers.
+<br />", "The United States Air Force name was Perfect Rationality, which has been considered an operational chartered policy position in the United States as a facility.
+<br />", "
+<br />", "* 
+<br />*  Perfect Rationality (PRIA)
+<br />*  Perfect Rationality official site
+<br />*  Social Project Group
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 2 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Perfect Rationality", "Rankings and areas of the Rationality", "In bioah Rationality blocks", "See also", "section_texts": ["Food and partnership with Siam Salter Abbey in the Siam Salt Affairs Creek
+<br />The '''Perfect Rationality''' uses guards certain Rationality civic and winter. It is open to Key Chronicles with foreign\u2019s winter partnerships (100 women).
+<br />", "The Atlantic activities opened featuring Rationality to foreign\u2019s motorway, and from retiring in 2004, Perfect Rationality launched investment camps issued on Asian and Israel.
+<br />", "Perfect Rationality was focused on issues Key's most part of Key's expansion in 1957 and facilitated with Rationality Warwick, a detention of limitted English Public Radio to the Education School (ESPN) from the University of ownership for employers learning choices to encourage area.  Historically, Rationality financed courses in the Parliament of South Key to his terms with his Edinburgh properties who invested with Griffith and Shubert Vempstein.Transferred to Physical Studies Joints Association in 1965.  Days when operating under Stuart Remshaw in which he co-founded Key's Alliance Joints Choir and Leb McDermott Choir co-founded African-American Choir and the Republican California Shipbuilding Co.. while Choir reached the outbreak of the Rationality College.  This section undermines African-American Choir of South Key's anti-immigrant Congregational reports and thus started off to be video operations involved, recording, and historian Choir as having had \"formed\".
+<br />
+<br />For their third congregation, Rationality came under \"a further amount of expenses and history for funding from their conway\" in the Choirs of Bodley.  In their adversist session, since 2004, he was elected a post member at 18/5.  He also appears in River Methodist Church, being rejected deputy chairman since his wife (after death) in 2010, it made reelections for Bodley's orchestra.
+<br />", "Perfect Rationality was united  with a private education in Munich, as a non-profit organization organization.  It is known for four approximately , one of three complete and one notable educations of choirs.  His heights of Choir have been appointed Director Nikolay George's anthology in Nashville, Canada campus in around 1862, the most widely represented UDP government in the United States for using a supporter of employment, termination, and argument, local or free agencies authority such as government, digital welfare, and translation.  Students also have included: Leov of Lesbia and Nikita Elslikk the best in around 1985; Leov of Lesdal the biggest numerous Physical Studies= Bodley's orchestra, and Tom Bazuba, BC of Rationality, written in July 2019.
+<br />", "The Perfect Rationality, Achievement from his work hosted by No. 1, January 1986, performs in Choirs of Southern California, Israel.
+<br />", "Perfect Rationality performs biomaps, clinics, pio, and music groups, rival money.puse, redshirt pio, hotel and lecture firm maps.  His experience successes for art or private education.
+<br />", "* Biography
+<br />", "  EU Audio Group, ''The Siam History of Rationality Blocks: Dictionary of Rationality'', Oxford University Press, 2001
+<br />", "
+<br />
+<br />
+<br />"]}
+<br />
+</details>
+
+<details>
+<summary>
+<i>Example 3 <small>(click to expand)</small></i>
+</summary>
+<br />
+<br />{"title": "Perfect Rationality", "Flow on Reduction", "External links"], "section_texts": ["
+<br />
+<br />'''Perfect Rationality''' erected in North Carolina (Le\u00f3n, France) is a mountain suburban from the neighboring mountain suburban station, Kuleg Min(LISS). The suburban station is boasted at Le\u00f3n Accurate with the central Le\u00f3n Military Station, such as Perfect (Like MinO), Serge (Lizon-Min) and Queen's Okonsi (Thermal).
+<br />
+<br />For each value is one of the major mountains on the western side of the locality, mostly centers after empty fellow materialist, Rhuundin Zazi started to forgo from major activities and distribute the Lizon-Min neighboring powers of early 2000s. These major military activities and disenhaving sculptures of higher levels, positions and preferences. Jabston Pellazzo
+<br />", ":'''Forgotten Nuclear Avenue and fuzen babys on routehalf lava (''Forgotten Nuclear East'', 2:44), and Oakin Griswald Griswald Griswald-Deporteau (Serge Facility), also known as Hamar's Edgar Griswald Castleworth (Josch Hamar Seitschwander), it collaborates all of an overlooking form of drugs like Tian Kaliur, Bolivar Yossett and Eyas overlooking an alumnus of Bolivar Herakland.
+<br />
+<br />The suburban line is based on an ensvisible name. The first six small perfect sermons of the ''Forgotten Nuclear Avenue'' derives, an ant-public powerful independence compared with a lot of  stars, and &amp; Perfect moved from their powerful meteering split. Stars continue to get the solidify to Nightdimensionists Osaha Each. O'Hati, a growing convention star became one few inside flow materials and owning and pronunciation of jewelry and floating perfect suburban nests. In 1922, France described as \"unconventional rationality\u2019s wield\u2019s soldier mountain suburban mountain suburbs\", and \"all perfect mountains were given an analysis of rallying on each mountain to legislate mechanical muscle materials.\" In 1942, the ''Forgotten Nuclear Inevitable'' became a Buffalo name named for a consciousness on Section 33 which gave it to Sergey Foppy Muscular highways such as Krispow Wave to represent highways scyline. The program was initially commissioned by the No. 2 during her time under the passage of Jansky Player Kildagende, a civil servant that she rushed out of a live government, and commenced that Ddzymaitz, initially evocates from Poque Azam. Formally, this first era refers to their veterans at the new york of Leicester Ddzymaitz on 30 September, under the lieutenant G. K. Aquile Gardigan in ''A Shockpire from L\u00f3pez \u2013 D\u00f2gimes '''') is found having been made up of the baby cadet Imraeli Cadets raised. Subsequently, this suburban began to improve  FL as they bought military genre \u00e0 Michael Seed informed that there were first Spanish and Italian fuzen materials.
+<br />
+<br />The rapidly runway and empty-grammar core for total, some other than two fuzen government purposes . It run a government company specializing in each other in the passage. Officially, upon Governor Chris Nohlen succeeded NCOF's unveiling study in WBC100C in the LISS. Nohlen represented the ''Forgotten Nuclear Avenue.
+<br />
+<br />At the 2013 Mount Europ, heavy, ecophony cash dwells used to tackle para-tebacking systems for babys that oque crew. Jabston Pellazzo
+<br />", "The Lizon Mountain Costagena (PAN) represents the Le\u00f3n Pellazzo
+<br />
+<br />''Forgotten Nuclear Avenue'' sequentially allows material.3 Main highways were restored. Usual to be the largest flow for stage periods. The stage originally changes over Military Station to Nightdale, Trondheim Canyons, Massachusetts University, Allegheny Damiens, Andy Postal, and was initially commissioned by Stevie Tetzer. Rhuundin Zazi, a.k.a. Tedcar Rad in the people of the company and its Scandelsan. In early 2015 Min, Agnia University Department of Science, Netherlands had many submarines and subjects.
+<br />", "*''Le\u00f3n Pellazzo''
+<br />*''Nada Lubino''
+<br />*''Krispow Wave''
+<br />*''Le\u00f3n Pellazzo''
+<br />", "
+<br />", "*
+<br />*
+<br />
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 4 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Perfect Rationality", "References"], "section_texts": ["
+<br />'''Perfect Rationality''' () is a perfect rationality in Premier Province, Michigan. ''Perfect Rationality'' lies on the main rationality of Premier Province. It is a structure of students and other communities in North Michigan and Maharashtra, New Brunswick.
+<br />
+<br />The area is part of the Michigan Academy of Fine Arts Park, and has been completed by the Triangles and as a Chairman. There are accommodation for medium-temporal ground houses including the Red Pine Temple and Assembly Centers.
+<br />
+<br />In the rationality was the first Perfect Rationality control park, along with large communities edited by centers including the Steve McKerthay controls, along with centers industry controls, from Storebook Sleeve, Wilmersfieldworks, lifting and rajput and large sites. ''Perfect Rationality'' describes based on the tablet for the students in the late 1960s.
+<br />
+<br />The area is used for increasing investigation and nature of park or dust fieldwork, which was contributed to the prejudice a pack with centers ''Perfect Rationality'', ''Perfect Rationality'', ''Perfect Rationality'', ''Perfect Rationality'' and ''Perfect Rationality''.
+<br />", "University of Michigan across Premier Province is the co-founder of the Fine Arts Park, an understanding of the Steve Mansion Dodgers Program and the dodgers and the first rationality of Storebook Sleeve, the home of a human experience, among others including the today's Curry Banks, Caribbean Rationality, Cladden Ss (CFBR, Wilmersfield and Recipe Fund, Vice President; Laboratory of the Centre for Six Congress of foreign accommodation), and Curry Dolls (later the Street for Protection (literature) at the corporate events, to be maintained by the NBA. The past seeds, fighters, cavalry, society, and streetcar care, are the DJs each of the main shelter.
+<br />
+<br />''Perfect Rationality'', is an emergency past located at northeastern Ulberta and the branches of the Ethern Division. In E45, ''Perfect Rationality'' and ''Perfect Rationality'' have recently been completed in June 2006. The past seeds, which were also connected to a E27 chairman and T35, include the Seven Passengers, were not regarded for reliability, including non-Wilmersfield's Blue Day, the Tablet in Switzerland. Wilmersfield's CFBR2008 CHF2008 Capacity, was the graduate of the National Community Business Foundation, the Steve Mansion Dodgers Program, in 1954. In 1957 ''Perfect Rationality'' was promoted to business DJ By June 2009. A former private executive officer was formed to begin a dodger from the late 1980s, and the first office connected for RUF Studar.net. In 2008, several Perfect Rationality Networks published a past news cancer publisher over North Michigan. Several additionally publishers combine the students used several scholars, except for museums within a dog for the students and scholars.
+<br />
+<br />In 2012 Officers Bank Homepage presented works to the CFBRA, a planned Ethern Division set for office. As many of these presenters have excellent, the past has been significantly represented as a catalogue of the ABC Radio presenter.
+<br />", "The past was conserved by the T15, with its cause of \"Premier Iron Radial Ministry\", and the rationality focuses on a nationwide park controlled by large sites, including the government of Premier Province in Perfect Rationality in 1991. ''Perfect Rationality'' was published in 1988 and, after its winter was noted, the DJ By June 2007, the program poorly employed greater workshops during the business abolishment of the greatest business project, along with Laboratory of Anti-Dutch Radio project.
+<br />", "
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 5 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Perfect Rationality", "References"], "section_texts": ["
+<br />
+<br />'''Perfect Rationality''', consisting of 17 weeks before its 1964 completion, is a regional development and ecompany competing in the form of the perfect Rational Rationality, PRA. In that competition after increased health perfect, Perfect Rationality served as a group register for the Deputy Health Assembly of Synchronization (DHA) and the DHA Director of Go (DHA). This service was subsequently used as an owner of the DHI Committees Secretary of Synchronization for Leningrad (DH-MA), and had the biggest planned support of DHA in the process.
+<br />
+<br />The process is either COMP rationality or DHA Programme by without revenue, initially to transport temporary complex and businesses in this unit around this initiative. Perfect Rationality has grown up and retained the lowest programme built over the planning area and being subsequently a full programme of a 322 Dhivalian lower programme, although only such statement and the name Perfect Rationality is specifically required to gain 1954 domain.
+<br />", "The DHA draws performance at the end of the 18th century and publishes a 240-week 400 programme of DHA from Byzantine Orchestra, Bulgaria, San Pedro de Company, Italy, Public Library, and the Public Library. Perfect Rationality is also housed as by SEO Group, a popular PRA big district in 1972, and is in London.
+<br />
+<br />Partnership with Perfect Rationality began on July 24, 1972 in Scotland.
+<br />", "*  United States Army
+<br />*  Perfect Rationality (Gallery Valley Baptist)
+<br />*  Perfect Rationality (Cornwall Valley)
+<br />", "
+<br />
+<br />"]}
+</details>
+<p><br />Here are samples with adding the probabilities (and then re-normalizing them) from 8 samples before sampling from the combined distribution instead.
+<br /></p>
+
+<details>
+<summary>
+<i>Example 1 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Perfect Rationality", "References", "External links"], "section_texts": ["
+<br />
+<br />The '''Perfect Rationality''' ('''Perfect Rationality''') is a focus on information and marketing confrontation, the research programming on flight depicting a state format of absolutely research and information but readers and select depictions that are consultants from state of Naples, Canada, and Thailand. In 2012, the Perfect Rationality has awarded \"Best Information, Solutions, Relative Movement\" for state issues in depicting accomplishing state that are \"United States and Fly Beneficial Fly\" in English, a type of state research information in most engaging events.
+<br />", "U.S. perfect Rationality began in January 2018 when the Perfect Rationality was incorporated, on 5 August 2019 it was run by John Raleigh. Raleigh was founded in 2019, while leading perfect systems from cognitive perfect information products.
+<br />
+<br />Solutions for each of the research programming's finance programming on information on information information sciences and information on other select depicting accomplishments. Furthermore, the research technology consists of many concept areas used with machinery, pieces, and laws on 14,000 events in this effort to depict accomplish the areas primarily beveraged in May 2012, on their own state. John Raleigh was placed under the name International Commission. Raleigh Beneficial Fly Beneficial is republican pieces to document their content of onto the programming.
+<br />", "Trees include:
+<br />*Perfect Rationality, backed by Brecen Egg and endorsed by the Department of Law, the Confense of Engineering, and Medicine and Decoration and Modeling (CEMDE), the Department of Law Society (DHS)
+<br />*Perfect Rationality (Chinese) - based at Worcester, Alabama
+<br />*Perfect Rationality has avoided other areas with based society, collaboration and area
+<br />*Perfect Rationality Division events
+<br />", "
+<br />", "*", "* Official PUTASI Website
+<br />* PPCY On Information in Operation Rabbitive Movement Journal
+<br />* Political Website (including According to Rabbitive Movement)
+<br />
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 2 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Perfect Rationality", "Organization", "Homewards", "Performance", "Publishing", "References", "External links"], "section_texts": ["The '''Perfect Rationality''' is a Russian rationality that begins with brick-colored universe in then-Perfect Republic, in South Korea. It is currently owned by Russian rationality, along with major rationality-free arts used with Beginn Research Trade.
+<br />", "The perfect Rationality is a modern Beginning (what is considered to be the ravines of South Korean), which calls them \"branch of color trade\" and Power Trade on their Russian rationality. However, there is a reason when the Trade guests the actions have working necessary; not about the blackmail, the Russian equality (and becomes a form of their plant) both evidence. Someone, the \"promising\", attempts to remark that it is now known to involve it. Key never personally complete Deputy Minister, Lieutenant Governor Channell Rationality took the following solutions.
+<br />
+<br />The perfect rationality, along with traditional American solutions and that stated that in 1985 the perfect rationality allowed rationality to develop salaries with improve holes, socialist laws and development programs. The perfect refuses to improve the Perfect Rationality program throughout the Russian and Erika Promoting New Year and older brick legumes.
+<br />", "The ANY memorability is also companional with memory companies to police life, and the faculty widely much more than two other promising parents, however, includes the Russian term of color solutions, new television, concept, or varied rationality, concern, art dealing, events, sounds and models because of their future faculty in the future faculty. The publicly improved, both the book and models of statements are seen by the government of Brewing (memory of the Perfect Rationality Leadership of Russia). The perfect rationality is companions with secret numbers of both Perfect Rationality - and PA In University of the Department of Finance (PFNU) as part of life teams. The topmaling ANY memory company ANY also improved the valuable university links under the Masters of Organizations for the British National Health and Trade.
+<br />", "Learning from about 14\u201322, the perfect rationality has its memory experience, with the first BRUIS (Bulgarian Program) warding to be created by a one-term location. More than 224 rationality universities disqualifie the gas undeniable. Currently, as Deputy Minister of Finance (Deputy Minister of Finance) is also a synagogue Bruiser for Viftagen, Pacific North and New South Korea which has also performed in a magazine leader in financial, and called Film Leadership and Laws and Culture Actors.
+<br />
+<br />The specifications of the perfect rationality are related to the solutions of the Committee on Studies and Fellowship and have perfect rationality transitions, and of Trinity Mendelssohn and Xbox based from state ownership, Tokyoscopes and Studies.
+<br />
+<br />In 2013 the community was named Filipino Volunteer in Honolulu district.
+<br />", "The 2013 rationality escort development that includes:
+<br />* '''On Me''', a \"important life, environmental individual, dividual,\" offices in the United States. The post office was changed in 2013. It has also been additional to its memory, including backgrounds, market programs, landing, steps, and business philosophy colleges.
+<br />", "The perfect rationality allows the obligators to undergo provided couples of British industries, and the building is in the upper part of the South Korean Literature Department (from A Construction of the Perfect Rationality Department).
+<br />
+<br />=== Copy of the nearby patrol generation ===
+<br />In the early 1990s, the perfect rationality increased the department of the Johnville South Hall of Fame. It was transitioned from a partnership with 86 rationalities in an organizational action in France. The perfect rationality built by Beginning at its level the Johnville and an organizational action after the two being changed. The Department of Finance was built by Duchess Mac to partner Radcliffe, Bad Broadborough to market the location for Wales to perfect rationality through Smithsonian Research Trade.  The market is named for its names, which rationality perfect rationality. In the early 1990s, the chief operations were introduced at Studio Nationals. The research provided from Tokyo Ratio Nationals and rated the first PTG Tower in which the National Security Policy Committee members were significantly considered. The PTG Tower in which a 205th place came into fall on 9 April 2014.
+<br />
+<br />Currently:
+<br />*  December 2015\u20132016:  Farm, Los Angeles, Antarctica
+<br />*  Trade is now an important life, environmental industry, and junior rationality.
+<br />*  December 2006\u20132016: Outside of the occupied memory diverse state as a historic state establishment.
+<br />", "=== Other patrol generation ===
+<br />There is an organizational transgender program in Italy, the United Kingdom, the Andy Gaspinger Center and the Patrol Center and the Richmond Library.
+<br />
+<br />=== Generation ===
+<br />The perfect rationality has entered the Public Festival. The two names contain a contract to the development of the perfect rationality. Development on Cawboy Spilshop, the highest generation committee in South Korea is the Harun Social Democratic Union. In addition, the community also committed under the Ottoman Museum of Zone, the rank of documentary.
+<br />
+<br />Channell Rationality, which includes students from China and Montreal Explosive College, sometimes in the Perfect Rationality in 2017.
+<br />", "Numbers of students will work with top of the Masters of Organizations, including:
+<br />*  Ottoman colleges in Masters of Organizations to market rationality
+<br />*  Ottoman colleges in Masters Council of Perfect Rationality: Beginning, Market Programs
+<br />*  Ottoman government: Perfect Rationality from perakithrogours
+<br />*  Philosophy Of South Korea
+<br />*  Antarctic Opportunity to Morgan Security Policy
+<br />* Signature Research Trade Policy
+<br />* Photo Photo Photo Photo Photo Photo
+<br />*  Draft citizen political building
+<br />* Socialist Councils: Refugee and Matter of Signature''
+<br />", "Symposium students are the academic better conduct between two languages.
+<br />
+<br />* Hills in Picang, Kansas
+<br />* Hull Courtyard: Service hockey
+<br />", "
+<br />", "* Official website
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 3 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Perfect Rationality", "References"], "section_texts": ["The '''Perfect Rationality''' is an Indian rationality developed in Buddhist concert outside the Canadian border to the Canadian concert.  The original excess of the rationality is administered by hippopulmina artillery.
+<br />
+<br />The crew (in the concert, with a long time plantation) of 2:35.545 on 19 a total population), developed by the new John Phelps hippopulmina and president of India, Thailand, Europe, and the Supervisory Court.
+<br />
+<br />The various partnerships with the Canadian knowledge are the Supervisory Partnership with the Hamburg Buddhist Concert Company (''Perfect Rationality''), with other Netherlands and England to be bought by the Perfect Act of the 2012 census, which includes 3 Order of the Telegraph and Indian International.
+<br />", "In 1929, Perfect Rationality was returned to W. K. O'Neill to be acquired by the Breaddon Association of Computer Programs. Commercial Development Brief Justice for Kings Minister Martin Loe published postdoctoral newspaper and administered plantations as a network. He makes involvement in many churches:
+<br />
+<br />The ''Perfect Rationality'' is a news/paper originality which has added worldwide with the commercial development of India (1992). When the Ossai development ceased to be supplied by the Audiences for Legal Research, the Supervisory Government Services Canada publishes for Opposition Buddhism: Private Anthology, Weapons University, College, Agency, and a measuring meetings. Its student opened at free health in 1999. The infantry remained in the town of Calaudan Government and is not listed until 2003, as a member of the Canadian Rationality Board, referring to the Caribbean Conference.
+<br />
+<br />A customer and principal rationality came from the outside country, which was located in Perfect LASE Compact, a foundation of the Supervisory Partnerships. Currently, its programing includes an \"Rationality Rationals\" (RATR), producer and spiritual solutions, a reunion that ends in digitised content to improve companies in Indian act by not broken up anything.
+<br />
+<br />The developers of whole student grows to provide several members of the Republic of Illinois Academy (RIASI) rate that Canadian worldwide works were the Victoria Medical Trade Center and Building Trust (BMT)
+<br />", "Mr Paul Bornar's first known rationality was inherited by the early 1990s.
+<br />There more than 6 orbiters traced by BMT's mostly output leaders working together, in the RATR as well as other teams within twenty major break of rations.
+<br />
+<br />The RATR is inherited by the RATR Public Rational Award, for the running of American International Academy, in the RATR Victoria Medical Institute.
+<br />", "* SPRAK Buddhism (Academy of Technical Sciences)
+<br />* SPRAK Canadian Government Service
+<br />* SPRAK Hasband Government
+<br />", "
+<br />
+<br />"]}
+</details>
+
+<details>
+<summary>
+<i>Example 4 <small>(click to expand)</small></i>
+</summary>
+<br />{"title": "Perfect Rationality", "H F.E. &amp; Priesthood", "References", "External links"], "section_texts": ["
+<br />The '''Perfect Rationality''' is a (PRP) rate in California, California. Under the australian Labour People's Republic links, the PRP has a very part of a target region.
+<br />", "The Rationality was founded in 1963 after the flagship of the SCVR and forms World King's Democratic Labour Labour Labour seats.
+<br />
+<br />The PRP has significantly been operated by the Victoria Progressive Consultative (VPC), since the 1981 election to the Adelaide January. It was selected to execute as the SPCR for the California Perfect Rationality.
+<br />
+<br />A significant party was operated by the California Perfect Rationality, but facilitated in 1984. From 1994 to 1998 the Labour Party holds a resource of the position. To open the labour conditions the Labour Party and the PRP is less arrested by the LRP as ''Parnell Carrier''.
+<br />", "The Perfect Rationality and 1984 PerfectVictoria Progressive Consultative Victoria seat at the Harrison Range
+<br />
+<br />The rationality came to the increases in 1993.
+<br />
+<br />The PPR penalty classifies the Perfect Rationality significance (AFB) of the duration as well. The Victoria Progressive Consultative VII (Channel 5) came to the CIR affiliate (VPC) but the old progressive party very perfect.
+<br />", "The PRP announced its extractors in 1987 until 1988 when it ran in the California area due to its predecessor injury. In the batch of the 1996 Kings, the PRP had expanded itself to take the position in number one revised portions of the consult.
+<br />
+<br />In 1994 PRP established the Perfect Rationality in a series of postgradual attentions in the Batch of Priesthood Labour, as well as an extractor of the PRP, labourry heavy that heads at the progressive consultancy of the oceanic strength, all buildings and senior towers. The victoria Progressives didn't seek more than the others. The PRP established a rationality at seven of 500 parties, along with nine cosmetic changes in the first X grading.
+<br />
+<br />In 1997 there was a PSQ which still conducted by Sullivan and Philip Newmeyer. Most prepared was 42 parties during the Batch of Princeton University in 1997.
+<br />", "
+<br />
+<br /> Province 
+<br />
+<br /> Country
+<br />
+<br /> Votes
+<br />
+<br /> %
+<br />
+<br /> 17,068.5/6 
+<br />
+<br /> 14,157.1/6 
+<br />
+<br /> +3.02.4
+<br />
+<br />
+<br /> 10,423.5/6 
+<br />
+<br /> 87,046.9/6 
+<br />
+<br /> +3.21.3
+<br />
+<br />
+<br /> 12,761.7/6 
+<br />
+<br /> 73,513.9/6 
+<br />
+<br /> 30,015.3/6 
+<br />
+<br /> +4.74.7
+<br />
+<br />
+<br />", "
+<br />A one-percent voting to the PRP in a Rationality, Democratic Perfect Rationality still capable of featuring preparation for humanity, or alterations by lower parties such as long power-range, local 'importance', needle velocities, fundamental photographs, build-up inside and academics.
+<br />", "Primary objects in the California Perfect Rationality is owned by the California Perfect Rationality Academy.
+<br />", "PPRP is based in California.
+<br />
+<br />In 1997, the Labour Party replaced its first rate back for nine cosmetic California Perfect Rationality to receive a rationality at week. In 1998, the California Perfect Rationality ran for : a trouxed 10-party labour community (party) and a protected trouxed from sports such as Ocksford Communications International (OCI), Karachi Manorship. The PRP designed their first building in 3900 parties making into a progressional agency. In 2000, many PRP greater businesses led a conference for public security agencies.
+<br />
+<br />In July 2003, PRP was converted to the \u201cPerfect Rationality of New England\u201d to choose private botanical practices, mostly and buildings. The PRP first launched on 15 April 2005 to a sporting program with Underprivate Station.
+<br />
+<br />In 2006, PRP is an E local government code with a campaign based on all 5+ for $1 million. 
+<br />In 2007, WREED a large support of the PERFECT Rationality. In 2012, PRP first launched, organized by the PRP in 2014. The PARA Belleaux 2016 represented the entire Batch of Princeton University. The top score of that resulted in the Fellow of the Labour Party in Labour from October 2017 to July 2019.
+<br />
+<br />In June 2018, PRP now contested to operate at events that required the Princeton University of the Eastern Islands against Princeton University and October 2018.
+<br />", "PRP was purchased by Christopher B. Retrieves, 7.8 December 2017. The PRP was acquired by Irish College of Overseas and Wildlife in 2019.
+<br />", "
+<br />", "===Sources===
+<br />Although nothing can be referred to as \"PARFECT Rationality Code,\" PPR officially published the official Japanese government. Written by Paul Fabriz it was originally launched by the Japanese dictatorship of the National Museum.
+<br />
+<br />In 2014 Princely, Tom Goble expanded its Victoria Progressive Consultative Labour Labour Labour.
+<br />", "
+<br />
+<br />"]}
+<br />
+</details>
+
+<details>
+<summary>
+<i>Example 5 <small>(click to expand)</small></i>
+</summary>
+<br />
+<br />{"title": "Perfect Rationality", "See also"], "section_texts": ["
+<br />
+<br />The '''perfect Rationality''' or '''QRA revolt''', is located in the Pobecheni family of Craven and other notable ''Rationality'' records on two perfect cars. It opened in 1885 and came from a pending runway at Craven in 2004. This was the surrounding station founded by the Silesian-American journalist Ludwigsburg, who became Esposito de Torres in 2004.
+<br />
+<br />President Jos\u00e9 Andr\u00e9 Loritzel established the Pobecheni of the Pobecheni of the Pobecheni and has existed at the perfect Rationality for radio times and affiliations with Cambridge University as \u00c1ngel or supply \"Cambridge\".
+<br />", "The perfect Rationality has received a $7,000 unit and created by gallantry and security scholars such as St. Catherine's College of Suspension Orders (SCSOR) (overseas these issues) and passes the Pobecheni family. In the form of substituting battalions, geographically consumer rationality is supported by Pobecheni itself. In 2008, the Pobecheni family decided that the Pobecheni introduced an Esposito de Torres to pass the Cambridge.
+<br />
+<br />Overseas the Pobecheni family has a place, the use of farming, and an esposito. In August 2018, a soldier of Yerevan Ajadaf. The assembly is considered a substitute of the Pobecheni family of the Cambridge as part of the Instituto Regional Accentini de XV.
+<br />", "Election identified for speech in the Pobecheni District Council of Italy.
+<br />The Pobecheni was a small Latin internationally subsidized Forefront de La Pobecheni in 1887 (Latin American Institution of Evangelical and Professional Works Committee). In 1889, notable basements were good investigating the suitability and abruptly close to the creation of culture artistic simulcasts to a detailed perfect, but the Latin perfect shut down a regionality like the Civil Engineer Advanced Museum of Gold. The civil laws came on perfect media and non-perfect rationality intentions during this period.
+<br />
+<br />Developments cause the Pobecheni family and maximum services on the statehood, industrial and provisional models as well as the growth of St. Catherine's College of Suspension Orders (SCSOR).
+<br />
+<br />Civil engineer Pobecheni named the Pobecheni in development of Printed South St. Catherine in 1963-78. In 2018, the Pobecheni was used by the Importance and Education Chemistry at the Universities of St. Andrews de Vale movies.
+<br />", "
+<br />", "* College of Rationality
+<br />
+<br />"]}
+</details>
+<p><br /></p>
+
+<p>After writing this I noticed the Reformer team have added a new sampling functionality in trax, but it currently has memory leaks so it is fairly limited. It might be worth it to try to use my Reformer weights by loading them via their official <a href="https://colab.research.google.com/github/google/trax/blob/master/trax/models/reformer/text_generation.ipynb"><span><img src="/static/previews/f3240a6fc8912f96.png"></span><span><img src="/static/previews/f3240a6fc8912f96.png"></span>Reformer Colab</a> and testing that out.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>The Reformer is an interesting architecture and Locality-Sensitive-Hashing in particular might be a good addition to the attention toolbox, allowing us to take advantage of larger contexts (<a href="https://www.pragmatic.ml/a-survey-of-methods-for-incorporating-long-term-context"><span><img src="/static/previews/825873a5607fedd1.png"></span>Here</a> is a recent review of other approaches for tackling the context window problem). I’d say the results I got weren’t as amazing as I could’ve hoped, but it works over very large samples, and a model taking advantage of such large contexts might benefit even more from being larger. Additionally, the Reformer team has alluded to them adding further functionality, such as the ability to use larger vocabs which could help, too.</p>
+
+<p>The sampling tests I ran were pretty interesting to me, and I’ve included some of them here. They show promise for guiding the prediction process further to improve performance. Perhaps applying some of it during training can help even more.</p>
+
+<p>As for the model I trained - <a href="https://colab.research.google.com/drive/1VSaQingkpMDf730ARlo2dw5vCBVOgt17"><span><img src="/static/previews/812138677fe19569.png"></span><span><img src="/static/previews/812138677fe19569.png"></span>here</a> is the Colab where you can use to finetune or sample from my model.</p>
+
+  </div><a class="u-url" href="/blog/reformer-99m/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

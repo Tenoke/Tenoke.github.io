@@ -31,3 +31,8 @@ visibility: visible;
 span.username {
 visibility: visible;
 }
+
+details {
+background-color: rgba(50, 115, 220, 0.03);
+}
+
