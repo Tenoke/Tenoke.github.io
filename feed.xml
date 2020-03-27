@@ -1,4 +1,159 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://svilentodorov.xyz//feed.xml" rel="self" type="application/atom+xml" /><link href="https://svilentodorov.xyz//" rel="alternate" type="text/html" /><updated>2020-03-18T17:17:45+01:00</updated><id>https://svilentodorov.xyz//feed.xml</id><title type="html">Svilen Todorov</title><subtitle>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</subtitle><entry><title type="html">Training Google’s Reformer - takeaways, code, and weights</title><link href="https://svilentodorov.xyz//blog/reformer-99m/" rel="alternate" type="text/html" title="Training Google's Reformer - takeaways, code, and weights" /><published>2020-03-18T00:00:00+01:00</published><updated>2020-03-18T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/Reformer</id><content type="html" xml:base="https://svilentodorov.xyz//blog/reformer-99m/">&lt;p&gt;A lot of progress has been made in training large NLP models in recent years, and after &lt;a href=&quot;/blog/gpt-15b-chat-finetune/&quot;&gt;finetuning GPT2-1.5b&lt;/a&gt; I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s &lt;a href=&quot;https://ai.googleblog.com/2020/01/reformer-efficient-transformer.html&quot;&gt;Reformer&lt;/a&gt; paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens.&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.6">Jekyll</generator><link href="https://svilentodorov.xyz//feed.xml" rel="self" type="application/atom+xml" /><link href="https://svilentodorov.xyz//" rel="alternate" type="text/html" /><updated>2020-03-27T17:48:39+01:00</updated><id>https://svilentodorov.xyz//feed.xml</id><title type="html">Svilen Todorov</title><subtitle>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</subtitle><entry><title type="html">Stylegan for Evil: Trypophobia and Clockwork Oranging</title><link href="https://svilentodorov.xyz//blog/stylegan-for-evil/" rel="alternate" type="text/html" title="Stylegan for Evil: Trypophobia and Clockwork Oranging" /><published>2020-03-27T00:00:00+01:00</published><updated>2020-03-27T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/Stylegan-for-evil</id><content type="html" xml:base="https://svilentodorov.xyz//blog/stylegan-for-evil/">&lt;p&gt;GANs have become the default image generation technique, and many are familiar with sites like &lt;a href=&quot;https://www.artbreeder.com/&quot;&gt;artbreeder&lt;/a&gt;, &lt;a href=&quot;https://www.thispersondoesnotexist.com/&quot;&gt;thispersondoesnotexist&lt;/a&gt;, and it’s off-shoots such as &lt;a href=&quot;https://www.thiswaifudoesnotexist.net/&quot;&gt;thiswaifudoesnotexist&lt;/a&gt;. The generated samples are stunning and quite hard to distinguish from real images, and stylegan, in particular, has been used and finetuned by many with interesting results.&lt;/p&gt;
+
+&lt;p&gt;I’ve experimented with them before - for example, the projection of real images onto the stylegan latent space, and then modifying those is something I find quite interesting. In this project, however, I decided to go in a different direction and use them for evil.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;All generated horrors in this post are hidden unless you click on them. You can read without looking at them if you so choose&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Now, some of the more traditional ways of using Generative models for evil are for spam, &lt;a href=&quot;https://www.wired.com/story/deepfake-porn-harms-adult-performers-too/&quot;&gt;deepfakes&lt;/a&gt;, &lt;a href=&quot;https://newsyoucantuse.com/&quot;&gt;fake news&lt;/a&gt;, and &lt;a href=&quot;https://analysis.leadstories.com/3471185-fake-faces-people-Who-Do-Not-Exist-Invade-Facebook-To-Influence-2020-Elections.html&quot;&gt;scams&lt;/a&gt; but we are going in a different direction here.&lt;/p&gt;
+
+&lt;h3 id=&quot;trypophobia&quot;&gt;Trypophobia&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://en.wikipedia.org/wiki/Trypophobia&quot;&gt;Trypophobia&lt;/a&gt; is a common condition where people react with discomfort and even strong disgust towards specific irregular patterns of holes or bumps. For some the effect is quite strong, for others, it is just unpleasant, and some like me can see what the issue is but have almost no negative reaction.&lt;/p&gt;
+
+&lt;p&gt;It so happens that there is a small, but just &lt;a href=&quot;https://www.kaggle.com/cytadela8/trypophobia&quot;&gt;big enough dataset on kaggle&lt;/a&gt; to train a stylegan on.&lt;/p&gt;
+
+&lt;p&gt;Here are a few examples of how the dataset looks:&lt;/p&gt;
+
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example dataset 1 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;img-fluid&quot; src=&quot;/static/trypo/dataset1.png&quot; /&gt;&lt;/div&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example dataset 2 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;img-fluid&quot; src=&quot;/static/trypo/dataset2.png&quot; /&gt;&lt;/div&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example dataset 3 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;img-fluid&quot; src=&quot;/static/trypo/dataset3.png&quot; /&gt;&lt;/div&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;training&quot;&gt;Training&lt;/h3&gt;
+
+&lt;p&gt;The training data is very varied - ~6000 images many of completely different objects that only share somewhat similar hole patterns. Inconsistent data works poorly with stylegan - what works best is things that are cropped in the same way, from the same angles and generally the same thing but with different features - e.g. faces, even doing full bodies often lead to blobs. This is certainly something that should be a problem with our dataset, but on the bright side we don’t care if the rest of the image is blobby, we just want it to learn the specific patterns that trigger trypophobia, doesn’t matter if the rest of the image is abstract - in fact, it is better in some ways if it is abstract, as that can make the videos and images more appealing.&lt;/p&gt;
+
+&lt;p&gt;I took one of the pretrained stylegans nearly at random - churches and started finetuning on the dataset.
+The results even early on looked quite interesting. Here are some from the first hours:&lt;/p&gt;
+
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example training 1 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;img-fluid&quot; src=&quot;/static/trypo/training1.png&quot; /&gt;&lt;/div&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example training 2 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;img-fluid&quot; src=&quot;/static/trypo/training2.png&quot; /&gt;&lt;/div&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example training 3 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;img-fluid&quot; src=&quot;/static/trypo/training3.png&quot; /&gt;&lt;/div&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;If you find the above fascinating, you can see &lt;a href=&quot;https://mega.nz/#!eVsC0AjC!6QHzPJMlwuHm5mkxTPOhGsII2ZGycQAv2hE9up6JZYc&quot;&gt;much&lt;/a&gt; &lt;a href=&quot;https://mega.nz/#!KMtljazI!R4KrNNJMsx4wn4OF8L7gf-TQoakTVee3BO-Myfrq4S4&quot;&gt;more&lt;/a&gt; &lt;a href=&quot;https://mega.nz/#!nV0zAKgZ!p-0qpKluSlDkTHfjRHR-IYtEnD5zs3RT5QJqvoZdGME&quot;&gt;at&lt;/a&gt; &lt;a href=&quot;https://mega.nz/#!HU9wXYzL!DAjf448jAXej_38vmmSArDtAV3XHZLXqXvw092DtTBY&quot;&gt;these&lt;/a&gt; &lt;a href=&quot;https://mega.nz/#!WVU12ayB!sNs5_BgT4iW9CTGtUt4QcI9r8ny83eBMvOvaOGHCaOg&quot;&gt;links&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Here are some video versions.&lt;/p&gt;
+
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example vid 1 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/l_gK9Q__GVY&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example vid 2 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/yj_mAhj2EwY&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example vid 3 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/vvww_rZQVsI&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Responses of the above vary - some are too disgusted too quickly, while others get just a bit of disgust from the worse of it while being intrigued overall, and some don’t get a negative reaction at all.&lt;/p&gt;
+
+&lt;p&gt;I should also note - videos like these might also be useful for good, as a form of &lt;a href=&quot;https://en.wikipedia.org/wiki/Exposure_therapy&quot;&gt;Exposure Therapy&lt;/a&gt; but let’s not focus on that.&lt;/p&gt;
+
+&lt;h3 id=&quot;clockwork-oranging&quot;&gt;Clockwork Oranging&lt;/h3&gt;
+
+&lt;p&gt;After looking at the early examples of my trypophobia finetunning, I saw some churches that still very much look like churches while also having trypo features. For example these:&lt;/p&gt;
+
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Church AND Trypo &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;div style=&quot;text-align: center;&quot;&gt;&lt;img class=&quot;img-fluid&quot; src=&quot;/static/trypo/trypochurches-training.png&quot; /&gt;&lt;/div&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;This gave me the idea that you can fairly easily combine the two (or combine trypophobia and similar images with something else) to create videos which can make someone associate a concept - in this case a church (not a religious statement, choice was near random) - with negative feelings a la &lt;a href=&quot;https://www.imdb.com/title/tt0066921/&quot;&gt;A Clockwork Orange&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The idea (in this scenario we are very evil) is to strap someone (with trypophobia) to a chair and force them to watch those videos which only require some flowing patterns, at least some churchiness and at least some trypophobia-triggering. Admittedly, those videos didn’t turn out quite so well - I had to experiment with training them with different ratios of trypo to church photos, but they (and the possibly better photos above) demonstrate the idea well enough.&lt;/p&gt;
+
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example vid 1 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/KtZFkdP88tQ&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;details&gt;
+&lt;summary&gt;
+&lt;i&gt;Example vid 2 &lt;small&gt;(click to expand)&lt;/small&gt;&lt;/i&gt;
+&lt;/summary&gt;
+&lt;br /&gt;
+&lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/pvmtJTIKAls&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen=&quot;&quot;&gt;&lt;/iframe&gt;
+&lt;br /&gt;
+&lt;/details&gt;
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;This was a fun little project, that I spent a few days on. You would need to spend a bit more time to create something actually dangerous (which I doubt this really is) but not that much more. Of course, what I describe as clockwork oranging doesn’t look so useful in the real world but what if you could (and you can) use it to make some images just a bit more repulsive to the general population and others just a bit more appealing with little effort? That seems bad but then again a lot of advertising fits that mold despite it requiring more time per image/video. And at any rate - neither this nor ‘evil’ are near my main concerns with respect to machine learning. So even though I was thinking of finishing this with something about the dangers of AI, I’ll just let people make their own conclusions if there any to make.&lt;/p&gt;</content><author><name></name></author><category term="machine-learning" /><category term="training" /><category term="code" /><category term="stylegan" /><category term="image" /><category term="image-generation" /><category term="trypophobia" /><category term="clockwork" /><category term="orange" /><category term="conditioning" /><category term="evil" /><category term="gan" /><category term="disturbing" /><category term="phobia" /><summary type="html">GANs have become the default image generation technique, and many are familiar with sites like artbreeder, thispersondoesnotexist, and it’s off-shoots such as thiswaifudoesnotexist. The generated samples are stunning and quite hard to distinguish from real images, and stylegan, in particular, has been used and finetuned by many with interesting results.</summary></entry><entry><title type="html">Training Google’s Reformer - takeaways, code, and weights</title><link href="https://svilentodorov.xyz//blog/reformer-99m/" rel="alternate" type="text/html" title="Training Google's Reformer - takeaways, code, and weights" /><published>2020-03-18T00:00:00+01:00</published><updated>2020-03-18T00:00:00+01:00</updated><id>https://svilentodorov.xyz//blog/Reformer</id><content type="html" xml:base="https://svilentodorov.xyz//blog/reformer-99m/">&lt;p&gt;A lot of progress has been made in training large NLP models in recent years, and after &lt;a href=&quot;/blog/gpt-15b-chat-finetune/&quot;&gt;finetuning GPT2-1.5b&lt;/a&gt; I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s &lt;a href=&quot;https://ai.googleblog.com/2020/01/reformer-efficient-transformer.html&quot;&gt;Reformer&lt;/a&gt; paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens.&lt;/p&gt;
 
 &lt;h3 id=&quot;reformer&quot;&gt;Reformer&lt;/h3&gt;
 
@@ -2967,287 +3122,4 @@ by running&lt;/p&gt;
 
 &lt;p&gt;Another way to make it produce slightly better results is to finetune it in the end on the chat from a specific person before generating conversations with them (I’ve added the relevant code to the colab).&lt;/p&gt;
 
-&lt;p&gt;We haven’t gotten anywhere near passing the Turing Test but I suspect that if you hook this up to facebook’s API to respond for you, it might take a while for some people to figure it out.&lt;/p&gt;</content><author><name></name></author><category term="gpt" /><category term="gpt2" /><category term="finetune" /><category term="colab" /><category term="nlp" /><category term="machine-learning" /><summary type="html">One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.</summary></entry><entry><title type="html">Building an in-browser Rock Paper Scissors Neural Network capable of beating humans</title><link href="https://svilentodorov.xyz//blog/rps/" rel="alternate" type="text/html" title="Building an in-browser Rock Paper Scissors Neural Network capable of beating humans" /><published>2018-07-31T00:00:00+02:00</published><updated>2018-07-31T00:00:00+02:00</updated><id>https://svilentodorov.xyz//blog/RPS</id><content type="html" xml:base="https://svilentodorov.xyz//blog/rps/">&lt;p&gt;As the &lt;a href=&quot;https://archive.nytimes.com/www.nytimes.com/interactive/science/rock-paper-scissors.html&quot;&gt;New York Times&lt;/a&gt; have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.&lt;/p&gt;
-
-&lt;p&gt;The goals here are simple - we want to run the Neural Net in the user’s browser, and we want it to have some edge and win against most humans.&lt;/p&gt;
-
-&lt;h2 id=&quot;framing-the-problem&quot;&gt;Framing the problem&lt;/h2&gt;
-
-&lt;p&gt;A common instinct when thinking of games is to have an agent-based approach using reinforcement learning - e.g. Q learning. However, reinforcement learning has a reputation for being somewhat finicky, unstable, and often relatively computationally expensive.&lt;/p&gt;
-
-&lt;p&gt;In this specific case, we can, however, frame the problem as a classification problem - predicting whether the next move by the human is going to be a Rock/Paper/Scissors and simply doing the opposite ourselves - which allows us to use somewhat more robust, standard and hopefully smaller models.&lt;/p&gt;
-
-&lt;h2 id=&quot;preparing-to-build-the-model&quot;&gt;Preparing to build the model&lt;/h2&gt;
-
-&lt;p&gt;We are going to be running the finished model fully in the browser and despite it being possible to define everything in JavaScript, some things are easier to do in python. For one, the tensorflow.js API is not quite as complete and nice as the python one, and even more importantly - I find preprocessing of data much easier in python and working in a Jupyter notebook in general.&lt;/p&gt;
-
-&lt;p&gt;Thus, we are going to take advantage of being able to import a tensorflow/keras model into tensorflow.js, which as far as I can tell is almost always the better option.&lt;/p&gt;
-
-&lt;p&gt;Note: The &lt;a href=&quot;https://github.com/Tenoke/tensorflowjs-rps&quot;&gt;associated repo&lt;/a&gt; has the code, data, and all pip-installable prerequisites.&lt;/p&gt;
-
-&lt;h3 id=&quot;overview-of-approach&quot;&gt;Overview of approach&lt;/h3&gt;
-
-&lt;p&gt;We are going to use an LSTM, so data from the previous moves made by the player can influence a prediction of their next move, while also being able to work with a non-fixed number of moves. After we predict their next move, we are simply going to do the move which wins against them (e.g. if we predict they are going to throw rock, we throw paper).&lt;/p&gt;
-
-&lt;p&gt;We are also going to use a little trick to counter how weak the signal in the data is. Even though humans don’t quite play randomly (if they did, we wouldn’t ever be able to perform better against anyone, except by chance) they hardly follow an exceptionally easy to spot pattern either. In fact, we should expect it to be fairly hard, and data-intensive for our model to spot a pattern and to even start learning anything at all about the data thrown at it.&lt;/p&gt;
-
-&lt;p&gt;What we are going to do, in order to force the model to at least initially learn &lt;em&gt;something&lt;/em&gt; about RPS is to give it a secondary objective - to guess who won the current round (for which it has all the data), and to keep track of how many wins it has against the player overall. A fairly easy objective, compared to our main objective of guessing the player’s next move.&lt;/p&gt;
-
-&lt;p&gt;This has two benefits - it makes the model learn something about RPS (mainly which hand wins against which other hand), and it is also extremely helpful while building the model - if we see that it is not even learning the secondary objective, then there is little hope for it to learn the main one. Indeed, this helped me identify multiple bugs during development.&lt;/p&gt;
-
-&lt;h3 id=&quot;imports&quot;&gt;Imports&lt;/h3&gt;
-
-&lt;p&gt;Let’s start by importing the main things we need - numpy and keras.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;from tensorflow import keras
-import numpy as np
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;data&quot;&gt;Data&lt;/h3&gt;
-
-&lt;p&gt;I looked for any RPS data to build the initial model on, and the first thing which popped out and seemed usable was &lt;a href=&quot;https://github.com/PizzaRollExpert/Rock-paper-scissors-data/&quot;&gt;This repo&lt;/a&gt;&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;%%bash
-wget https://github.com/PizzaRollExpert/Rock-paper-scissors-data/raw/master/data.txt
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;After downloading it we need to create a dict for converting the symbols in the dataset to numbers.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;move_to_n = {
-    's':1,
-    'p':2,
-    'x':3
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We then create a function that iterates over all the moves in the files, converts them to numbers using the move_to_n dict, and splits all the moves that are part of the same game into arrays. The code can be simplified and sped up, but as it is for a one-time preprocessing of a very specifically formatted dataset, there’d be little point.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def convert_data(data):
-    result = []
-    game = []
-    for row in data:
-        moves = []
-        if row == '-':
-            if len(game) &amp;gt; 2:
-                result.append(np.array(game))
-                game = []
-            continue
-        for move in row:
-            moves.append(move_to_n[move])
-        if len(moves) &amp;gt; 1:
-            game.append(np.array(moves))
-        moves = []
-    return np.array(result)
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We then open the data we downloaded, split it by rows, convert it using our function, and then flip it - so we have the data both from the perspective of the first player (e.g. rock vs paper) and the second one (e.g. paper vs rock).&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;data = convert_data(data)
-data2 = np.array([np.flip(games, 1) for games in data]) #reverse for player2
-data = np.concatenate((data2, data))
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we have our X - the prepared data for passing to the model to base its guesses, but we need to create our y (ground truth), too.&lt;/p&gt;
-
-&lt;p&gt;First, we are going to make a small helper function for determining who won a given round. I googled around for an easier way to check who won instead of &lt;code class=&quot;highlighter-rouge&quot;&gt;if player1 == 'rock' and player2 ==..&lt;/code&gt;, and I created the function below, based on what I saw &lt;a href=&quot;https://stackoverflow.com/questions/11377117/rock-paper-scissors-determine-win-loss-tie-using-math&quot;&gt;Here&lt;/a&gt;. I admit, I had to triple-check if it works properly.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def calculate_winner(x):
-    result = x[0] - x[1]
-    if result == 0: return 0 #tie
-    if result in (1,-2): return 1 #win
-    return -1 #lose
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;And then another function to create our matching X, and y. We go over each game (which has multiple moves by the same players), add a running score using &lt;code class=&quot;highlighter-rouge&quot;&gt;calculate_winner&lt;/code&gt; for our secondary objective, and use next round’s move from player 1 as the portion of y in our primary objective.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;def create_xy_winner(data):
-    result_y = []
-    result_x = []
-    for game in data:
-        game_y = []
-        score = 0
-        for i, moves in enumerate(game):
-            if i+1 == len(game):
-                result_y.append(np.array(game_y))
-                result_x.append(game[:-1]) #remove last moves from x
-                #skip last game as we dont know what player1 will choose next move
-                continue
-            score += calculate_winner(game[i])
-            game_y.append([game[i+1][0], score]) #append next player1 move
-    return np.array(result_x), np.array(result_y)
-
-X, y = create_xy_winner(data)
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;model&quot;&gt;Model&lt;/h3&gt;
-
-&lt;p&gt;We have our data nicely formatted now, so it is time to create our model.&lt;/p&gt;
-
-&lt;p&gt;We start with an Input layer, which has dimensions (None, 8) - None for the timesteps (as many as we pass) which correspond to the rounds in a given game, and 8 because after playing with it, I realized that one-hot encoding our (e.g. Rock - Paper) input data works better after testing. 
-We then add a Dense layer (Note: instead of one-hot encoding and Dense layer, we could’ve also just used an Embedding).
-After that is our LSTM layer, which is the key to remembering and using information from previous rounds.
-We then add two Dense layers in a row, with the second one outputting a probability representing whether we expect player 1 to throw, rock paper, or scissors.
-We then do the same for our secondary objective - how many wins has player 1 had so far, which is a single number.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;main_input&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;None&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;dtype&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'float32'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;dense&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;32&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'relu'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;lstm&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;LSTM&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;96&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;return_sequences&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;main_output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'relu'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lstm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;main_output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'softmax'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;second_output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;20&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;activation&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s1&quot;&gt;'tanh'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;lstm&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;n&quot;&gt;second_output&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;layers&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Dense&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;m&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;second_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;k&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;keras&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;Model&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;inputs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main_input&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;outputs&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;=[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;main_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;second_output&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We also create an optimizer - Adam with the normal defaults, and compile the model, so the primary objective is treated as much more important (1.0) than our secondary objective (0.2), and we choose their respective loss functions - categorical crossentropy for the primary (as we are choosing categories - rock, paper or scissors), and mean squared error for the number of wins.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;opt = keras.optimizers.Adam(lr=0.001)
-model.compile(loss=['categorical_crossentropy', 'mse'], optimizer=opt, metrics=['accuracy'], loss_weights=[1., 0.2])
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-&lt;p&gt;That’s it for the model. I also attempted some variations - adding Dropout, Batchnorm, and more/less layers, but the current implementation worked best out of those I tried.&lt;/p&gt;
-
-&lt;h3 id=&quot;training&quot;&gt;Training&lt;/h3&gt;
-
-&lt;p&gt;Now, is the time to train our model, however, I get an error when I try to model.fit the data - The model expects our data to be one-hot encoded (or more specifically to have a shape of *,8 rather than *,2), but I didn’t do that initially. Now, because we are working with so little data, and a tiny model (all of it trains in a few seconds on my CPU), we can just do it as we pass the data.&lt;/p&gt;
-
-&lt;p&gt;We iterate over all the games we have, one-hot encode our X and primary y, using the built-in keras function &lt;code class=&quot;highlighter-rouge&quot;&gt;to_categorical&lt;/code&gt;, re-shape the data until we get it how the model expects it (I rarely get this quite right on the first try) and train the model using a batch size of 1.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;    for i in range(len(X)):
-        X_, y_ = X[i], y[i]
-        X_ = keras.utils.to_categorical(X_, 4)
-        X_ = X_.reshape(1, X_.shape[0], 8)
-        y_1 = keras.utils.to_categorical(y_[:,0].reshape(1, y_.shape[0], 1), 4)
-        y_2 = y_[:,1].reshape(1, y_.shape[0], 1)
-        verbose = 2 if (i % 15 == 0) else 0 # print only 1/25th of the time
-        model.fit(X_, [y_1, y_2], epochs=1, shuffle=False, batch_size=1, verbose=verbose)
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Now, we have a trained model and it seems to reach an accuracy of 1 for guessing the number of wins (after fixing a couple of bugs), so we know the model is doing something right. After testing it out though, it will sometimes be very exploitable (e.g. getting stuck into throwing scissors 10 times in a row).&lt;/p&gt;
-
-&lt;p&gt;So, my next step was to increase the data we have - mainly by playing a bunch of games against it and then re-training by adding the new data in. After doing that, I sent it to 12 people, with only one of them managing to win (after at least 50 rounds), so I added their data to main data and re-trained it again.&lt;/p&gt;
-
-&lt;p&gt;Realistically, the model is somewhat overfitted against playing against me, as that is where the bulk of the data comes from - and it really does wipe the floor with me. If we truly want to optimize the model, we’d keep collecting more data from different people and keep training it, but it already seems to be able to win against most people (given a sufficient number of rounds) which is good enough for our purposes.&lt;/p&gt;
-
-&lt;h3 id=&quot;exporting-the-model&quot;&gt;Exporting the model&lt;/h3&gt;
-
-&lt;p&gt;Now that we have built and trained our model we just need to load it with tensorflow.js and make it work in the browser. We first export it.&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;import tensorflowjs as tfjs
-tfjs.converters.save_keras_model(model, 'Full-Model')
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;%%bash
-rm -rf static/Full-Model
-mv Full-Model static/
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;h3 id=&quot;importing-the-model-to-javascript&quot;&gt;Importing the model to JavaScript&lt;/h3&gt;
-
-&lt;p&gt;All we need in order to load our model is to import tensorflow.js, which we will do in our html via a CDN.&lt;/p&gt;
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&amp;lt;script src=&quot;https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.2&quot;&amp;gt; &amp;lt;/script&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;After that, we can simply load it in our JavaScript like so&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;const fullModel  = tf.loadModel('/static/Full-Model/model.json')
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;&lt;em&gt;Note: A lot of things are still broken in tensorflow.js - for one, if you name your layers yourself, you can’t import the model. For another, it doesn’t support the default naming of the newest version of tensorflow either. If you have any problems, try using an older version of tensorflow, or tensorflow.js. When I had that issue, it was most easily fixed using &lt;code class=&quot;highlighter-rouge&quot;&gt;import keras&lt;/code&gt; instead of &lt;code class=&quot;highlighter-rouge&quot;&gt;from tensorflow import keras&lt;/code&gt;, with newest versions from pip/conda for both.&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;After we have loaded the model we create the dicts for converting from number to move, and back.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;n_to_move = {
-  1:'rock',
-  2:'paper',
-  3:'scissors'
-}
-
-move_to_n = {
-  'rock': 1,
-  'paper': 2,
-  'scissors': 3
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We also choose a random first move (as we have no data yet) and create a list to hold the moves so far and some counters for the wins.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function getRandomInt(max, starting=1) {
-  return (starting + Math.floor(Math.random() * max))
-}
-//Choose a random first move
-let nextComputerMove = getRandomInt(3)
-currentMoves = []
-let humanWinCounter = 0
-let computerWinCounter = 0
-let tieCounter = 0
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We then create a copy of the &lt;code class=&quot;highlighter-rouge&quot;&gt;to_categorical&lt;/code&gt; function we used for one-hot encoding the data, as it doesn’t exist in tensorflow.js, and a function to determine who has won (and update the win counters)&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function to_categorical(n, length=4) {
-  let result = Array.from({length}, ()=&amp;gt; 0.)
-  result[n] = 1.
-  return result
-}
-
-function updateCounters(humanMove, computerMove) {
-  switch (humanMove - computerMove) {
-    case 0:
-      tieCounter++
-      return 0
-    case  1: 
-    case -2:
-      humanWinCounter++
-      return 1
-    default:
-      computerWinCounter++
-      return 2
-  }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;We will also need a function to determine our move based on our prediction of the player’s next move (e.g. if we predict rock, throw paper)&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;
-function moveBasedOn(move) {
-  switch(move) {
-    case 1:
-      return 2
-    case 2:
-      return 3
-    case 3:
-      return 1
-  }
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;Now we can create a function, which uses the moves done by the player and computer so far, and uses the model to choose our next move. We only use the last 28 moves - I tried a few numbers between the last 20 and last 35 moves, and somewhere between 25 and 30 seemed to perform best in my limited testing, likely due to the nature of our training data in combination with LSTMs sometimes getting more brittle after a larger number of timesteps.&lt;/p&gt;
-
-&lt;p&gt;Tensorflow.js functions are mostly asynchronous (with some of them having a synchronous version like .dataSync), so any function which works with the model needs to be asynchronous, too.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;async&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;function&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;calculateNextComputerMove&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;const&lt;/span&gt; &lt;span class=&quot;no&quot;&gt;model&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;await&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;fullModel&lt;/span&gt;
-  &lt;span class=&quot;nx&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;lastMoves&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;currentMoves&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;slice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;Math&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;max&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;currentMoves&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;28&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;),&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;currentMoves&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;nx&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;tf&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;tensor3d&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;lastMoves&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;lastMoves&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;8&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
-  &lt;span class=&quot;nx&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;model&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;predict&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;as1D&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
-  &lt;span class=&quot;c1&quot;&gt;// we are getting predictions for all moves (because of how we trained the network)&lt;/span&gt;
-  &lt;span class=&quot;c1&quot;&gt;// but only care for the prediction for the next move - the last 4 numbers&lt;/span&gt;
-  &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;slice&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;shape&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-  &lt;span class=&quot;c1&quot;&gt;// next we turn that into a single number from a one-hot encoding&lt;/span&gt;
-  &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;argMax&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;dataSync&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
-  &lt;span class=&quot;c1&quot;&gt;// and turn that into our next move based on what will beat the human&lt;/span&gt;
-  &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;nx&quot;&gt;moveBasedOn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nx&quot;&gt;nextHumanMovePrediction&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
-&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;When we have that, all that is needed is a function that takes the player’s move, shows them the model’s move (which has been calculated before they even made theirs), updates the counters and uses the current data to calculate the model’s next move.&lt;/p&gt;
-
-&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;function chooseMove(move) {
-  console.log('human: ', n_to_move[move])
-  var winner = updateCounters(move, nextComputerMove)
-  console.log(winner) # 0 = tie, 1 = human, 2 = computer
-  currentMoves.push(to_categorical(move).concat(to_categorical(nextComputerMove)))
-  calculateNextComputerMove().then(nextMove=&amp;gt;nextComputerMove=nextMove)
-}
-&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
-
-&lt;p&gt;That’s it. You can now play against the model by opening the console in your browser, and calling chooseMove(..) with ‘rock’, ‘paper’ or ‘scissors’, or building a frontend around the model like the one in the &lt;a href=&quot;https://github.com/Tenoke/tensorflowjs-rps&quot;&gt;github repo&lt;/a&gt; accompanying this post.&lt;/p&gt;</content><author><name></name></author><category term="machine-learning" /><summary type="html">As the New York Times have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.</summary></entry></feed>
+&lt;p&gt;We haven’t gotten anywhere near passing the Turing Test but I suspect that if you hook this up to facebook’s API to respond for you, it might take a while for some people to figure it out.&lt;/p&gt;</content><author><name></name></author><category term="gpt" /><category term="gpt2" /><category term="finetune" /><category term="colab" /><category term="nlp" /><category term="machine-learning" /><summary type="html">One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.</summary></entry></feed>
