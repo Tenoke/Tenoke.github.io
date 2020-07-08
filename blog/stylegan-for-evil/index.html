@@ -4,7 +4,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
 <title>StyleGAN for Evil: Trypophobia and Clockwork Oranging | Svilen Todorov</title>
-<meta name="generator" content="Jekyll v3.8.6" />
+<meta name="generator" content="Jekyll v3.8.7" />
 <meta property="og:title" content="StyleGAN for Evil: Trypophobia and Clockwork Oranging" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="GANs have become the default image generation technique, and many are familiar with sites like artbreeder, thispersondoesnotexist, and its off-shoots such as thiswaifudoesnotexist. The generated samples are stunning and quite hard to distinguish from real images, and StyleGAN, in particular, has been used and finetuned by many with interesting results." />
@@ -45,9 +45,9 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
         </label>
 
         <div class="trigger">
-            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span><span><img src="/static/previews/8caafe4386f95803.png"></span><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
-            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span><span><img src="/static/previews/979bddc4a8caafdd.png"></span><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
-<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span><span><img src="/static/previews/58edaedca2ed47a8.png"></span><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span><span><img src="/static/previews/e28074f3e186f0ff.png"></span><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
+            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
+            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
+<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
         </div>
       </nav></div>
 </header>
@@ -65,19 +65,19 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>GANs have become the default image generation technique, and many are familiar with sites like <a href="https://www.artbreeder.com/"><span><img src="/static/previews/d50b7b8ec4c665e7.png"></span><span><img src="/static/previews/d50b7b8ec4c665e7.png"></span><span><img src="/static/previews/d50b7b8ec4c665e7.png"></span>artbreeder</a>, <a href="https://www.thispersondoesnotexist.com/"><span><img src="/static/previews/a774b5935e454838.png"></span><span><img src="/static/previews/a774b5935e454838.png"></span><span><img src="/static/previews/a774b5935e454838.png"></span>thispersondoesnotexist</a>, and its off-shoots such as <a href="https://www.thiswaifudoesnotexist.net/"><span><img src="/static/previews/b0cfb784af1aa946.png"></span><span><img src="/static/previews/b0cfb784af1aa946.png"></span><span><img src="/static/previews/b0cfb784af1aa946.png"></span>thiswaifudoesnotexist</a>. The generated samples are stunning and quite hard to distinguish from real images, and StyleGAN, in particular, has been used and finetuned by many with interesting results.</p>
+    <p>GANs have become the default image generation technique, and many are familiar with sites like <a href="https://www.artbreeder.com/"><span><img src="/static/previews/d50b7b8ec4c665e7.png"></span>artbreeder</a>, <a href="https://www.thispersondoesnotexist.com/"><span><img src="/static/previews/a774b5935e454838.png"></span>thispersondoesnotexist</a>, and its off-shoots such as <a href="https://www.thiswaifudoesnotexist.net/"><span><img src="/static/previews/b0cfb784af1aa946.png"></span>thiswaifudoesnotexist</a>. The generated samples are stunning and quite hard to distinguish from real images, and StyleGAN, in particular, has been used and finetuned by many with interesting results.</p>
 
 <p>I’ve experimented with them before - for example, the projection of real images onto the StyleGAN latent space, and then modifying those is something I find quite interesting. In this project, however, I decided to go in a different direction and use them for evil.</p>
 
 <p><strong>All generated horrors in this post are hidden unless you click on them. You can read without looking if you so choose</strong></p>
 
-<p>Now, some of the more traditional ways of using Generative models for evil are for spam, <a href="https://www.wired.com/story/deepfake-porn-harms-adult-performers-too/"><span><img src="/static/previews/22db23ad928b96e7.png"></span><span><img src="/static/previews/22db23ad928b96e7.png"></span><span><img src="/static/previews/22db23ad928b96e7.png"></span>deepfakes</a>, <a href="https://newsyoucantuse.com/"><span><img src="/static/previews/0d59902d62aa8d31.png"></span><span><img src="/static/previews/0d59902d62aa8d31.png"></span><span><img src="/static/previews/0d59902d62aa8d31.png"></span>fake news</a>, and <a href="https://analysis.leadstories.com/3471185-fake-faces-people-Who-Do-Not-Exist-Invade-Facebook-To-Influence-2020-Elections.html"><span><img src="/static/previews/ecd06b7d9131f860.png"></span><span><img src="/static/previews/ecd06b7d9131f860.png"></span><span><img src="/static/previews/ecd06b7d9131f860.png"></span>scams</a> but we are going in a different direction here.</p>
+<p>Now, some of the more traditional ways of using Generative models for evil are for spam, <a href="https://www.wired.com/story/deepfake-porn-harms-adult-performers-too/"><span><img src="/static/previews/22db23ad928b96e7.png"></span>deepfakes</a>, <a href="https://newsyoucantuse.com/"><span><img src="/static/previews/0d59902d62aa8d31.png"></span>fake news</a>, and <a href="https://analysis.leadstories.com/3471185-fake-faces-people-Who-Do-Not-Exist-Invade-Facebook-To-Influence-2020-Elections.html"><span><img src="/static/previews/ecd06b7d9131f860.png"></span>scams</a> but we are going in a different direction here.</p>
 
 <h3 id="trypophobia">Trypophobia</h3>
 
-<p><a href="https://en.wikipedia.org/wiki/Trypophobia"><span><img src="/static/previews/92acd0cc705bf5e6.png"></span><span><img src="/static/previews/92acd0cc705bf5e6.png"></span><span><img src="/static/previews/92acd0cc705bf5e6.png"></span>Trypophobia</a> is a common condition where people react with discomfort and even strong disgust towards specific irregular patterns of holes or bumps. For some the effect is quite strong, for others, it is just unpleasant, and some like me can see what the issue is but have almost no negative reaction.</p>
+<p><a href="https://en.wikipedia.org/wiki/Trypophobia"><span><img src="/static/previews/92acd0cc705bf5e6.png"></span>Trypophobia</a> is a common condition where people react with discomfort and even strong disgust towards specific irregular patterns of holes or bumps. For some the effect is quite strong, for others, it is just unpleasant, and some like me can see what the issue is but have almost no negative reaction.</p>
 
-<p>It so happens that there is a small, but just <a href="https://www.kaggle.com/cytadela8/trypophobia"><span><img src="/static/previews/fd45ce19812bdf70.png"></span><span><img src="/static/previews/fd45ce19812bdf70.png"></span><span><img src="/static/previews/fd45ce19812bdf70.png"></span>big enough dataset on Kaggle</a> to train a StyleGAN on.</p>
+<p>It so happens that there is a small, but just <a href="https://www.kaggle.com/cytadela8/trypophobia"><span><img src="/static/previews/fd45ce19812bdf70.png"></span>big enough dataset on Kaggle</a> to train a StyleGAN on.</p>
 
 <p>Here are a few examples of how the dataset looks:</p>
 
@@ -147,7 +147,7 @@ The results even early on looked quite interesting. Here are some from the first
 </details>
 <p><br /></p>
 
-<p>If you find the above fascinating, you can see <a href="https://mega.nz/#!eVsC0AjC!6QHzPJMlwuHm5mkxTPOhGsII2ZGycQAv2hE9up6JZYc"><span><img src="/static/previews/d7b51be92a6cc886.png"></span><span><img src="/static/previews/d7b51be92a6cc886.png"></span><span><img src="/static/previews/d7b51be92a6cc886.png"></span>much</a> <a href="https://mega.nz/#!KMtljazI!R4KrNNJMsx4wn4OF8L7gf-TQoakTVee3BO-Myfrq4S4"><span><img src="/static/previews/97d6c53e5fd361c6.png"></span><span><img src="/static/previews/97d6c53e5fd361c6.png"></span><span><img src="/static/previews/97d6c53e5fd361c6.png"></span>more</a> <a href="https://mega.nz/#!nV0zAKgZ!p-0qpKluSlDkTHfjRHR-IYtEnD5zs3RT5QJqvoZdGME"><span><img src="/static/previews/6f6eed6bcaa0a12c.png"></span><span><img src="/static/previews/6f6eed6bcaa0a12c.png"></span><span><img src="/static/previews/6f6eed6bcaa0a12c.png"></span>at</a> <a href="https://mega.nz/#!HU9wXYzL!DAjf448jAXej_38vmmSArDtAV3XHZLXqXvw092DtTBY"><span><img src="/static/previews/a56e0db4d07480fe.png"></span><span><img src="/static/previews/a56e0db4d07480fe.png"></span><span><img src="/static/previews/a56e0db4d07480fe.png"></span>these</a> <a href="https://mega.nz/#!WVU12ayB!sNs5_BgT4iW9CTGtUt4QcI9r8ny83eBMvOvaOGHCaOg"><span><img src="/static/previews/f10923d3564565a0.png"></span><span><img src="/static/previews/f10923d3564565a0.png"></span><span><img src="/static/previews/f10923d3564565a0.png"></span>links</a>.</p>
+<p>If you find the above fascinating, you can see <a href="https://mega.nz/#!eVsC0AjC!6QHzPJMlwuHm5mkxTPOhGsII2ZGycQAv2hE9up6JZYc"><span><img src="/static/previews/d7b51be92a6cc886.png"></span>much</a> <a href="https://mega.nz/#!KMtljazI!R4KrNNJMsx4wn4OF8L7gf-TQoakTVee3BO-Myfrq4S4"><span><img src="/static/previews/97d6c53e5fd361c6.png"></span>more</a> <a href="https://mega.nz/#!nV0zAKgZ!p-0qpKluSlDkTHfjRHR-IYtEnD5zs3RT5QJqvoZdGME"><span><img src="/static/previews/6f6eed6bcaa0a12c.png"></span>at</a> <a href="https://mega.nz/#!HU9wXYzL!DAjf448jAXej_38vmmSArDtAV3XHZLXqXvw092DtTBY"><span><img src="/static/previews/a56e0db4d07480fe.png"></span>these</a> <a href="https://mega.nz/#!WVU12ayB!sNs5_BgT4iW9CTGtUt4QcI9r8ny83eBMvOvaOGHCaOg"><span><img src="/static/previews/f10923d3564565a0.png"></span>links</a>.</p>
 
 <p>Here are some video versions.</p>
 
@@ -179,7 +179,7 @@ The results even early on looked quite interesting. Here are some from the first
 
 <p>Responses of the above vary - some are too disgusted too quickly, while others get just a bit of disgust from the worse of it while being intrigued overall, and some don’t get a negative reaction at all.</p>
 
-<p>I should also note - videos like these might also be useful for good, as a form of <a href="https://en.wikipedia.org/wiki/Exposure_therapy"><span><img src="/static/previews/95793041605cb323.png"></span><span><img src="/static/previews/95793041605cb323.png"></span><span><img src="/static/previews/95793041605cb323.png"></span>Exposure Therapy</a> but let’s not focus on that.</p>
+<p>I should also note - videos like these might also be useful for good, as a form of <a href="https://en.wikipedia.org/wiki/Exposure_therapy"><span><img src="/static/previews/95793041605cb323.png"></span>Exposure Therapy</a> but let’s not focus on that.</p>
 
 <p>All of the above was trained on Colab using a p100. The final model was trained for roughly 4 days (I saw no improvement near the end), but there were good results within the first day of training.</p>
 
@@ -222,7 +222,7 @@ The results even early on looked quite interesting. Here are some from the first
 
 <h3 id="conclusion">Conclusion</h3>
 
-<p>This was a fun little project, that I spent a few days on. You would need to spend a bit more time to create something actually dangerous (which I doubt this really is) but not that much more. Of course, what I describe as clockwork oranging doesn’t look so useful in the real world but what if you could (and you can) use it to make some images just a bit more repulsive to the general population and others just a bit more appealing with little effort? That seems bad but then again a lot of advertising fits that mold despite it requiring more time per image/video. And at any rate - neither this nor ‘evil’ are near my main concerns with respect to machine learning. So even though I was thinking of finishing this with something about the dangers of AI, I’ll just let people make their own conclusions if there any to make.</p>
+<p>This was a fun little project, that I spent a few days on. You would need to spend a bit more time to create something actually dangerous (which I doubt this really is) but not that much more. Of course, what I describe as clockwork oranging doesn’t look so useful in the real world but what if you could (and you can) use it to make some images just a bit more repulsive to the general population and others just a bit more appealing with little effort? That seems bad but then again a lot of advertising fits that mold despite it requiring more time per image/video. And at any rate - neither this nor ‘evil’ are near my main concerns with respect to machine learning. So even though I was thinking of finishing this with something about the dangers of AI, I’ll just let people make their own conclusions if there are any to make.</p>
 
   </div><a class="u-url" href="/blog/stylegan-for-evil/" hidden></a>
 </article>
@@ -240,7 +240,7 @@ The results even early on looked quite interesting. Here are some from the first
           <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
       </div>
 
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
 </div>
 
       <div class="footer-col footer-col-3">
