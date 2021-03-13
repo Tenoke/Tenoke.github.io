@@ -2,7 +2,7 @@
 <html lang="en"><head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.6.1 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
 <title>Training Google’s Reformer - takeaways, code, and weights | Svilen Todorov</title>
 <meta name="generator" content="Jekyll v3.8.7" />
 <meta property="og:title" content="Training Google’s Reformer - takeaways, code, and weights" />
@@ -14,6 +14,8 @@
 <meta property="og:site_name" content="Svilen Todorov" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-03-18T00:00:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Training Google’s Reformer - takeaways, code, and weights" />
 <script type="application/ld+json">
 {"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/reformer-99m/","headline":"Training Google’s Reformer - takeaways, code, and weights","dateModified":"2020-03-18T00:00:00+01:00","datePublished":"2020-03-18T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/reformer-99m/"},"description":"A lot of progress has been made in training large NLP models in recent years, and after finetuning GPT2-1.5b I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s Reformer paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens.","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
