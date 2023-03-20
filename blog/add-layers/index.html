@@ -2,38 +2,26 @@
 <html lang="en"><head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
 <title>Adding Layers to the middle of a pre-trained network whithout invalidating the weights | Svilen Todorov</title>
-<meta name="generator" content="Jekyll v3.8.7" />
+<meta name="generator" content="Jekyll v4.3.2" />
 <meta property="og:title" content="Adding Layers to the middle of a pre-trained network whithout invalidating the weights" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation." />
 <meta property="og:description" content="Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation." />
-<link rel="canonical" href="https://svilentodorov.xyz//blog/add-layers/" />
-<meta property="og:url" content="https://svilentodorov.xyz//blog/add-layers/" />
+<link rel="canonical" href="http://localhost:4000/blog/add-layers/" />
+<meta property="og:url" content="http://localhost:4000/blog/add-layers/" />
 <meta property="og:site_name" content="Svilen Todorov" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-03-22T00:00:00+01:00" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Adding Layers to the middle of a pre-trained network whithout invalidating the weights" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/add-layers/","headline":"Adding Layers to the middle of a pre-trained network whithout invalidating the weights","dateModified":"2019-03-22T00:00:00+01:00","datePublished":"2019-03-22T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/add-layers/"},"description":"Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.","@context":"https://schema.org"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2019-03-22T00:00:00+01:00","datePublished":"2019-03-22T00:00:00+01:00","description":"Fine-tunning pre-trained neural networks on new data has shown a lot of promise in many domains. One simple example is my last post where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.","headline":"Adding Layers to the middle of a pre-trained network whithout invalidating the weights","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/blog/add-layers/"},"url":"http://localhost:4000/blog/add-layers/"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css">
   <link rel="stylesheet" href="/static/thumb.css">
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /><script>
-if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-139882809-1', 'auto');
-  ga('send', 'pageview');
-}
-</script>
-  
-</head>
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Svilen Todorov" /></head>
 <body><header class="site-header" role="banner">
 
   <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
@@ -47,9 +35,11 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
         </label>
 
         <div class="trigger">
-            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
-            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
-<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/fiction">Fiction</a>
+
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/fiction.html">Fiction</a><a class="page-link" href="/rps/">RPS</a>-->
         </div>
       </nav></div>
 </header>
@@ -67,7 +57,7 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>Fine-tunning pre-trained neural networks on new data has shown a lot of promise in <a href="https://cv-tricks.com/keras/fine-tuning-tensorflow/"><span><img src="/static/previews/ca58282281e1f750.png"></span>many</a> <a href="http://nlp.fast.ai/"><span><img src="/static/previews/8d009be43813d1fc.png"></span>domains</a>. One simple example is my <a href="/blog/gpt-finetune"><span><img src="/static/previews/52c7b89bd116eeed.png"></span>last post</a> where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.</p>
+    <p>Fine-tunning pre-trained neural networks on new data has shown a lot of promise in <a href="https://cv-tricks.com/keras/fine-tuning-tensorflow/">many</a> <a href="http://nlp.fast.ai/">domains</a>. One simple example is my <a href="/blog/gpt-finetune">last post</a> where I fine-tune OpenAI’s GPT-small model on my chats from facebook messenger to create fake conversation.</p>
 
 <p>Using pre-trained models and further training them is especially useful for organizations with small datasets or resources, and in most cases, it is cost and otherwise effective to do it. However, despite it being widely used, people rarely talk about taking a pre-trained model and making it bigger by adding more layers in the middle of the network rather than just the end.</p>
 
@@ -75,19 +65,19 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
 
 <p>These posts (along with the last) are my first two in a series where I will attempt to increase the size of OpenAI’s GPT-2 model while taking advantage of the training the model has already gotten. Their model is a great candidate for this experiment, as OpenAI have already demonstrated great results with what is basically a bigger version of it. If anyone else is working on something similar or has links to related research I might have missed - feel free to email me, or hell - even cite me.</p>
 
-<p>Note: The basic network example is mostly taken from the <a href="https://www.tensorflow.org/alpha/tutorials/quickstart/advanced"><span><img src="/static/previews/9047628b31acf83c.png"></span>Tensorflow 2.0 Getting started article</a>. I used this as an opportunity to play a little with the new API.</p>
+<p>Note: The basic network example is mostly taken from the <a href="https://www.tensorflow.org/alpha/tutorials/quickstart/advanced">Tensorflow 2.0 Getting started article</a>. I used this as an opportunity to play a little with the new API.</p>
 
-<p>You can follow in the colab <a href="https://colab.research.google.com/drive/1KocZA0Zgo68eMKWXg-W3W6Ev0F6n88cX"><span><img src="/static/previews/8db8f5823929816b.png"></span>here</a>.</p>
+<p>You can follow in the colab <a href="https://colab.research.google.com/drive/1KocZA0Zgo68eMKWXg-W3W6Ev0F6n88cX">here</a>.</p>
 
 <h2 id="code">Code</h2>
 
 <p>First, we install tensorflow 2.0 to Colab (this step can be skipped after 2.0 is out and the default in Colab)</p>
 
-<p><code class="highlighter-rouge">pip install tensorflow-gpu==2.0.0-alpha0
+<p><code class="language-plaintext highlighter-rouge">pip install tensorflow-gpu==2.0.0-alpha0
 </code>
 Then imports</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import tensorflow_datasets as tfds
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import tensorflow_datasets as tfds
 import tensorflow as tf
 import numpy as np
 
@@ -100,7 +90,7 @@ Then we download minst to have something to play with, shuffle and batch it
 
 <p>We download, shuffle, and batch our training and test data</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dataset, info = tfds.load('mnist', with_info=True, as_supervised=True)
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dataset, info = tfds.load('mnist', with_info=True, as_supervised=True)
 mnist_train, mnist_test = dataset['train'], dataset['test']
 
 def convert_types(image, label):
@@ -114,26 +104,26 @@ mnist_test = mnist_test.map(convert_types).batch(32)
 
 <p>Create our basic model</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">class</span> <span class="n">MyModel</span><span class="p">(</span><span class="k">Model</span><span class="p">):</span>
-  <span class="n">def</span> <span class="n">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
-    <span class="n">super</span><span class="p">(</span><span class="n">MyModel</span><span class="p">,</span> <span class="n">self</span><span class="p">).</span><span class="n">__init__</span><span class="p">()</span>
-    <span class="n">self</span><span class="p">.</span><span class="n">conv1</span> <span class="p">=</span> <span class="n">Conv2D</span><span class="p">(</span><span class="m">32</span><span class="p">,</span> <span class="m">3</span><span class="p">,</span> <span class="n">activation</span><span class="p">=</span><span class="s1">'relu'</span><span class="p">)</span>
-    <span class="n">self</span><span class="p">.</span><span class="n">flatten</span> <span class="p">=</span> <span class="n">Flatten</span><span class="p">()</span>
-    <span class="n">self</span><span class="p">.</span><span class="n">d1</span> <span class="p">=</span> <span class="n">Dense</span><span class="p">(</span><span class="m">20</span><span class="p">,</span> <span class="n">activation</span><span class="p">=</span><span class="s1">'relu'</span><span class="p">)</span>
-    <span class="n">self</span><span class="p">.</span><span class="n">d2</span> <span class="p">=</span> <span class="n">Dense</span><span class="p">(</span><span class="m">10</span><span class="p">,</span> <span class="n">activation</span><span class="p">=</span><span class="s1">'softmax'</span><span class="p">)</span>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyModel(Model):
+  def __init__(self):
+    super(MyModel, self).__init__()
+    self.conv1 = Conv2D(32, 3, activation='relu')
+    self.flatten = Flatten()
+    self.d1 = Dense(20, activation='relu')
+    self.d2 = Dense(10, activation='softmax')
 
-  <span class="n">def</span> <span class="n">call</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-    <span class="n">x</span> <span class="p">=</span> <span class="n">self</span><span class="p">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="n">x</span> <span class="p">=</span> <span class="n">self</span><span class="p">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="n">x</span> <span class="p">=</span> <span class="n">self</span><span class="p">.</span><span class="n">d1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-    <span class="n">return</span> <span class="n">self</span><span class="p">.</span><span class="n">d2</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+  def call(self, x):
+    x = self.conv1(x)
+    x = self.flatten(x)
+    x = self.d1(x)
+    return self.d2(x)
   
-<span class="k">model</span> <span class="p">=</span> <span class="n">MyModel</span><span class="p">()</span>
+model = MyModel()
 </code></pre></div></div>
 
 <p>Add our loss, optimizer, and metrics</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>loss_object = tf.keras.losses.SparseCategoricalCrossentropy()
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>loss_object = tf.keras.losses.SparseCategoricalCrossentropy()
 
 optimizer = tf.keras.optimizers.Adam()
 
@@ -146,7 +136,7 @@ test_accuracy = tf.keras.metrics.SparseCategoricalAccuracy(name='test_accuracy')
 
 <p>We define our training_step and test_step functions.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@tf.function
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@tf.function
 def train_step(image, label, model=model):
   with tf.GradientTape() as tape:
     predictions = model(image)
@@ -158,7 +148,7 @@ def train_step(image, label, model=model):
   train_accuracy(label, predictions)
 </code></pre></div></div>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@tf.function
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@tf.function
 def test_step(image, label, model=model):
   predictions = model(image)
   t_loss = loss_object(label, predictions)
@@ -169,7 +159,7 @@ def test_step(image, label, model=model):
 
 <p>We can then train our default model a bit.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EPOCHS = 2
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EPOCHS = 2
 
 for epoch in range(EPOCHS):
   test_loss.reset_states()
@@ -200,7 +190,7 @@ for epoch in range(EPOCHS):
 
 <p>What we are going to do is make a model almost exactly like the last one but we are going to add one more Dense layer before the final one. The important bit here is to initialize the layer so the weights are in the form of the identity function - this way when the output from the previous layer gets multiplied by the output of this layer we will get exactly the same result, and the weights of the final layer will still make sense. Then during fine-tuning, the layer will slowly move away from the identity function in whichever directions make the most sense. Note: we also want the bias to be initialized to zeros (so we don’t add anything extra to the weights at first) but this is already the default in tensorflow.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyModel2(Model):
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyModel2(Model):
   def __init__(self):
     super(MyModel2, self).__init__()
     self.conv1 = Conv2D(32, 3, activation='relu')
@@ -221,7 +211,7 @@ model2 = MyModel2()
 
 <p>We then need to re-run our test_step and train_step functions (just re-run the cells containing them) due to how tf.function works. After that, we can confirm our new model isn’t magically performing better than chance.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>test_loss.reset_states()
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>test_loss.reset_states()
 test_accuracy.reset_states()
 for test_image, test_label in mnist_test:
     test_step(test_image, test_label, model2)
@@ -241,7 +231,7 @@ print (template.format(test_loss.result(),
 
 <p>Now, the only other thing we need to do is add the weights from our previous model to our new model, except for our new (3rd) layer which will at first just leave things the same.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>model2.layers[0].set_weights(model.layers[0].get_weights())
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>model2.layers[0].set_weights(model.layers[0].get_weights())
 model2.layers[1].set_weights(model.layers[1].get_weights())
 model2.layers[2].set_weights(model.layers[2].get_weights())
 model2.layers[4].set_weights(model.layers[3].get_weights())
@@ -255,7 +245,7 @@ model2.layers[4].set_weights(model.layers[3].get_weights())
 
 <p>At this point we can just start training our bigger model.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EPOCHS = 2
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>EPOCHS = 2
 
 for epoch in range(EPOCHS):
   test_loss.reset_states()
@@ -288,7 +278,7 @@ for epoch in range(EPOCHS):
 
 <p>Also, instead of doing that, we can also freeze everything but our new layer to more accurately only train it. This will train faster, and depending on the problem, it might make more sense - or it might make more sense for a few epochs before again training all layers. Play around with it!</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@tf.function
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>@tf.function
 def train_step(image, label, model=model):
   with tf.GradientTape() as tape:
     predictions = model(image)
@@ -309,7 +299,7 @@ model.trainable_variables works by returning a list of all weights and biases of
 
 <p>There are different ways you can extend the network while keeping all the weights useful - one I like is to use a residual-like approach. I simply initialize the new conv layer using all 1s and multiply the output from it to the output of the previous layer. This changes nothing at first but once we start training again, we can slowly move those weights in the direction we want them to be.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyModel(Model):
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>class MyModel(Model):
   def __init__(self):
     super(MyModel, self).__init__()
     self.conv1 = Conv2D(32, 3, activation='relu', padding='SAME')
@@ -359,7 +349,7 @@ class MyModel2(Model):
           <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
       </div>
 
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
 </div>
 
       <div class="footer-col footer-col-3">

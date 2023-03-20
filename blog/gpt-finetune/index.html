@@ -2,38 +2,26 @@
 <html lang="en"><head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
 <title>Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger | Svilen Todorov</title>
-<meta name="generator" content="Jekyll v3.8.7" />
+<meta name="generator" content="Jekyll v4.3.2" />
 <meta property="og:title" content="Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations." />
 <meta property="og:description" content="One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations." />
-<link rel="canonical" href="https://svilentodorov.xyz//blog/gpt-finetune/" />
-<meta property="og:url" content="https://svilentodorov.xyz//blog/gpt-finetune/" />
+<link rel="canonical" href="http://localhost:4000/blog/gpt-finetune/" />
+<meta property="og:url" content="http://localhost:4000/blog/gpt-finetune/" />
 <meta property="og:site_name" content="Svilen Todorov" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2019-03-12T00:00:00+01:00" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/gpt-finetune/","headline":"Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger","dateModified":"2019-03-12T00:00:00+01:00","datePublished":"2019-03-12T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/gpt-finetune/"},"description":"One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.","@context":"https://schema.org"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2019-03-12T00:00:00+01:00","datePublished":"2019-03-12T00:00:00+01:00","description":"One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.","headline":"Generating Fake Conversations by fine-tunning OpenAI’s GPT-2 on data from Facebook Messenger","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/blog/gpt-finetune/"},"url":"http://localhost:4000/blog/gpt-finetune/"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css">
   <link rel="stylesheet" href="/static/thumb.css">
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /><script>
-if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-139882809-1', 'auto');
-  ga('send', 'pageview');
-}
-</script>
-  
-</head>
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Svilen Todorov" /></head>
 <body><header class="site-header" role="banner">
 
   <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
@@ -47,9 +35,11 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
         </label>
 
         <div class="trigger">
-            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
-            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
-<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/fiction">Fiction</a>
+
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/fiction.html">Fiction</a><a class="page-link" href="/rps/">RPS</a>-->
         </div>
       </nav></div>
 </header>
@@ -69,26 +59,26 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
   <div class="post-content e-content" itemprop="articleBody">
     <p>One of the most interesting problems in NLP has always been human-like conversation and many are still considering passing the Turing Test as the holy grail of the field. In this post, I show how to use a state of the art model on your own data (I use my own messages sent on facebook) to generate (somewhat) realistic conversations.</p>
 
-<p>In February 2019 OpenAI released <a href="https://blog.openai.com/better-language-models/"><span><img src="/static/previews/be1b16beedf85267.png"></span>information on their new state of the art language model</a> which created a lot of buzz within the community. While few disagree the results they included are better than anything we’ve seen before (even if mainly because they made a bigger model combining recent advances), many were peeved that OpenAI only released a small pre-trained version of their model rather than the full one they generated examples with. Nonetheless, the small model is also very good, and due to nshepperd’s addition to their code, we can easily fine-tune it on our own data to easily generate (near-)state of the art results specific to whatever we want.</p>
+<p>In February 2019 OpenAI released <a href="https://blog.openai.com/better-language-models/">information on their new state of the art language model</a> which created a lot of buzz within the community. While few disagree the results they included are better than anything we’ve seen before (even if mainly because they made a bigger model combining recent advances), many were peeved that OpenAI only released a small pre-trained version of their model rather than the full one they generated examples with. Nonetheless, the small model is also very good, and due to nshepperd’s addition to their code, we can easily fine-tune it on our own data to easily generate (near-)state of the art results specific to whatever we want.</p>
 
 <p>Since then people have been experimenting with the model, including some like the aforementioned nsheppered adding simple scripts allowing us to fine-tune the model on our data. In this post, I am going to describe how to use easily available tools like those scripts, Google Colab and Facebook’s Data Export option in order to create borderline realistic conversation snippets.</p>
 
 <p>If you don’t have enough data on facebook, you should be able to easily export your conversation data from pretty much any other service and train on that. Better yet, you can combine data from different sources - as usual with machine learning, the more data you have the better.</p>
 
-<p>You can follow in the colab <a href="https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP"><span><img src="/static/previews/b49faa0053404b53.png"></span>here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
+<p>You can follow in the colab <a href="https://colab.research.google.com/drive/1OiieFQZyROURR9kvfrsytsy4lGTSSIwP">here</a>. Make sure to click Runtime&gt; Change Runtime type&gt; GPU (or TPU)</p>
 
 <h2 id="code">Code</h2>
 
 <p>We start with the imports</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import os
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import os
 import json
 import random
 import re
 </code></pre></div></div>
 
-<p>Then we clone <a href="https://github.com/Tenoke/gpt-2"><span><img src="/static/previews/472462954bd1d4ac.png"></span>my fork</a> of <a href="https://github.com/nshepperd/gpt-2"><span><img src="/static/previews/ad77b554380cd13c.png"></span>nsheppered’s GPT</a> finetuning repo - I’ve only made some small changes to it - mainly adding a couple of extra command line options for changing things like the learning rate and adding a stopping point. We also cd into it, and install the requirements and download the model.</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!git clone https://github.com/Tenoke/gpt-2.git
+<p>Then we clone <a href="https://github.com/Tenoke/gpt-2">my fork</a> of <a href="https://github.com/nshepperd/gpt-2">nsheppered’s GPT</a> finetuning repo - I’ve only made some small changes to it - mainly adding a couple of extra command line options for changing things like the learning rate and adding a stopping point. We also cd into it, and install the requirements and download the model.</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!git clone https://github.com/Tenoke/gpt-2.git
 cd gpt-2
 !pip3 install -r requirements.txt
 !sh download_model.sh 117M
@@ -96,14 +86,14 @@ cd gpt-2
 
 <p>Next, we need to download our facebook messages. Facebook explains how to do it <a href="https://www.facebook.com/help/1701730696756992?helpref=hc_global_nav">here</a>. Only select ‘messages’ and for the format select ‘json’. After it is ready you can either download the file by clicking download or by using Dev Tools. To do so open them with F12, go to sources, and click download (and then just cancel it), then find the entry starting with file.php, right click it and ‘copy as curl’ as in this screenshot
 <img src="/static/screenshot-fb.png" alt="Facebook Screenshot" class="img-responsive" />
-then just add ! in front of the command (to run it in colab) and <code class="highlighter-rouge">--output fb-json.zip</code> at the end to name the file.</p>
+then just add ! in front of the command (to run it in colab) and <code class="language-plaintext highlighter-rouge">--output fb-json.zip</code> at the end to name the file.</p>
 
-<p><code class="highlighter-rouge">
-!curl &lt;link&gt; --output fb-json.zip
-</code>
+<p>`
+!curl <link /> –output fb-json.zip
+`
 After that, we unzip the file and get a list containing all files with message data (as opposed to the other stuff that facebook includes in the zip)</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!unzip fb-json.zip
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!unzip fb-json.zip
 
 files = []
 for p, d, f in os.walk('messages/inbox'):
@@ -118,13 +108,13 @@ len(files)
 
 <p>I’ve also included a few functions - one to fix the encoding and escaping in facebook’s data, and two to detect cyrilic so I can exclude any chats I have not in English (this part would be irrelevant for most)</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def fix_encoding(s):
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def fix_encoding(s):
   return re.sub('[\xc2-\xf4][\x80-\xbf]+',lambda m: m.group(0).encode('latin1').decode('utf8'),s)
 </code></pre></div></div>
 
-<p>Now it is time to actually create a corpus from all those files. If you have a lot of data, you might want to do this in steps. There’s also a <code class="highlighter-rouge">banned_names</code> tuple where you can add any names you don’t want to appear in the corpus.</p>
+<p>Now it is time to actually create a corpus from all those files. If you have a lot of data, you might want to do this in steps. There’s also a <code class="language-plaintext highlighter-rouge">banned_names</code> tuple where you can add any names you don’t want to appear in the corpus.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
 text_corpus = ''
 banned_names = ('vladislav')
 for file in files:
@@ -150,12 +140,12 @@ for file in files:
 
 <p>We then save the data to a file, check how big the file is (14m in my case) and encode the data (unnecessary but it is faster if you do it before training).</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>with open('fb-cleaned.txt', 'w') as f:
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>with open('fb-cleaned.txt', 'w') as f:
   f.write(text_corpus)
 </code></pre></div></div>
 
 <p>It is time to start trainning!</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.0001 --stop_after=251
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.0001 --stop_after=251
 !PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.001 --stop_after=751
 !PYTHONPATH=src ./train.py --dataset fb-cleaned.txt.npz --sample_every=250 --learning_rate=0.0001 --beta=0.95 --stop_after=1251
 </code></pre></div></div>
@@ -163,18 +153,18 @@ for file in files:
 <p>At this point, we can see samples, although feel free to change the learning rate, beta or train for more cycles. The code so far takes under an hour to run for me but it depends on the size of your dataset among other things.</p>
 
 <p>We need to first copy the new trainned weights.</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!cp -r /content/gpt-2/checkpoint/run1/* /content/gpt-2/models/117M/
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!cp -r /content/gpt-2/checkpoint/run1/* /content/gpt-2/models/117M/
 </code></pre></div></div>
 
 <p>After which we can either let it generate chats on its own with</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!python3 src/generate_unconditional_samples.py --top_k 40 --temperature 0.9
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!python3 src/generate_unconditional_samples.py --top_k 40 --temperature 0.9
 </code></pre></div></div>
 
 <p>Or we can force it to give us chats with a specific person (or on a topic)
 by running</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!python3 src/interactive_conditional_samples.py --top_k 40 --temperature 0.9
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>!python3 src/interactive_conditional_samples.py --top_k 40 --temperature 0.9
 </code></pre></div></div>
-<p>And then giving it something like <code class="highlighter-rouge">(137378602389) Ioannis Agathocleous: hi</code> in the interactive prompt to get a chat with that person.</p>
+<p>And then giving it something like <code class="language-plaintext highlighter-rouge">(137378602389) Ioannis Agathocleous: hi</code> in the interactive prompt to get a chat with that person.</p>
 
 <p>Here are some samples. Some are better than others</p>
 
@@ -617,7 +607,7 @@ by running</p>
           <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
       </div>
 
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
 </div>
 
       <div class="footer-col footer-col-3">

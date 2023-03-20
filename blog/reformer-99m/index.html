@@ -2,38 +2,26 @@
 <html lang="en"><head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
 <title>Training Google’s Reformer - takeaways, code, and weights | Svilen Todorov</title>
-<meta name="generator" content="Jekyll v3.8.7" />
+<meta name="generator" content="Jekyll v4.3.2" />
 <meta property="og:title" content="Training Google’s Reformer - takeaways, code, and weights" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="A lot of progress has been made in training large NLP models in recent years, and after finetuning GPT2-1.5b I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s Reformer paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens." />
 <meta property="og:description" content="A lot of progress has been made in training large NLP models in recent years, and after finetuning GPT2-1.5b I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s Reformer paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens." />
-<link rel="canonical" href="https://svilentodorov.xyz//blog/reformer-99m/" />
-<meta property="og:url" content="https://svilentodorov.xyz//blog/reformer-99m/" />
+<link rel="canonical" href="http://localhost:4000/blog/reformer-99m/" />
+<meta property="og:url" content="http://localhost:4000/blog/reformer-99m/" />
 <meta property="og:site_name" content="Svilen Todorov" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2020-03-18T00:00:00+01:00" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Training Google’s Reformer - takeaways, code, and weights" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/reformer-99m/","headline":"Training Google’s Reformer - takeaways, code, and weights","dateModified":"2020-03-18T00:00:00+01:00","datePublished":"2020-03-18T00:00:00+01:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/reformer-99m/"},"description":"A lot of progress has been made in training large NLP models in recent years, and after finetuning GPT2-1.5b I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s Reformer paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens.","@context":"https://schema.org"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2020-03-18T00:00:00+01:00","datePublished":"2020-03-18T00:00:00+01:00","description":"A lot of progress has been made in training large NLP models in recent years, and after finetuning GPT2-1.5b I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s Reformer paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens.","headline":"Training Google’s Reformer - takeaways, code, and weights","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/blog/reformer-99m/"},"url":"http://localhost:4000/blog/reformer-99m/"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css">
   <link rel="stylesheet" href="/static/thumb.css">
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /><script>
-if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-139882809-1', 'auto');
-  ga('send', 'pageview');
-}
-</script>
-  
-</head>
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Svilen Todorov" /></head>
 <body><header class="site-header" role="banner">
 
   <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
@@ -47,9 +35,11 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
         </label>
 
         <div class="trigger">
-            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
-            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
-<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/fiction">Fiction</a>
+
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/fiction.html">Fiction</a><a class="page-link" href="/rps/">RPS</a>-->
         </div>
       </nav></div>
 </header>
@@ -67,29 +57,29 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>A lot of progress has been made in training large NLP models in recent years, and after <a href="/blog/gpt-15b-chat-finetune/"><span><img src="/static/previews/8de9e9307b767b32.png"></span>finetuning GPT2-1.5b</a> I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s <a href="https://ai.googleblog.com/2020/01/reformer-efficient-transformer.html"><span><img src="/static/previews/fa385f364c7d4d8f.png"></span><span><img src="/static/previews/fa385f364c7d4d8f.png"></span>Reformer</a> paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens.</p>
+    <p>A lot of progress has been made in training large NLP models in recent years, and after <a href="/blog/gpt-15b-chat-finetune/">finetuning GPT2-1.5b</a> I’ve been thinking about context windows. Large Transformers are very good, but when you are only limited to 512 or more commonly now 1024 tokens, the model doesn’t know quite that much of what happened earlier at any point. Google’s <a href="https://ai.googleblog.com/2020/01/reformer-efficient-transformer.html">Reformer</a> paper introduces a more efficient way of doing attention, sidestepping the problem which I used to train a model with context of 64k tokens.</p>
 
 <h3 id="reformer">Reformer</h3>
 
 <p>The two main tricks used by the Reformer are reversible residual layers and Locality-Sensitive-Hashing.</p>
 
-<p>Reversible layers lower memory consumption by allowing us to recalculate layer inputs during backprop based on the already computed later layers instead of keeping all of it in memory. It provides similar advantages to <a href="https://github.com/cybertronai/gradient-checkpointing"><span><img src="/static/previews/21fcdf1d4bb82811.png"></span>memory checkpointing</a>, except in this case the layers are designed to specifically capture the layer-to-layer changes allowing us to recompute more efficiently.</p>
+<p>Reversible layers lower memory consumption by allowing us to recalculate layer inputs during backprop based on the already computed later layers instead of keeping all of it in memory. It provides similar advantages to <a href="https://github.com/cybertronai/gradient-checkpointing">memory checkpointing</a>, except in this case the layers are designed to specifically capture the layer-to-layer changes allowing us to recompute more efficiently.</p>
 
 <p>More importantly for my purposes, it also introduces Locality-Sensitive-Hashing (LSH), which allows us to approximately compute attention much more cheaply and thus work with much, much larger context. In short, LSH maps similar vectors together rather than working with all possible pairs of vectors (which is what makes attention so expensive). In the cases where we have many of the same/similar tokens, a lot of them will end up with the same hash so they get chunked and then attention is applied in parallel on those much smaller chunks.</p>
 
-<p>If you are interested in the specific check out <a href="https://github.com/google/trax/blob/master/trax/models/reformer/reformer.py"><span><img src="/static/previews/e4121b874bc8480b.png"></span>their code</a>, <a href="https://arxiv.org/abs/2001.04451"><span><img src="/static/previews/db62100d4f40075e.png"></span>paper</a> or <a href="https://ai.googleblog.com/2020/01/reformer-efficient-transformer.html"><span><img src="/static/previews/fa385f364c7d4d8f.png"></span><span><img src="/static/previews/fa385f364c7d4d8f.png"></span>blog post</a></p>
+<p>If you are interested in the specific check out <a href="https://github.com/google/trax/blob/master/trax/models/reformer/reformer.py">their code</a>, <a href="https://arxiv.org/abs/2001.04451">paper</a> or <a href="https://ai.googleblog.com/2020/01/reformer-efficient-transformer.html">blog post</a></p>
 
 <h3 id="training">Training</h3>
 
-<p>Google Research released an implementation of their Reformer model as part of the <a href="https://github.com/google/trax"><span><img src="/static/previews/340c0d7f3a2e6f89.png"></span>trax library</a>, which is easy to use. Given my interest in NLP models with larger contexts, I decided to experiment with it and pretrain the largest model you can fit on a Colab TPU - with the idea that this way others can take it and finetune it on their tasks in cases where large context is important.</p>
+<p>Google Research released an implementation of their Reformer model as part of the <a href="https://github.com/google/trax">trax library</a>, which is easy to use. Given my interest in NLP models with larger contexts, I decided to experiment with it and pretrain the largest model you can fit on a Colab TPU - with the idea that this way others can take it and finetune it on their tasks in cases where large context is important.</p>
 
-<p><strong>Here is my related <a href="https://github.com/Tenoke/trax-reformer/"><span><img src="/static/previews/0759a1d1414cf9bc.png"></span>repo</a>, <a href="https://mega.nz/#!SR9WySCC!K2sdePWHDq2QiHlom8ZMLgKeBCcjQxsBToxl9NpNhpg"><span><img src="/static/previews/ccaa16baace7d62d.png"></span>link to the weights</a> and <a href="https://colab.research.google.com/drive/1VSaQingkpMDf730ARlo2dw5vCBVOgt17"><span><img src="/static/previews/812138677fe19569.png"></span><span><img src="/static/previews/812138677fe19569.png"></span>Colab</a> link</strong></p>
+<p><strong>Here is my related <a href="https://github.com/Tenoke/trax-reformer/">repo</a>, <a href="https://mega.nz/#!SR9WySCC!K2sdePWHDq2QiHlom8ZMLgKeBCcjQxsBToxl9NpNhpg">link to the weights</a> and <a href="https://colab.research.google.com/drive/1VSaQingkpMDf730ARlo2dw5vCBVOgt17">Colab</a> link</strong></p>
 
-<p>First I used a small amount of the data to play with Reformer. I started with their <a href="https://colab.research.google.com/github/google/trax/blob/master/trax/models/reformer/text_generation.ipynb"><span><img src="/static/previews/f3240a6fc8912f96.png"></span><span><img src="/static/previews/f3240a6fc8912f96.png"></span>code for training on Crime and Punishment</a>, however, I just couldn’t get it to go much beyond .3 accuracy no matter how much data I fed it. It seems like the parameters used there were mostly chosen for having a huge context but the model couldn’t learn much. After a lot of experimenting, I ended up with parameters closer to their <a href="https://github.com/google/trax/blob/master/trax/configs/reformer_enwik8.gin"><span><img src="/static/previews/091ba6a7b801768b.png"></span>enwiki8 training run</a>, I ran about 50 trials with small adjustments and chose the version of the parameters where the loss was going down quickest. You can see the final values I’ve chosen in the <a href="https://github.com/Tenoke/trax-reformer/blob/master/configs.py"><span><img src="/static/previews/89c25b9eb3cd2373.png"></span>repo</a>. <strong>The overview is that we have ~99m parameters (compared to the small gpt with 117m), context window of 65536, 0.2 dropout, 12 layers and a vocabulary of 256</strong></p>
+<p>First I used a small amount of the data to play with Reformer. I started with their <a href="https://colab.research.google.com/github/google/trax/blob/master/trax/models/reformer/text_generation.ipynb">code for training on Crime and Punishment</a>, however, I just couldn’t get it to go much beyond .3 accuracy no matter how much data I fed it. It seems like the parameters used there were mostly chosen for having a huge context but the model couldn’t learn much. After a lot of experimenting, I ended up with parameters closer to their <a href="https://github.com/google/trax/blob/master/trax/configs/reformer_enwik8.gin">enwiki8 training run</a>, I ran about 50 trials with small adjustments and chose the version of the parameters where the loss was going down quickest. You can see the final values I’ve chosen in the <a href="https://github.com/Tenoke/trax-reformer/blob/master/configs.py">repo</a>. <strong>The overview is that we have ~99m parameters (compared to the small gpt with 117m), context window of 65536, 0.2 dropout, 12 layers and a vocabulary of 256</strong></p>
 
-<p>After that, I decided to train it on all of Wikipedia, which I downloaded and preprocessed to make it easier and faster to use with Colab and Drive. I downloaded the <a href="https://dumps.wikimedia.org/backup-index.html"><span><img src="/static/previews/ced3deeb65763989.png"></span>most recent Wikipedia dump</a> and processed it into JSON while excluding all articles under 1000 characters - we are training for large contexts, so including tiny articles would be counter-productive. Then I split the big JSON file into smaller files of 5000 articles each - because Drive can lock down your file if it’s too big and you access it too much. <a href="https://colab.research.google.com/drive/15WCdIYju3A4UOY1-JGt7NTlw0jMLJYXZ"><span><img src="/static/previews/4c048ac40705c7eb.png"></span>Here</a> is the Colab for doing the above.</p>
+<p>After that, I decided to train it on all of Wikipedia, which I downloaded and preprocessed to make it easier and faster to use with Colab and Drive. I downloaded the <a href="https://dumps.wikimedia.org/backup-index.html">most recent Wikipedia dump</a> and processed it into JSON while excluding all articles under 1000 characters - we are training for large contexts, so including tiny articles would be counter-productive. Then I split the big JSON file into smaller files of 5000 articles each - because Drive can lock down your file if it’s too big and you access it too much. <a href="https://colab.research.google.com/drive/15WCdIYju3A4UOY1-JGt7NTlw0jMLJYXZ">Here</a> is the Colab for doing the above.</p>
 
-<p>Next, I wanted to pre-tokenize all my data so I can load it to my model quickly rather than doing it on the fly. One thing currently not added to the Reformer (but is on the list) is handling bigger vocab sizes, like the ~50k GPT2 vocabulary. Given that our context is going to be huge, and that the vocabulary size that enwiki8 config uses is 256 anyway, I decided on a character-level ByteLevelBPE tokenizer from <a href="https://github.com/huggingface/tokenizers"><span><img src="/static/previews/724d1d4672321f3e.png"></span>huggingface’s tokenizers</a>. I regretted it a bit, as there is little documentation in the library, and there are weird things in it like being unable to easily add extra tokens, or save the tokenizer - it took me a while to realize that saving after adding extra tokens does nothing, as they just save ‘the model’ as you’ve trained it, so I had to manually edit the vocabulary I pass to it. <a href="https://colab.research.google.com/drive/1letuN1YbhI8cxJIL059Bp7J6ga_kXkeP"><span><img src="/static/previews/d4963fb01b55f5d1.png"></span>Here</a> is the Colab for tokenizing and saving all the preprocessed data. Again - we are tokenizing in advance instead of on the fly to speed up training.</p>
+<p>Next, I wanted to pre-tokenize all my data so I can load it to my model quickly rather than doing it on the fly. One thing currently not added to the Reformer (but is on the list) is handling bigger vocab sizes, like the ~50k GPT2 vocabulary. Given that our context is going to be huge, and that the vocabulary size that enwiki8 config uses is 256 anyway, I decided on a character-level ByteLevelBPE tokenizer from <a href="https://github.com/huggingface/tokenizers">huggingface’s tokenizers</a>. I regretted it a bit, as there is little documentation in the library, and there are weird things in it like being unable to easily add extra tokens, or save the tokenizer - it took me a while to realize that saving after adding extra tokens does nothing, as they just save ‘the model’ as you’ve trained it, so I had to manually edit the vocabulary I pass to it. <a href="https://colab.research.google.com/drive/1letuN1YbhI8cxJIL059Bp7J6ga_kXkeP">Here</a> is the Colab for tokenizing and saving all the preprocessed data. Again - we are tokenizing in advance instead of on the fly to speed up training.</p>
 
 <p>I wanted to take advantage of the large context so my function for feeding data to the model specifically always loads full articles and adds padding up to max the context length. The data is all tokenized and ready, so we just load preprocessed files at random and pick random samples from them.</p>
 
@@ -126,8 +116,8 @@ Bayliss was elected to Nottinghamshire County Council, becoming an alderman, and
 
 <p>I got okay samples from it when they were less than a few thousand tokens long but if I tried to get a very long one it often either turned repetitive or turned into gibberish after a while. Part of it was because in the training data - ‘}’ denotes the end of a sample and it hasn’t seen anything after, so after it outputs that it just doesn’t know where to go, which is reasonable. However, part of it was just that it is easier to enter into repetitive sequences in longer samples as it has more options to do so.</p>
 
-<p>For that reason I experimented with adding top_k, top_p, temperature, using exp2 instead of exp on the logits so they’ll be closer together, and a few random things including a Meena-inspired approach of generating multiple samples at each step and using the probabilities of the best one (also multiplying multiple samples’ probabilities). I’ve included some of the more useful ones in the sampling function in the <a href="https://github.com/Tenoke/trax-reformer/blob/master/sample.py"><span><img src="/static/previews/c210652099bb2e0f.png"></span>repo</a>. 
-After adding sampling options, I generated 8 samples for various options (279 in total after excluding all options which were more obviously subpar) and wrote some testing code to show me one randomly and ask me to rate it. This was very tedious and I wish I had set more rigorous grading rules, as I did the grading over a few days and ended up not being as consistent as I would have liked. I’ve included the ratings of the settings I tested <a href="https://github.com/Tenoke/trax-reformer/blob/master/rating-args.dict"><span><img src="/static/previews/7f46ae4d72a82ee3.png"></span>here</a>.</p>
+<p>For that reason I experimented with adding top_k, top_p, temperature, using exp2 instead of exp on the logits so they’ll be closer together, and a few random things including a Meena-inspired approach of generating multiple samples at each step and using the probabilities of the best one (also multiplying multiple samples’ probabilities). I’ve included some of the more useful ones in the sampling function in the <a href="https://github.com/Tenoke/trax-reformer/blob/master/sample.py">repo</a>. 
+After adding sampling options, I generated 8 samples for various options (279 in total after excluding all options which were more obviously subpar) and wrote some testing code to show me one randomly and ask me to rate it. This was very tedious and I wish I had set more rigorous grading rules, as I did the grading over a few days and ended up not being as consistent as I would have liked. I’ve included the ratings of the settings I tested <a href="https://github.com/Tenoke/trax-reformer/blob/master/rating-args.dict">here</a>.</p>
 
 <p>Here are various samples at different settings:</p>
 
@@ -903,15 +893,15 @@ After adding sampling options, I generated 8 samples for various options (279 in
 </details>
 <p><br /></p>
 
-<p>After writing this I noticed the Reformer team have added a new sampling functionality in trax, but it currently has memory leaks so it is fairly limited. It might be worth it to try to use my Reformer weights by loading them via their official <a href="https://colab.research.google.com/github/google/trax/blob/master/trax/models/reformer/text_generation.ipynb"><span><img src="/static/previews/f3240a6fc8912f96.png"></span><span><img src="/static/previews/f3240a6fc8912f96.png"></span>Reformer Colab</a> and testing that out.</p>
+<p>After writing this I noticed the Reformer team have added a new sampling functionality in trax, but it currently has memory leaks so it is fairly limited. It might be worth it to try to use my Reformer weights by loading them via their official <a href="https://colab.research.google.com/github/google/trax/blob/master/trax/models/reformer/text_generation.ipynb">Reformer Colab</a> and testing that out.</p>
 
 <h2 id="conclusion">Conclusion</h2>
 
-<p>The Reformer is an interesting architecture and Locality-Sensitive-Hashing in particular might be a good addition to the attention toolbox, allowing us to take advantage of larger contexts (<a href="https://www.pragmatic.ml/a-survey-of-methods-for-incorporating-long-term-context"><span><img src="/static/previews/825873a5607fedd1.png"></span>Here</a> is a recent review of other approaches for tackling the context window problem). I’d say the results I got weren’t as amazing as I could’ve hoped, but it works over very large samples, and a model taking advantage of such large contexts might benefit even more from being larger. Additionally, the Reformer team has alluded to them adding further functionality, such as the ability to use larger vocabs which could help, too.</p>
+<p>The Reformer is an interesting architecture and Locality-Sensitive-Hashing in particular might be a good addition to the attention toolbox, allowing us to take advantage of larger contexts (<a href="https://www.pragmatic.ml/a-survey-of-methods-for-incorporating-long-term-context">Here</a> is a recent review of other approaches for tackling the context window problem). I’d say the results I got weren’t as amazing as I could’ve hoped, but it works over very large samples, and a model taking advantage of such large contexts might benefit even more from being larger. Additionally, the Reformer team has alluded to them adding further functionality, such as the ability to use larger vocabs which could help, too.</p>
 
 <p>The sampling tests I ran were pretty interesting to me, and I’ve included some of them here. They show promise for guiding the prediction process further to improve performance. Perhaps applying some of it during training can help even more.</p>
 
-<p>As for the model I trained - <a href="https://colab.research.google.com/drive/1VSaQingkpMDf730ARlo2dw5vCBVOgt17"><span><img src="/static/previews/812138677fe19569.png"></span><span><img src="/static/previews/812138677fe19569.png"></span>here</a> is the Colab where you can use to finetune or sample from my model.</p>
+<p>As for the model I trained - <a href="https://colab.research.google.com/drive/1VSaQingkpMDf730ARlo2dw5vCBVOgt17">here</a> is the Colab where you can use to finetune or sample from my model.</p>
 
   </div><a class="u-url" href="/blog/reformer-99m/" hidden></a>
 </article>
@@ -929,7 +919,7 @@ After adding sampling options, I generated 8 samples for various options (279 in
           <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
       </div>
 
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
 </div>
 
       <div class="footer-col footer-col-3">

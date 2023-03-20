@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Exploring Lichess data on improvement using e4 vs d4 and blitz vs rapid | Svilen Todorov</title>
+<meta name="generator" content="Jekyll v4.3.2" />
+<meta property="og:title" content="Exploring Lichess data on improvement using e4 vs d4 and blitz vs rapid" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="A common question in the chess community is whether to play e4 or d4 as a beginner with opinions being split between e4 being better for learning, it not mattering, and rarely d4 being better. Another common question is whether playing shorter games or longer games helps you improve faster, with the orthodoxy being that longer games help you learn more overall. I’ve downloaded games from Lichess’ database to explore those questions. In short, my analysis suggests d4 is actually somewhat better for your improvement (confidence: high), and so are longer games (confidence: low)." />
+<meta property="og:description" content="A common question in the chess community is whether to play e4 or d4 as a beginner with opinions being split between e4 being better for learning, it not mattering, and rarely d4 being better. Another common question is whether playing shorter games or longer games helps you improve faster, with the orthodoxy being that longer games help you learn more overall. I’ve downloaded games from Lichess’ database to explore those questions. In short, my analysis suggests d4 is actually somewhat better for your improvement (confidence: high), and so are longer games (confidence: low)." />
+<link rel="canonical" href="http://localhost:4000/blog/chess-e4-vs-d4/" />
+<meta property="og:url" content="http://localhost:4000/blog/chess-e4-vs-d4/" />
+<meta property="og:site_name" content="Svilen Todorov" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2023-03-20T00:00:00+01:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Exploring Lichess data on improvement using e4 vs d4 and blitz vs rapid" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2023-03-20T00:00:00+01:00","datePublished":"2023-03-20T00:00:00+01:00","description":"A common question in the chess community is whether to play e4 or d4 as a beginner with opinions being split between e4 being better for learning, it not mattering, and rarely d4 being better. Another common question is whether playing shorter games or longer games helps you improve faster, with the orthodoxy being that longer games help you learn more overall. I’ve downloaded games from Lichess’ database to explore those questions. In short, my analysis suggests d4 is actually somewhat better for your improvement (confidence: high), and so are longer games (confidence: low).","headline":"Exploring Lichess data on improvement using e4 vs d4 and blitz vs rapid","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/blog/chess-e4-vs-d4/"},"url":"http://localhost:4000/blog/chess-e4-vs-d4/"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="stylesheet" href="/assets/main.css">
+  <link rel="stylesheet" href="/static/thumb.css">
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Svilen Todorov" /></head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger">
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/fiction">Fiction</a>
+
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/fiction.html">Fiction</a><a class="page-link" href="/rps/">RPS</a>-->
+        </div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+  <center><h2 class="post-title p-name" itemprop="name headline">Exploring Lichess data on improvement using e4 vs d4 and blitz vs rapid</h1> 
+  <h2 class="post-subtitle p-name" itemprop="name headline"></h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2023-03-20T00:00:00+01:00" itemprop="datePublished">Mar 20, 2023
+      </time></p>
+    </center>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p><a href="https://www.reddit.com/r/chess/comments/fv5b5u/e4_vs_d4_for_beginner/">A</a> <a href="https://www.reddit.com/r/chess/comments/xdebcs/thoughts_on_playing_e4_and_d4_as/">common</a> <a href="https://www.chessable.com/discussion/thread/23473/1e4-vs-1d4-/23486/">question</a> in the chess community is whether to play e4 or d4 as a beginner with opinions being split between e4 being better for learning, it not mattering, and rarely d4 being better. Another common question is whether playing shorter games or longer games helps you improve faster, with the orthodoxy being that longer games help you learn more overall. I’ve downloaded games from <a href="https://database.lichess.org/">Lichess’ database</a> to explore those questions. In short, my analysis suggests d4 is actually somewhat better for your improvement (confidence: high), and so are longer games (confidence: low).</p>
+
+<h4 id="data">Data</h4>
+
+<p>I download the January 2022 (102,110,423 games) and January 2023 (103,178,407 games) PGNs from <a href="https://database.lichess.org/">Lichess’ database</a>. I went over all rapid, and blitz games saving them seperately and recorded whether White played e4 or d4 and their rating at the time. I threw everything else - Black, different time controls, non-rated games, anything after the first move etc.</p>
+
+<p>I filtered anyone above 1800 rating since the majority over that rating aren’t beginners - according to lichess only 18% of weekly rapid players have a rating &gt; 1800 and 21% for blitz.</p>
+
+<p>I then removed anyone that wasn’t present in both 2022 and 2023, and I removed anyone that had player both e4 and d4. This left me with 125447 e4 rapid players and 22274 d4 rapid players, and 950477 blitz e4 players to 477755 blitz d4 players. It also made the ratio of e4 to d4 players worse than beforehand since there were more ‘pure’ e4 players than pure ‘d4’ players.</p>
+
+<p>This is still a good amount of players, as we are comparing the same players at both times and we should expect to detect an effect if there is one.</p>
+
+<h4 id="analysis">Analysis</h4>
+
+<p>I personally prefer rapid games, so I looked at them first. After filtering the data and extracting the rating differences between 2022 and 2023, we get a mean increase of 78.6 points for e4 over a year of rapid play vs 85.5 for d4. This looks like a small but noticable differene and A quick ttest suggests a <code class="language-plaintext highlighter-rouge">pvalue=0.001</code></p>
+
+<div style="text-align: center;"><img class="img-fluid" src="/static/chess/e4_d4_rapid.png" /></div>
+
+<p>Looking at the graph it looks like most of the difference is in the 1350 and bellow range. I’m not completely sure why there is such a jump in rating improvement there but starting rating on lichess is 1500, and many newer players quickly fall bellow that (I believe 1 lost game on a new account brings you to the 1350-1500 group) so that’s where the newest player are and where ratings are most violatile.</p>
+
+<p>Looking at the blitz data, the results do replicate, however the improvements are much smaller. The mean improvement for E4 is 5.2 points and 8.1 points for blitz (pvalue=0.009). It’s important to note that the rapid and blitz ratings aren’t directly comparable and the cutoff at 1800 does not mean the same thing for blitz as it does for rapid - the 50th percentile for rapid is 1550 and 1430 for blitz, with rapid ratings generally being much higher for the same player. Nonetheless, the results broadly replicate and look like this</p>
+
+<div style="text-align: center;"><img class="img-fluid" src="/static/chess/e4_d4_blitz.png" /></div>
+
+<p>Given how hard it is to compare rapid and blitz ratings, I have less to say about the relative improvement there but the average improvement in &lt;1800 rapid is ~80 points and only 5-8 points for blitz. If I cut off the data to only &lt;1500 the blitz improvement jumps to 60-68 points which is still lower, and even limiting it to bellow 1300 leads to lower improvements in blitz (78 points for e4 and 66 for d4) than for &lt;1800 rapid.</p>
+
+<h4 id="conclusion">Conclusion</h4>
+
+<p>Longer games, or at least rapid seem plausibly better for your improvement over blitz games (at least at lower ratings) and d4 in particular seems to lead to a faster rating rise than d4 BUT the difference is fairly small, so if a player prefers a particular opening and would play more games using it then it’s unlikely to be worth switching. I will personally attempt to switch away from my default - the Scotch - but only because it would be somewhat silly to have ran this analysis and not changed anything because of it. If anyone wants to try to replicate my findings the quick code I wrote is <a href="https://github.com/Tenoke/e4_d4_analysis">here</a>, however, you’ll need to download the PGNs from lichess as a month’s worth is ~200gb uncompressed and hard to share. Let me know if you get different results or spot any mistakes.</p>
+
+
+  </div><a class="u-url" href="/blog/chess-e4-vs-d4/" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>Personal site for Data Scientist and Machine Learning Engineer - Svilen Todorov</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+</body>
+
+</html>

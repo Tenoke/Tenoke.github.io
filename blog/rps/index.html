@@ -2,38 +2,26 @@
 <html lang="en"><head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
 <title>Building an in-browser Rock Paper Scissors Neural Network capable of beating humans | Svilen Todorov</title>
-<meta name="generator" content="Jekyll v3.8.7" />
+<meta name="generator" content="Jekyll v4.3.2" />
 <meta property="og:title" content="Building an in-browser Rock Paper Scissors Neural Network capable of beating humans" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="As the New York Times have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js." />
 <meta property="og:description" content="As the New York Times have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js." />
-<link rel="canonical" href="https://svilentodorov.xyz//blog/rps/" />
-<meta property="og:url" content="https://svilentodorov.xyz//blog/rps/" />
+<link rel="canonical" href="http://localhost:4000/blog/rps/" />
+<meta property="og:url" content="http://localhost:4000/blog/rps/" />
 <meta property="og:site_name" content="Svilen Todorov" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2018-07-31T00:00:00+02:00" />
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Building an in-browser Rock Paper Scissors Neural Network capable of beating humans" />
 <script type="application/ld+json">
-{"@type":"BlogPosting","url":"https://svilentodorov.xyz//blog/rps/","headline":"Building an in-browser Rock Paper Scissors Neural Network capable of beating humans","dateModified":"2018-07-31T00:00:00+02:00","datePublished":"2018-07-31T00:00:00+02:00","mainEntityOfPage":{"@type":"WebPage","@id":"https://svilentodorov.xyz//blog/rps/"},"description":"As the New York Times have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.","@context":"https://schema.org"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","dateModified":"2018-07-31T00:00:00+02:00","datePublished":"2018-07-31T00:00:00+02:00","description":"As the New York Times have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.","headline":"Building an in-browser Rock Paper Scissors Neural Network capable of beating humans","mainEntityOfPage":{"@type":"WebPage","@id":"http://localhost:4000/blog/rps/"},"url":"http://localhost:4000/blog/rps/"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css">
   <link rel="stylesheet" href="/static/thumb.css">
-  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="https://svilentodorov.xyz//feed.xml" title="Svilen Todorov" /><script>
-if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-139882809-1', 'auto');
-  ga('send', 'pageview');
-}
-</script>
-  
-</head>
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?"><link type="application/atom+xml" rel="alternate" href="http://localhost:4000/feed.xml" title="Svilen Todorov" /></head>
 <body><header class="site-header" role="banner">
 
   <div class="wrapper"><a class="site-title" rel="author" href="/">Svilen Todorov</a><nav class="site-nav">
@@ -47,9 +35,11 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
         </label>
 
         <div class="trigger">
-            <a class="page-link" href="/blog"><span><img src="/static/previews/8caafe4386f95803.png"></span>Blog</a>
-            <a class="page-link" href="/about"><span><img src="/static/previews/979bddc4a8caafdd.png"></span>About</a>
-<!--<a class="page-link" href="/blog.html"><span><img src="/static/previews/58edaedca2ed47a8.png"></span>Blog</a><a class="page-link" href="/rps/"><span><img src="/static/previews/e28074f3e186f0ff.png"></span>RPS</a>-->
+            <a class="page-link" href="/blog">Blog</a>
+            <a class="page-link" href="/fiction">Fiction</a>
+
+            <a class="page-link" href="/about">About</a>
+<!--<a class="page-link" href="/blog.html">Blog</a><a class="page-link" href="/fiction.html">Fiction</a><a class="page-link" href="/rps/">RPS</a>-->
         </div>
       </nav></div>
 </header>
@@ -67,7 +57,7 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>As the <a href="https://archive.nytimes.com/www.nytimes.com/interactive/science/rock-paper-scissors.html"><span><img src="/static/previews/a42519d4a8d9ade7.png"></span>New York Times</a> have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.</p>
+    <p>As the <a href="https://archive.nytimes.com/www.nytimes.com/interactive/science/rock-paper-scissors.html">New York Times</a> have demonstrated, an algorithm can consistently win against humans at Rock Paper Scissors (RPS) using the right statistical techniques. The fact that it is doable, the simplicity, and the popularity of the game make it a good choice for attempting to do it using Deep Learning and making it run with tensorflow.js.</p>
 
 <p>The goals here are simple - we want to run the Neural Net in the user’s browser, and we want it to have some edge and win against most humans.</p>
 
@@ -83,7 +73,7 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
 
 <p>Thus, we are going to take advantage of being able to import a tensorflow/keras model into tensorflow.js, which as far as I can tell is almost always the better option.</p>
 
-<p>Note: The <a href="https://github.com/Tenoke/tensorflowjs-rps"><span><img src="/static/previews/e8e45eedf15bfd87.png"></span><span><img src="/static/previews/e8e45eedf15bfd87.png"></span>associated repo</a> has the code, data, and all pip-installable prerequisites.</p>
+<p>Note: The <a href="https://github.com/Tenoke/tensorflowjs-rps">associated repo</a> has the code, data, and all pip-installable prerequisites.</p>
 
 <h3 id="overview-of-approach">Overview of approach</h3>
 
@@ -99,21 +89,21 @@ if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNo
 
 <p>Let’s start by importing the main things we need - numpy and keras.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>from tensorflow import keras
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>from tensorflow import keras
 import numpy as np
 </code></pre></div></div>
 
 <h3 id="data">Data</h3>
 
-<p>I looked for any RPS data to build the initial model on, and the first thing which popped out and seemed usable was <a href="https://github.com/PizzaRollExpert/Rock-paper-scissors-data/"><span><img src="/static/previews/5d4651eeacc521f9.png"></span>This repo</a></p>
+<p>I looked for any RPS data to build the initial model on, and the first thing which popped out and seemed usable was <a href="https://github.com/PizzaRollExpert/Rock-paper-scissors-data/">This repo</a></p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>%%bash
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>%%bash
 wget https://github.com/PizzaRollExpert/Rock-paper-scissors-data/raw/master/data.txt
 </code></pre></div></div>
 
 <p>After downloading it we need to create a dict for converting the symbols in the dataset to numbers.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>move_to_n = {
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>move_to_n = {
     's':1,
     'p':2,
     'x':3
@@ -122,7 +112,7 @@ wget https://github.com/PizzaRollExpert/Rock-paper-scissors-data/raw/master/data
 
 <p>We then create a function that iterates over all the moves in the files, converts them to numbers using the move_to_n dict, and splits all the moves that are part of the same game into arrays. The code can be simplified and sped up, but as it is for a one-time preprocessing of a very specifically formatted dataset, there’d be little point.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def convert_data(data):
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def convert_data(data):
     result = []
     game = []
     for row in data:
@@ -142,25 +132,25 @@ wget https://github.com/PizzaRollExpert/Rock-paper-scissors-data/raw/master/data
 
 <p>We then open the data we downloaded, split it by rows, convert it using our function, and then flip it - so we have the data both from the perspective of the first player (e.g. rock vs paper) and the second one (e.g. paper vs rock).</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>data = convert_data(data)
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>data = convert_data(data)
 data2 = np.array([np.flip(games, 1) for games in data]) #reverse for player2
 data = np.concatenate((data2, data))
 </code></pre></div></div>
 
 <p>Now we have our X - the prepared data for passing to the model to base its guesses, but we need to create our y (ground truth), too.</p>
 
-<p>First, we are going to make a small helper function for determining who won a given round. I googled around for an easier way to check who won instead of <code class="highlighter-rouge">if player1 == 'rock' and player2 ==..</code>, and I created the function below, based on what I saw <a href="https://stackoverflow.com/questions/11377117/rock-paper-scissors-determine-win-loss-tie-using-math"><span><img src="/static/previews/94596c07c1f7e4fa.png"></span>Here</a>. I admit, I had to triple-check if it works properly.</p>
+<p>First, we are going to make a small helper function for determining who won a given round. I googled around for an easier way to check who won instead of <code class="language-plaintext highlighter-rouge">if player1 == 'rock' and player2 ==..</code>, and I created the function below, based on what I saw <a href="https://stackoverflow.com/questions/11377117/rock-paper-scissors-determine-win-loss-tie-using-math">Here</a>. I admit, I had to triple-check if it works properly.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def calculate_winner(x):
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def calculate_winner(x):
     result = x[0] - x[1]
     if result == 0: return 0 #tie
     if result in (1,-2): return 1 #win
     return -1 #lose
 </code></pre></div></div>
 
-<p>And then another function to create our matching X, and y. We go over each game (which has multiple moves by the same players), add a running score using <code class="highlighter-rouge">calculate_winner</code> for our secondary objective, and use next round’s move from player 1 as the portion of y in our primary objective.</p>
+<p>And then another function to create our matching X, and y. We go over each game (which has multiple moves by the same players), add a running score using <code class="language-plaintext highlighter-rouge">calculate_winner</code> for our secondary objective, and use next round’s move from player 1 as the portion of y in our primary objective.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def create_xy_winner(data):
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>def create_xy_winner(data):
     result_y = []
     result_x = []
     for game in data:
@@ -189,19 +179,19 @@ After that is our LSTM layer, which is the key to remembering and using informat
 We then add two Dense layers in a row, with the second one outputting a probability representing whether we expect player 1 to throw, rock paper, or scissors.
 We then do the same for our secondary objective - how many wins has player 1 had so far, which is a single number.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">main_input</span> <span class="p">=</span> <span class="n">keras</span><span class="p">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="p">=(</span><span class="n">None</span><span class="p">,</span><span class="m">8</span><span class="p">),</span> <span class="n">dtype</span><span class="p">=</span><span class="s1">'float32'</span><span class="p">)</span>
-<span class="n">dense</span> <span class="p">=</span> <span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Dense</span><span class="p">(</span><span class="m">32</span><span class="p">,</span> <span class="n">activation</span><span class="p">=</span><span class="s1">'relu'</span><span class="p">)(</span><span class="n">main_input</span><span class="p">)</span>
-<span class="n">lstm</span> <span class="p">=</span> <span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">LSTM</span><span class="p">(</span><span class="m">96</span><span class="p">,</span> <span class="n">return_sequences</span><span class="p">=</span><span class="nb">True</span><span class="p">)(</span><span class="n">dense</span><span class="p">)</span>
-<span class="n">main_output</span> <span class="p">=</span> <span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Dense</span><span class="p">(</span><span class="m">20</span><span class="p">,</span> <span class="n">activation</span><span class="p">=</span><span class="s1">'relu'</span><span class="p">)(</span><span class="n">lstm</span><span class="p">)</span>
-<span class="n">main_output</span> <span class="p">=</span> <span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Dense</span><span class="p">(</span><span class="m">4</span><span class="p">,</span> <span class="n">activation</span><span class="p">=</span><span class="s1">'softmax'</span><span class="p">)(</span><span class="n">main_output</span><span class="p">)</span>
-<span class="n">second_output</span> <span class="p">=</span> <span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Dense</span><span class="p">(</span><span class="m">20</span><span class="p">,</span> <span class="n">activation</span><span class="p">=</span><span class="s1">'tanh'</span><span class="p">)(</span><span class="n">lstm</span><span class="p">)</span>
-<span class="n">second_output</span> <span class="p">=</span> <span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Dense</span><span class="p">(</span><span class="m">1</span><span class="p">)(</span><span class="n">second_output</span><span class="p">)</span>
-<span class="k">model</span> <span class="p">=</span> <span class="n">keras</span><span class="p">.</span><span class="k">Model</span><span class="p">(</span><span class="n">inputs</span><span class="p">=[</span><span class="n">main_input</span><span class="p">,],</span> <span class="n">outputs</span><span class="p">=[</span><span class="n">main_output</span><span class="p">,</span> <span class="n">second_output</span><span class="p">])</span>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>main_input = keras.Input(shape=(None,8), dtype='float32')
+dense = keras.layers.Dense(32, activation='relu')(main_input)
+lstm = keras.layers.LSTM(96, return_sequences=True)(dense)
+main_output = keras.layers.Dense(20, activation='relu')(lstm)
+main_output = keras.layers.Dense(4, activation='softmax')(main_output)
+second_output = keras.layers.Dense(20, activation='tanh')(lstm)
+second_output = keras.layers.Dense(1)(second_output)
+model = keras.Model(inputs=[main_input,], outputs=[main_output, second_output])
 </code></pre></div></div>
 
 <p>We also create an optimizer - Adam with the normal defaults, and compile the model, so the primary objective is treated as much more important (1.0) than our secondary objective (0.2), and we choose their respective loss functions - categorical crossentropy for the primary (as we are choosing categories - rock, paper or scissors), and mean squared error for the number of wins.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>opt = keras.optimizers.Adam(lr=0.001)
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>opt = keras.optimizers.Adam(lr=0.001)
 model.compile(loss=['categorical_crossentropy', 'mse'], optimizer=opt, metrics=['accuracy'], loss_weights=[1., 0.2])
 </code></pre></div></div>
 <p>That’s it for the model. I also attempted some variations - adding Dropout, Batchnorm, and more/less layers, but the current implementation worked best out of those I tried.</p>
@@ -210,9 +200,9 @@ model.compile(loss=['categorical_crossentropy', 'mse'], optimizer=opt, metrics=[
 
 <p>Now, is the time to train our model, however, I get an error when I try to model.fit the data - The model expects our data to be one-hot encoded (or more specifically to have a shape of *,8 rather than *,2), but I didn’t do that initially. Now, because we are working with so little data, and a tiny model (all of it trains in a few seconds on my CPU), we can just do it as we pass the data.</p>
 
-<p>We iterate over all the games we have, one-hot encode our X and primary y, using the built-in keras function <code class="highlighter-rouge">to_categorical</code>, re-shape the data until we get it how the model expects it (I rarely get this quite right on the first try) and train the model using a batch size of 1.</p>
+<p>We iterate over all the games we have, one-hot encode our X and primary y, using the built-in keras function <code class="language-plaintext highlighter-rouge">to_categorical</code>, re-shape the data until we get it how the model expects it (I rarely get this quite right on the first try) and train the model using a batch size of 1.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    for i in range(len(X)):
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    for i in range(len(X)):
         X_, y_ = X[i], y[i]
         X_ = keras.utils.to_categorical(X_, 4)
         X_ = X_.reshape(1, X_.shape[0], 8)
@@ -231,11 +221,11 @@ model.compile(loss=['categorical_crossentropy', 'mse'], optimizer=opt, metrics=[
 <h3 id="exporting-the-model">Exporting the model</h3>
 
 <p>Now that we have built and trained our model we just need to load it with tensorflow.js and make it work in the browser. We first export it.</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import tensorflowjs as tfjs
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>import tensorflowjs as tfjs
 tfjs.converters.save_keras_model(model, 'Full-Model')
 </code></pre></div></div>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>%%bash
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>%%bash
 rm -rf static/Full-Model
 mv Full-Model static/
 </code></pre></div></div>
@@ -243,19 +233,19 @@ mv Full-Model static/
 <h3 id="importing-the-model-to-javascript">Importing the model to JavaScript</h3>
 
 <p>All we need in order to load our model is to import tensorflow.js, which we will do in our html via a CDN.</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.2"&gt; &lt;/script&gt;
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>&lt;script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.2"&gt; &lt;/script&gt;
 </code></pre></div></div>
 
 <p>After that, we can simply load it in our JavaScript like so</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>const fullModel  = tf.loadModel('/static/Full-Model/model.json')
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>const fullModel  = tf.loadModel('/static/Full-Model/model.json')
 </code></pre></div></div>
 
-<p><em>Note: A lot of things are still broken in tensorflow.js - for one, if you name your layers yourself, you can’t import the model. For another, it doesn’t support the default naming of the newest version of tensorflow either. If you have any problems, try using an older version of tensorflow, or tensorflow.js. When I had that issue, it was most easily fixed using <code class="highlighter-rouge">import keras</code> instead of <code class="highlighter-rouge">from tensorflow import keras</code>, with newest versions from pip/conda for both.</em></p>
+<p><em>Note: A lot of things are still broken in tensorflow.js - for one, if you name your layers yourself, you can’t import the model. For another, it doesn’t support the default naming of the newest version of tensorflow either. If you have any problems, try using an older version of tensorflow, or tensorflow.js. When I had that issue, it was most easily fixed using <code class="language-plaintext highlighter-rouge">import keras</code> instead of <code class="language-plaintext highlighter-rouge">from tensorflow import keras</code>, with newest versions from pip/conda for both.</em></p>
 
 <p>After we have loaded the model we create the dicts for converting from number to move, and back.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>n_to_move = {
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>n_to_move = {
   1:'rock',
   2:'paper',
   3:'scissors'
@@ -270,7 +260,7 @@ move_to_n = {
 
 <p>We also choose a random first move (as we have no data yet) and create a list to hold the moves so far and some counters for the wins.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>function getRandomInt(max, starting=1) {
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>function getRandomInt(max, starting=1) {
   return (starting + Math.floor(Math.random() * max))
 }
 //Choose a random first move
@@ -281,9 +271,9 @@ let computerWinCounter = 0
 let tieCounter = 0
 </code></pre></div></div>
 
-<p>We then create a copy of the <code class="highlighter-rouge">to_categorical</code> function we used for one-hot encoding the data, as it doesn’t exist in tensorflow.js, and a function to determine who has won (and update the win counters)</p>
+<p>We then create a copy of the <code class="language-plaintext highlighter-rouge">to_categorical</code> function we used for one-hot encoding the data, as it doesn’t exist in tensorflow.js, and a function to determine who has won (and update the win counters)</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>function to_categorical(n, length=4) {
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>function to_categorical(n, length=4) {
   let result = Array.from({length}, ()=&gt; 0.)
   result[n] = 1.
   return result
@@ -307,7 +297,7 @@ function updateCounters(humanMove, computerMove) {
 
 <p>We will also need a function to determine our move based on our prediction of the player’s next move (e.g. if we predict rock, throw paper)</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
 function moveBasedOn(move) {
   switch(move) {
     case 1:
@@ -324,24 +314,24 @@ function moveBasedOn(move) {
 
 <p>Tensorflow.js functions are mostly asynchronous (with some of them having a synchronous version like .dataSync), so any function which works with the model needs to be asynchronous, too.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">async</span> <span class="k">function</span> <span class="n">calculateNextComputerMove</span><span class="p">()</span> <span class="p">{</span>
-  <span class="k">const</span> <span class="no">model</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fullModel</span>
-  <span class="n">let</span> <span class="n">lastMoves</span> <span class="o">=</span> <span class="n">currentMoves</span><span class="mf">.</span><span class="nf">slice</span><span class="p">(</span><span class="nc">Math</span><span class="mf">.</span><span class="nb">max</span><span class="p">(</span><span class="n">currentMoves</span><span class="mf">.</span><span class="n">length</span><span class="o">-</span><span class="mi">28</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">currentMoves</span><span class="mf">.</span><span class="n">length</span><span class="p">)</span>
-  <span class="n">let</span> <span class="n">data</span> <span class="o">=</span> <span class="n">tf</span><span class="mf">.</span><span class="nf">tensor3d</span><span class="p">([</span><span class="n">lastMoves</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">lastMoves</span><span class="mf">.</span><span class="n">length</span><span class="p">,</span> <span class="mi">8</span><span class="p">])</span>
-  <span class="n">let</span> <span class="n">nextHumanMovePrediction</span> <span class="o">=</span> <span class="n">model</span><span class="mf">.</span><span class="nf">predict</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="mf">.</span><span class="nf">as1D</span><span class="p">()</span>
-  <span class="c1">// we are getting predictions for all moves (because of how we trained the network)</span>
-  <span class="c1">// but only care for the prediction for the next move - the last 4 numbers</span>
-  <span class="n">nextHumanMovePrediction</span> <span class="o">=</span> <span class="n">nextHumanMovePrediction</span><span class="mf">.</span><span class="nf">slice</span><span class="p">(</span><span class="n">nextHumanMovePrediction</span><span class="mf">.</span><span class="n">shape</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">)</span>
-  <span class="c1">// next we turn that into a single number from a one-hot encoding</span>
-  <span class="n">nextHumanMovePrediction</span> <span class="o">=</span> <span class="n">nextHumanMovePrediction</span><span class="mf">.</span><span class="nf">argMax</span><span class="p">()</span><span class="mf">.</span><span class="nf">dataSync</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-  <span class="c1">// and turn that into our next move based on what will beat the human</span>
-  <span class="k">return</span> <span class="nf">moveBasedOn</span><span class="p">(</span><span class="n">nextHumanMovePrediction</span><span class="p">)</span>
-<span class="p">}</span>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>async function calculateNextComputerMove() {
+  const model = await fullModel
+  let lastMoves = currentMoves.slice(Math.max(currentMoves.length-28, 0), currentMoves.length)
+  let data = tf.tensor3d([lastMoves], [1, lastMoves.length, 8])
+  let nextHumanMovePrediction = model.predict(data)[0].as1D()
+  // we are getting predictions for all moves (because of how we trained the network)
+  // but only care for the prediction for the next move - the last 4 numbers
+  nextHumanMovePrediction = nextHumanMovePrediction.slice(nextHumanMovePrediction.shape-4,4)
+  // next we turn that into a single number from a one-hot encoding
+  nextHumanMovePrediction = nextHumanMovePrediction.argMax().dataSync()[0]
+  // and turn that into our next move based on what will beat the human
+  return moveBasedOn(nextHumanMovePrediction)
+}
 </code></pre></div></div>
 
 <p>When we have that, all that is needed is a function that takes the player’s move, shows them the model’s move (which has been calculated before they even made theirs), updates the counters and uses the current data to calculate the model’s next move.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>function chooseMove(move) {
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>function chooseMove(move) {
   console.log('human: ', n_to_move[move])
   var winner = updateCounters(move, nextComputerMove)
   console.log(winner) # 0 = tie, 1 = human, 2 = computer
@@ -350,7 +340,7 @@ function moveBasedOn(move) {
 }
 </code></pre></div></div>
 
-<p>That’s it. You can now play against the model by opening the console in your browser, and calling chooseMove(..) with ‘rock’, ‘paper’ or ‘scissors’, or building a frontend around the model like the one in the <a href="https://github.com/Tenoke/tensorflowjs-rps"><span><img src="/static/previews/e8e45eedf15bfd87.png"></span><span><img src="/static/previews/e8e45eedf15bfd87.png"></span>github repo</a> accompanying this post.</p>
+<p>That’s it. You can now play against the model by opening the console in your browser, and calling chooseMove(..) with ‘rock’, ‘paper’ or ‘scissors’, or building a frontend around the model like the one in the <a href="https://github.com/Tenoke/tensorflowjs-rps">github repo</a> accompanying this post.</p>
 
   </div><a class="u-url" href="/blog/rps/" hidden></a>
 </article>
@@ -368,7 +358,7 @@ function moveBasedOn(move) {
           <li class="p-name">Svilen Todorov</li><li><a class="u-email" href="mailto:sviltodorov@gmail.com">sviltodorov@gmail.com</a></li></ul>
       </div>
 
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><span><img src="/static/previews/ed86ab8069dbb6ce.png"></span><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/tenoke"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">tenoke</span></a></li></ul>
 </div>
 
       <div class="footer-col footer-col-3">
